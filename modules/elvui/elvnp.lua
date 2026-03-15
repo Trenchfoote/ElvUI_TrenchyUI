@@ -9,8 +9,8 @@ function TUI:InitElvNP()
 	local np = self.db.profile.nameplates
 	if not np then return end
 
-	-- Pending removal based on ElvUI updates
-	if NamePlateFriendlyFrameOptions and TextureLoadingGroupMixin
+	if np.hideFriendlyRealm
+		and NamePlateFriendlyFrameOptions and TextureLoadingGroupMixin
 		and NamePlateFriendlyFrameOptions.updateNameUsesGetUnitName then
 		local wrapper = { textures = NamePlateFriendlyFrameOptions }
 		NamePlateFriendlyFrameOptions.updateNameUsesGetUnitName = 0

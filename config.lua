@@ -51,6 +51,7 @@ TUI.defaults = {
                 enabled = false,
                 color   = { r = 1.0, g = 0.8, b = 0.0 },
             },
+            hideFriendlyRealm = false,
             disableFriendlyHighlight = false,
             focusGlow = {
                 enabled = false,
@@ -1825,7 +1826,7 @@ function TUI:BuildConfig()
         function() return not TUI.db.profile.nameplates.questColor.enabled end
     )
 
-    root.nameplates.args.highlight = ACH:Group("Hover Highlight", nil, 4)
+    root.nameplates.args.highlight = ACH:Group("Friendly Nameplates", nil, 5)
     root.nameplates.args.highlight.inline = true
     local npHL = root.nameplates.args.highlight.args
 
@@ -1841,7 +1842,19 @@ function TUI:BuildConfig()
     )
     npHL.disableFriendlyHighlight.customWidth = 250
 
-    root.nameplates.args.focus = ACH:Group("Focus Indicator", nil, 5)
+    npHL.hideFriendlyRealm = ACH:Toggle(
+        "Hide Friendly Realm Names",
+        "Remove realm name suffixes from friendly nameplates.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.hideFriendlyRealm end,
+        function(_, value)
+            TUI.db.profile.nameplates.hideFriendlyRealm = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+    npHL.hideFriendlyRealm.customWidth = 250
+
+    root.nameplates.args.focus = ACH:Group("Focus Indicator", nil, 4)
     root.nameplates.args.focus.inline = true
     local npFocus = root.nameplates.args.focus.args
 
@@ -1918,7 +1931,7 @@ function TUI:BuildConfig()
         if installed == TUI.profileVersion then
             return "ElvUI (v" .. installed .. ")"
         end
-        return "ElvUI (v" .. installed .. " → v" .. TUI.profileVersion .. ")"
+        return "ElvUI (v" .. installed .. " > v" .. TUI.profileVersion .. ")"
     end
 
     local function elvuiVersionDesc()
