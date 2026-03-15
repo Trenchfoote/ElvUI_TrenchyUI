@@ -3,9 +3,7 @@ local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
 
 local CreateFrame = CreateFrame
-local C_Spell_GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
 local ipairs = ipairs
-local issecretvalue = issecretvalue
 
 function TUI:InitElvNP()
 	local np = self.db.profile.nameplates
@@ -96,232 +94,183 @@ do -- Threat Override
 	end
 end
 
-do -- Interrupt Spell Detection (adapted from mMediaTag with permission from Blinkii, 2026-03-07)
-	local UnitCanAttack = UnitCanAttack
-	local C_SpellBook_IsSpellKnownOrInSpellBook = C_SpellBook.IsSpellKnownOrInSpellBook
+-- Interrupt on CD (adapted from mMediaTag with permission from Blinkii, 2026-03-14)
+do
+	local GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
 	local EvalColorBool = C_CurveUtil.EvaluateColorValueFromBoolean
+	local EvalColor = C_CurveUtil.EvaluateColorFromBoolean
+	local UnitCanAttack = UnitCanAttack
+	local UnitChannelInfo = UnitChannelInfo
+	local GetSpecialization = GetSpecialization
+	local GetSpecializationInfo = GetSpecializationInfo
+	local IsPlayerSpell = IsPlayerSpell
 
-	local interruptMap = {
-		DEATHKNIGHT = { 47528 },
-		DEMONHUNTER = { 183752 },
-		DRUID       = { 106839, 78675 },
-		EVOKER      = { 351338 },
-		HUNTER      = { 147362, 187707 },
-		MAGE        = { 2139 },
-		MONK        = { 116705 },
-		PALADIN     = { 96231 },
-		PRIEST      = { 15487 },
-		ROGUE       = { 1766 },
-		SHAMAN      = { 57994 },
-		WARLOCK     = { 19647, 89766, 119910, 132409 },
-		WARRIOR     = { 6552 },
+	local INTERRUPT_BY_SPEC = {
+		[71] = 6552, [72] = 6552, [73] = 6552,
+		[65] = 96231, [66] = 96231, [70] = 96231,
+		[253] = 147362, [254] = 147362, [255] = 187707,
+		[259] = 1766, [260] = 1766, [261] = 1766,
+		[256] = nil, [257] = nil, [258] = 15487,
+		[250] = 47528, [251] = 47528, [252] = 47528,
+		[262] = 57994, [263] = 57994, [264] = 57994,
+		[62] = 2139, [63] = 2139, [64] = 2139,
+		[265] = 119910, [266] = 119914, [267] = 119910,
+		[268] = 116705, [269] = 116705, [270] = 116705,
+		[102] = 78675, [103] = 106839, [104] = 106839, [105] = 106839,
+		[577] = 183752, [581] = 183752, [1480] = 183752,
+		[1467] = 351338, [1468] = 351338, [1473] = 351338,
 	}
 
-	local currentInterrupt
+	local interruptSpellId
+	local colors
 
 	local function UpdateInterruptSpell()
-		currentInterrupt = nil
-		local spells = interruptMap[E.myclass]
-		if not spells then return end
-		for _, spellID in ipairs(spells) do
-			if C_SpellBook_IsSpellKnownOrInSpellBook(spellID)
-			or C_SpellBook_IsSpellKnownOrInSpellBook(spellID, Enum.SpellBookSpellBank.Pet) then
-				currentInterrupt = spellID
+		local spec = GetSpecialization()
+		if not spec then return end
+		local specId = GetSpecializationInfo(spec)
+
+		if E.myclass == 'WARLOCK' then
+			for _, spellId in ipairs({ 89766, 212619, 119914 }) do
+				if IsPlayerSpell(spellId) then
+					INTERRUPT_BY_SPEC[specId] = spellId
+					break
+				end
 			end
 		end
+
+		interruptSpellId = INTERRUPT_BY_SPEC[specId]
 	end
 
-	do
-		local f = CreateFrame('Frame')
-		f:RegisterEvent('PLAYER_LOGIN')
-		f:RegisterEvent('SPELLS_CHANGED')
-		f:SetScript('OnEvent', UpdateInterruptSpell)
-	end
-
-	local activeCastbars = {}
-
-	-- Return notInterruptible safe for EvalColorBool: secret values pass through, nil becomes false
-	local function GetNotInterruptible(castbar)
-		local v = castbar.notInterruptible
-		if issecretvalue(v) then return v end
-		return v or false
-	end
-
-	-- Lazily create marker frames: clip + CD bar + marker texture
-	local function EnsureMarkerFrames(castbar)
-		if castbar.TUI_InterruptMarker then return end
-
-		local clip = CreateFrame('Frame', nil, castbar)
-		clip:SetAllPoints(castbar)
-		clip:SetClipsChildren(true)
-		clip:SetFrameLevel(castbar:GetFrameLevel() + 1)
-		clip:Hide()
-		castbar.TUI_Clip = clip
-
-		-- CD bar: transparent fill tracks interrupt CD remaining; marker sits at its fill edge
-		local cdBar = CreateFrame('StatusBar', nil, clip)
-		cdBar:SetAllPoints(clip)
-		cdBar:SetStatusBarTexture(E.media.blankTex)
-		cdBar:GetStatusBarTexture():SetAlpha(0)
-		cdBar:SetMinMaxValues(0, 1)
-		cdBar:SetValue(0)
-		castbar.TUI_CDBar = cdBar
-
-		local marker = cdBar:CreateTexture(nil, 'OVERLAY')
-		marker:SetDrawLayer('OVERLAY', 4)
-		marker:SetBlendMode('ADD')
-		marker:SetSize(2, castbar:GetHeight())
-		marker:SetColorTexture(1, 1, 1)
-		castbar.TUI_InterruptMarker = marker
-	end
-
-	local function ResetMarker(castbar)
-		if castbar.TUI_Clip then castbar.TUI_Clip:Hide() end
-		activeCastbars[castbar] = nil
-	end
-
-	-- Cache DB references at cast-check time, reuse in tick
-	local cachedReadyC, cachedOnCDC, cachedNoIntC
-
-	local function CacheColorDBs()
+	local function CacheColors()
 		local db = TUI.db.profile.nameplates
-		cachedReadyC = db.castbarInterruptReady
-		cachedOnCDC = db.castbarInterruptOnCD
-		cachedNoIntC = NP.db.colors.castNoInterruptColor
+		colors = {
+			ready = CreateColor(db.castbarInterruptReady.r, db.castbarInterruptReady.g, db.castbarInterruptReady.b),
+			onCD = CreateColor(db.castbarInterruptOnCD.r, db.castbarInterruptOnCD.g, db.castbarInterruptOnCD.b),
+			marker = db.castbarMarkerColor,
+		}
 	end
 
-	local function ApplyInterruptColor(castbar, isNotInt, isReady)
-		local iR = EvalColorBool(isReady, cachedReadyC.r, cachedOnCDC.r)
-		local iG = EvalColorBool(isReady, cachedReadyC.g, cachedOnCDC.g)
-		local iB = EvalColorBool(isReady, cachedReadyC.b, cachedOnCDC.b)
-		castbar:SetStatusBarColor(
-			EvalColorBool(isNotInt, cachedNoIntC.r, iR),
-			EvalColorBool(isNotInt, cachedNoIntC.g, iG),
-			EvalColorBool(isNotInt, cachedNoIntC.b, iB)
-		)
+	local function GetInterruptCooldown()
+		if interruptSpellId then return GetSpellCooldownDuration(interruptSpellId) end
 	end
 
-	local function PlaceMarker(castbar, unit)
-		local clip = castbar.TUI_Clip
-		local cdBar = castbar.TUI_CDBar
-		local marker = castbar.TUI_InterruptMarker
-		if not clip or not cdBar or not marker then return end
+	local function PostCastFailInterrupted(castbar)
+		local c = NP.db.colors.castInterruptedColor
+		if c then castbar:SetStatusBarColor(c.r, c.g, c.b) end
+		castbar.TUI_IsInterruptedOrFailed = true
+	end
 
-		local castDuration = UnitCastingDuration(unit) or UnitChannelDuration(unit)
-		if not castDuration then clip:Hide() return end
+	local function SetKickSpark(castbar, castStart, cooldown)
+		local unit = castbar.unit or castbar.__owner.unit
+		if not (unit and UnitCanAttack('player', unit)) then return end
 
-		local cdDuration = C_Spell_GetSpellCooldownDuration(currentInterrupt)
-		local isChannel = castbar.channeling
+		local kickBar = castbar.TUI_KickBar
+		local indicator = kickBar.TUI_Indicator
+		if cooldown == nil then return end
 
-		cdBar:SetReverseFill(isChannel or false)
-		cdBar:SetMinMaxValues(0, castDuration:GetTotalDuration())
-		cdBar:SetValue(cdDuration:GetRemainingDuration())
+		if castStart then
+			local isChannel = UnitChannelInfo(unit) ~= nil
+			local fillStyle = isChannel and Enum.StatusBarFillStyle.Reverse or Enum.StatusBarFillStyle.Standard
+			local barAnchor = isChannel and 'LEFT' or 'RIGHT'
+			local indicatorAnchor = isChannel and 'RIGHT' or 'LEFT'
 
-		local mc = TUI.db.profile.nameplates.castbarMarkerColor
-		marker:SetColorTexture(mc.r, mc.g, mc.b)
-		marker:SetSize(2, castbar:GetHeight())
-		marker:ClearAllPoints()
-		if isChannel then
-			marker:SetPoint('RIGHT', cdBar:GetStatusBarTexture(), 'LEFT', 0, 0)
+			kickBar:SetFillStyle(fillStyle)
+			indicator:ClearAllPoints()
+			indicator:SetPoint(indicatorAnchor, kickBar:GetStatusBarTexture(), barAnchor)
+
+			local totalDuration = castbar:GetTimerDuration():GetTotalDuration()
+			kickBar:SetMinMaxValues(0, totalDuration)
+			kickBar:SetValue(cooldown:GetRemainingDuration())
+
+			local shieldAlpha = 0
+			if castbar.notInterruptible ~= nil then shieldAlpha = EvalColorBool(castbar.notInterruptible, 0, 1) end
+			kickBar:SetAlphaFromBoolean(cooldown:IsZero(), 0, shieldAlpha)
 		else
-			marker:SetPoint('LEFT', cdBar:GetStatusBarTexture(), 'RIGHT', 0, 0)
-		end
-
-		local notInt = GetNotInterruptible(castbar)
-		local onCD = EvalColorBool(cdDuration:IsZero(), 0, 1)
-		clip:SetAlpha(EvalColorBool(notInt, 0, onCD))
-		clip:Show()
-	end
-
-	-- Single shared ticker: one CD lookup, updates all active castbars
-	local sharedTicker
-
-	local function TickAllCastbars()
-		local hasActive = false
-		local cdDuration = currentInterrupt and C_Spell_GetSpellCooldownDuration(currentInterrupt)
-
-		for cb in pairs(activeCastbars) do
-			if not cb:IsShown() or not (cb.casting or cb.channeling) then
-				if cb.TUI_WasInterrupted and cb:IsShown() then
-					local c = NP.db.colors.castInterruptedColor
-					if c then cb:SetStatusBarColor(c.r, c.g, c.b) end
-				end
-				ResetMarker(cb)
-			elseif cdDuration then
-				hasActive = true
-				local notInt = GetNotInterruptible(cb)
-				local isReady = cdDuration:IsZero()
-				ApplyInterruptColor(cb, notInt, isReady)
-				local clip = cb.TUI_Clip
-				if clip then
-					local onCD = EvalColorBool(isReady, 0, 1)
-					clip:SetAlpha(EvalColorBool(notInt, 0, onCD))
-				end
-			end
-		end
-
-		if not hasActive and sharedTicker then
-			sharedTicker:Cancel()
-			sharedTicker = nil
+			kickBar:SetAlphaFromBoolean(cooldown:IsZero(), 0, kickBar:GetAlpha())
+			if castbar.interrupted then kickBar:SetAlpha(0) end
 		end
 	end
 
-	local function StartSharedTicker()
-		if not sharedTicker then
-			sharedTicker = C_Timer.NewTicker(0.1, TickAllCastbars)
+	local function SetCastbarColor(castbar, cooldown)
+		if castbar.failed or castbar.interrupted or castbar.finished or cooldown == nil then
+			local c = colors.ready
+			castbar:SetStatusBarColor(c.r, c.g, c.b)
+			return
 		end
+
+		local unit = castbar.unit or castbar.__owner.unit
+		if not (unit and UnitCanAttack('player', unit)) then return end
+
+		local color = EvalColor(cooldown:IsZero(), colors.ready, colors.onCD)
+		if castbar.notInterruptible ~= nil then color = EvalColor(castbar.notInterruptible, colors.ready, color) end
+		castbar:SetStatusBarColor(color:GetRGBA())
 	end
 
-	local function ResetAllOverlays(interrupted)
-		local cdDuration = currentInterrupt and C_Spell_GetSpellCooldownDuration(currentInterrupt)
-		for cb in pairs(activeCastbars) do
-			if cb == interrupted then
-				ResetMarker(cb)
-			else
-				if cb.TUI_Clip then cb.TUI_Clip:Hide() end
-				if cdDuration then
-					ApplyInterruptColor(cb, GetNotInterruptible(cb), cdDuration:IsZero())
-				end
-			end
+	local function UpdateCast(castbar, castStart)
+		local cooldown = GetInterruptCooldown()
+		SetKickSpark(castbar, castStart, cooldown)
+		SetCastbarColor(castbar, cooldown)
+	end
+
+	local function ConstructKickBar(castbar)
+		if castbar.TUI_KickBar then return end
+
+		local kickBar = CreateFrame('StatusBar', nil, castbar)
+		kickBar:SetClipsChildren(true)
+		kickBar:SetStatusBarTexture(E.media.blankTex)
+		kickBar:GetStatusBarTexture():SetAlpha(0)
+		kickBar:ClearAllPoints()
+		kickBar:SetAllPoints(castbar)
+		kickBar:SetFrameLevel(castbar:GetFrameLevel() + 3)
+
+		local c = colors.marker
+		local indicator = kickBar:CreateTexture(nil, 'OVERLAY')
+		indicator:SetColorTexture(c.r, c.g, c.b)
+		indicator:SetSize(2, castbar:GetHeight())
+
+		kickBar.TUI_Indicator = indicator
+		castbar.TUI_KickBar = kickBar
+	end
+
+	local function OnUpdate(castbar, elapsed)
+		if castbar.TUI_IsInterruptedOrFailed then return end
+		castbar._kickThrottle = (castbar._kickThrottle or 0) + elapsed
+		if castbar._kickThrottle < 0.25 then return end
+		castbar._kickThrottle = 0
+		UpdateCast(castbar, false)
+	end
+
+	local function PostCastStart(castbar, unit)
+		if not (castbar and unit) then return end
+		if not (castbar.casting or castbar.channeling) then return end
+		if not UnitCanAttack('player', unit) then return end
+		if not interruptSpellId then return end
+
+		castbar.TUI_IsInterruptedOrFailed = false
+		ConstructKickBar(castbar)
+		UpdateCast(castbar, true)
+
+		if not castbar.TUI_OnUpdateHooked then
+			castbar:HookScript('OnUpdate', OnUpdate)
+			castbar.TUI_OnUpdateHooked = true
 		end
 	end
 
 	function TUI:HookCastbarInterrupt()
 		if self._hookedCastbarInterrupt then return end
 		self._hookedCastbarInterrupt = true
-		CacheColorDBs()
 
-		hooksecurefunc(NP, 'Castbar_PostCastFail', function(castbar)
-			castbar.TUI_WasInterrupted = true
-			ResetAllOverlays(castbar)
-		end)
+		CacheColors()
 
-		hooksecurefunc(NP, 'Castbar_PostCastInterrupted', function(castbar)
-			castbar.TUI_WasInterrupted = true
-			ResetAllOverlays(castbar)
-			local c = NP.db.colors.castInterruptedColor
-			if c then castbar:SetStatusBarColor(c.r, c.g, c.b) end
-		end)
+		local f = CreateFrame('Frame')
+		f:RegisterEvent('PLAYER_ENTERING_WORLD')
+		f:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED')
+		f:RegisterEvent('PLAYER_TALENT_UPDATE')
+		f:SetScript('OnEvent', UpdateInterruptSpell)
 
-		hooksecurefunc(NP, 'Castbar_CheckInterrupt', function(castbar, unit)
-			if castbar.TUI_WasInterrupted and not (castbar.casting or castbar.channeling) then return end
-			ResetMarker(castbar)
-			castbar.TUI_WasInterrupted = nil
-
-			if not castbar.casting and not castbar.channeling then return end
-			if unit == 'vehicle' then unit = 'player' end
-			if not UnitCanAttack('player', unit) then return end
-			if not currentInterrupt then return end
-
-			CacheColorDBs()
-			local cdDuration = C_Spell_GetSpellCooldownDuration(currentInterrupt)
-			ApplyInterruptColor(castbar, GetNotInterruptible(castbar), cdDuration:IsZero())
-			activeCastbars[castbar] = unit
-
-			EnsureMarkerFrames(castbar)
-			PlaceMarker(castbar, unit)
-			StartSharedTicker()
-		end)
+		hooksecurefunc(NP, 'Castbar_PostCastStart', PostCastStart)
+		hooksecurefunc(NP, 'Castbar_PostCastFail', PostCastFailInterrupted)
+		hooksecurefunc(NP, 'Castbar_PostCastInterrupted', PostCastFailInterrupted)
 	end
 end
 
