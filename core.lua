@@ -256,7 +256,6 @@ do -- Settings merge
 		if self.InitSkinAuctionator then self:InitSkinAuctionator() end
 		if not self:IsCompatBlocked('cooldownManager') and self.InitCooldownManager then self:InitCooldownManager() end
 		if self.db.profile.fakePower.soulFragments and self.InitSoulFragments then self:InitSoulFragments() end
-		if self.db.profile.fakePower.ironfurBar and self.InitIronfurBar then self:InitIronfurBar() end
 		if not self:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
 		if self.InitSteadyFlight then self:InitSteadyFlight() end
 		if not self:IsCompatBlocked('damageMeter') and self.InitDamageMeter then self:InitDamageMeter() end

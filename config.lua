@@ -68,7 +68,6 @@ TUI.defaults = {
         },
         fakePower = {
             soulFragments = true,
-            ironfurBar    = true,
         },
         fader = {
             steadyFlight = false,
@@ -1688,17 +1687,6 @@ function TUI:BuildConfig()
         function() return TUI.db.profile.fakePower.soulFragments end,
         function(_, value)
             TUI.db.profile.fakePower.soulFragments = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-
-    fp.ironfurBar = ACH:Toggle(
-        "Bear: Ironfur",
-        "Show an Ironfur duration bar for Guardian Druids. Anchors to the ElvUI class bar mover.",
-        2, nil, nil, nil,
-        function() return TUI.db.profile.fakePower.ironfurBar end,
-        function(_, value)
-            TUI.db.profile.fakePower.ironfurBar = value
             E:StaticPopup_Show('CONFIG_RL')
         end
     )

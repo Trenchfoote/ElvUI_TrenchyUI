@@ -2817,7 +2817,6 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.pixelGlow.enabled = true
     E.db.TrenchyUI.pixelGlow.thickness = 3
     E.db.TrenchyUI.fakePower.soulFragments = true
-    E.db.TrenchyUI.fakePower.ironfurBar = true
     SetCVar('cooldownViewerEnabled', 1)
     E.db.TrenchyUI.cooldownManager.enabled = true
     E.db.TrenchyUI.cooldownManager.hideSwipe = true
