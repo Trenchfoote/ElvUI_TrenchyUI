@@ -101,7 +101,7 @@ TUI.defaults = {
                 },
                 buffBar = {
                     visibleSetting = 'ALWAYS', hideWhenInactive = true, showTooltips = false, barWidth = 200, barHeight = 20, spacing = 2, growthDirection = 'DOWN',
-                    showIcon = true, showName = true, showTimer = true, showSpark = false, iconGap = 2, mirroredColumns = false, columnGap = 4,
+                    showIcon = true, showName = true, showTimer = true, showStacks = true, showSpark = false, iconGap = 2, mirroredColumns = false, columnGap = 4,
                     foregroundTexture = 'ElvUI Norm', backgroundTexture = 'ElvUI Norm',
                     nameText     = { font = 'Expressway', fontSize = 12, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'LEFT', xOffset = 2, yOffset = 0 },
                     durationText = { font = 'Expressway', fontSize = 12, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'RIGHT', xOffset = -2, yOffset = 0 },
@@ -1600,7 +1600,13 @@ function TUI:BuildConfig()
             function(_, value) selVDB().showTimer = value; cdmRefresh() end
         )
         cdmViewer.stacksText = BuildBarTextGroup("Stacks Text", 10, 'stacksText')
-        cdmViewer.stacksText.hidden = function() return isIconViewer() or not selVDB().showIcon end
+        cdmViewer.stacksText.args.enable = ACH:Toggle(
+            function() return selVDB().showStacks ~= false and "|cff00ff00Show|r" or "Show" end,
+            "Show stack count on bars for buffs with multiple applications.", 0, nil, nil, nil,
+            function() return selVDB().showStacks ~= false end,
+            function(_, value) selVDB().showStacks = value; cdmRefresh() end
+        )
+        cdmViewer.stacksText.hidden = isIconViewer
     end
 
     root.unitframes = ACH:Group("UnitFrames", nil, 3)

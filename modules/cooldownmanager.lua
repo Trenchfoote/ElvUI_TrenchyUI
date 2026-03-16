@@ -293,9 +293,21 @@ local function SetPreviewText(itemFrame, show, vdb)
 				pfs:SetText('12.5s')
 				pfs:Show()
 			end
+			if vdb.showStacks ~= false and vdb.stacksText then
+				if not bar.tuiPreviewStacks then
+					bar.tuiPreviewStacks = bar:CreateFontString(nil, 'OVERLAY')
+				end
+				local pfs = bar.tuiPreviewStacks
+				StyleFontString(pfs, vdb.stacksText)
+				pfs:SetText('3')
+				pfs:Show()
+			elseif bar.tuiPreviewStacks then
+				bar.tuiPreviewStacks:Hide()
+			end
 		else
 			if bar.tuiPreviewName then bar.tuiPreviewName:Hide() end
 			if bar.tuiPreviewDuration then bar.tuiPreviewDuration:Hide() end
+			if bar.tuiPreviewStacks then bar.tuiPreviewStacks:Hide() end
 		end
 		return
 	end
@@ -1020,15 +1032,27 @@ ApplyBarStyle = function(frame, vdb)
 		end
 	end
 
-	-- Stacks text on icon
+	-- Stacks text on icon — hide when bar stacks are active to avoid duplicate
+	local barStacksActive = bar and vdb.showStacks ~= false
 	if icon and showIcon and vdb.stacksText then
-		local stackFS = icon.Applications and icon.Applications.Applications
-		if stackFS then stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText) end
+		local stackFS = icon.Applications
+		if stackFS and stackFS.SetIgnoreParentScale then
+			if barStacksActive then stackFS:Hide()
+			else stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText); stackFS:Show() end
+		end
 		stackFS = icon.Count
-		if stackFS then stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText) end
+		if stackFS then
+			if barStacksActive then stackFS:Hide()
+			else stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText); stackFS:Show() end
+		end
 		stackFS = icon.ChargeCount and icon.ChargeCount.Current
-		if stackFS then stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText) end
+		if stackFS then
+			if barStacksActive then stackFS:Hide()
+			else stackFS:SetIgnoreParentScale(true); StyleFontString(stackFS, vdb.stacksText); stackFS:Show() end
+		end
 	end
+
+	-- Stacks text on bar — moved to UpdateBarStacks for per-layout refresh
 
 	-- DebuffBorder suppression
 	if frame.DebuffBorder and not frame.tuiDebuffBorderKilled then
@@ -1036,6 +1060,65 @@ ApplyBarStyle = function(frame, vdb)
 		frame.DebuffBorder:SetAlpha(0)
 		hooksecurefunc(frame.DebuffBorder, 'Show', function(self) self:Hide() end)
 		frame.tuiDebuffBorderKilled = true
+	end
+end
+
+local function UpdateBarStacks(frame, vdb)
+	local bar = frame.Bar
+	if not bar then return end
+	if vdb.showStacks == false or not vdb.stacksText then
+		if bar.tuiStacks then bar.tuiStacks:Hide() end
+		return
+	end
+	-- Try C_UnitAuras (applications, then charges), fall back to icon FontStrings
+	local stacks, isSecret
+	local sid = frame.GetBaseSpellID and frame:GetBaseSpellID()
+	if sid and not issecretvalue(sid) then
+		local aura = C_UnitAuras.GetPlayerAuraBySpellID(sid)
+		if aura then
+			local apps = aura.applications
+			if apps and not issecretvalue(apps) and apps > 1 then
+				stacks = apps
+			elseif aura.charges and not issecretvalue(aura.charges) and aura.charges > 1 then
+				stacks = aura.charges
+			end
+			if stacks then isSecret = false end
+		end
+	end
+	if not stacks then
+		local icon = frame.Icon
+		if icon then
+			local fs = icon.Applications
+			if fs and fs.GetText then
+				local t = fs:GetText()
+				if t and (issecretvalue(t) or (t ~= '' and t ~= '1')) then stacks = t; isSecret = issecretvalue(t) end
+			end
+			if not stacks then
+				fs = icon.Count
+				if fs and fs.GetText then
+					local t = fs:GetText()
+					if t and (issecretvalue(t) or (t ~= '' and t ~= '1')) then stacks = t; isSecret = issecretvalue(t) end
+				end
+			end
+			if not stacks then
+				fs = icon.ChargeCount and icon.ChargeCount.Current
+				if fs and fs.GetText then
+					local t = fs:GetText()
+					if t and (issecretvalue(t) or (t ~= '' and t ~= '1')) then stacks = t; isSecret = issecretvalue(t) end
+				end
+			end
+		end
+	end
+	local show = stacks and (isSecret or (tonumber(stacks) or 0) > 1)
+	if show then
+		if not bar.tuiStacks then
+			bar.tuiStacks = bar:CreateFontString(nil, 'OVERLAY')
+		end
+		StyleFontString(bar.tuiStacks, vdb.stacksText)
+		bar.tuiStacks:SetText(stacks)
+		bar.tuiStacks:Show()
+	elseif bar.tuiStacks then
+		bar.tuiStacks:Hide()
 	end
 end
 
@@ -1114,6 +1197,7 @@ LayoutBuffBar = function(viewerKey, isCapture)
 			end
 			left:ClearAllPoints()
 			left:SetPoint(anchor, container, anchor, 0, yOff)
+			UpdateBarStacks(left, vdb)
 
 			-- Right bar (absent on odd-count last row)
 			if right then
@@ -1126,6 +1210,7 @@ LayoutBuffBar = function(viewerKey, isCapture)
 				end
 				right:ClearAllPoints()
 				right:SetPoint(anchor, container, anchor, colW + columnGap, yOff)
+				UpdateBarStacks(right, vdb)
 			end
 		end
 	else
@@ -1143,6 +1228,7 @@ LayoutBuffBar = function(viewerKey, isCapture)
 
 			frame:ClearAllPoints()
 			frame:SetPoint(anchor, container, anchor, 0, yDir * (i - 1) * (barH + spacing))
+			UpdateBarStacks(frame, vdb)
 		end
 	end
 
