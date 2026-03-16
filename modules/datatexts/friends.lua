@@ -1,7 +1,7 @@
 local E, _, _, _, G = unpack(ElvUI)
 local DT = E:GetModule('DataTexts')
 
-local format, sort, wipe, ipairs, next, gsub, strfind = format, sort, wipe, ipairs, next, gsub, strfind
+local format, sort, wipe, ipairs, next, gsub, strfind, strmatch = format, sort, wipe, ipairs, next, gsub, strfind, strmatch
 local BNConnected = BNConnected
 local BNGetNumFriends = BNGetNumFriends
 local GetQuestDifficultyColor = GetQuestDifficultyColor
@@ -58,13 +58,19 @@ local clientTags = {
 }
 
 local ROW_HEIGHT = 16
-local ROW_PAD = 2
+local ROW_PAD = 4
+local SECTION_PAD = 10
 local TOOLTIP_PAD = 8
 local MAX_ROWS = 30
 
 local statusText = {
 	AFK = ' |cffFF9900AFK|r',
 	DND = ' |cffFF3333DND|r',
+}
+
+local statusColor = {
+	AFK = { r = 1, g = 0.6, b = 0 },
+	DND = { r = 1, g = 0.2, b = 0.2 },
 }
 
 local activezone = { r = 0.3, g = 1.0, b = 0.3 }
@@ -124,13 +130,14 @@ local function BuildFriendTable(total)
 		local info = C_FriendList_GetFriendInfoByIndex(i)
 		if info and info.connected then
 			local className = E:UnlocalizedClassName(info.className) or ''
-			local status = (info.afk and statusText.AFK) or (info.dnd and statusText.DND) or ''
+			local statusKey = (info.afk and 'AFK') or (info.dnd and 'DND') or nil
 			friendTable[#friendTable + 1] = {
 				name = info.name,
 				level = info.level,
 				class = className,
 				zone = info.area or '',
-				status = status,
+				status = statusKey and statusText[statusKey] or '',
+				statusKey = statusKey,
 			}
 		end
 	end
@@ -144,10 +151,11 @@ local function ClientSortFunc(a, b)
 end
 
 local function BNSortFunc(a, b)
+	if a.isFavorite ~= b.isFavorite then return a.isFavorite end
 	if a.client and b.client and a.client == b.client and a.client == wowString then
 		if a.name and b.name then return a.name < b.name end
 	end
-	return (a.accountName or '') < (b.accountName or '')
+	return (a.displayName or '') < (b.displayName or '')
 end
 
 local function BuildBNTable(total)
@@ -162,7 +170,8 @@ local function BuildBNTable(total)
 		local gameInfo = accountInfo and accountInfo.gameAccountInfo
 		if gameInfo and gameInfo.isOnline then
 			local client = gameInfo.clientProgram
-			local status = (accountInfo.isAFK and statusText.AFK) or (accountInfo.isDND and statusText.DND) or ''
+			local statusKey = (accountInfo.isAFK and 'AFK') or (accountInfo.isDND and 'DND') or nil
+			local status = statusKey and statusText[statusKey] or ''
 			local charName = BNet_GetValidatedCharacterName(gameInfo.characterName, accountInfo.battleTag, client) or ''
 			local className = E:UnlocalizedClassName(gameInfo.className) or ''
 
@@ -181,9 +190,22 @@ local function BuildBNTable(total)
 				end
 			end
 
+			local isBTag = accountInfo.isBattleTagFriend
+			local btagName = accountInfo.battleTag and strmatch(accountInfo.battleTag, '([^#]+)')
+			local displayName
+			if isBTag then
+				displayName = btagName or accountInfo.accountName or ''
+			else
+				displayName = accountInfo.accountName or ''
+				if btagName then displayName = displayName .. ' (' .. btagName .. ')' end
+			end
+			-- Only show charName when it differs from the battletag name
+			local showChar = charName ~= '' and charName ~= btagName
+
 			local entry = {
 				accountName = accountInfo.accountName,
 				battleTag = accountInfo.battleTag,
+				displayName = displayName,
 				name = charName,
 				level = gameInfo.characterLevel or 0,
 				class = className,
@@ -191,9 +213,12 @@ local function BuildBNTable(total)
 				realmName = gameInfo.realmName or '',
 				client = client,
 				status = status,
+				statusKey = statusKey,
 				gameID = gameInfo.gameAccountID,
 				isWoW = client == wowString,
 				wowProjectID = gameInfo.wowProjectID,
+				isFavorite = accountInfo.isFavorite or false,
+				showChar = showChar,
 			}
 
 			bnTable[#bnTable + 1] = entry
@@ -253,19 +278,17 @@ local function GetOrCreateRow(index)
 
 	row.level = row:CreateFontString(nil, 'OVERLAY')
 	row.level:SetPoint('LEFT', row, 'LEFT', 0, 0)
-	row.level:SetWidth(28)
+	row.level:SetWidth(24)
 	row.level:FontTemplate(font, fontSize, fontOutline)
 	row.level:SetJustifyH('RIGHT')
 
 	row.name = row:CreateFontString(nil, 'OVERLAY')
 	row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
-	row.name:SetWidth(160)
 	row.name:FontTemplate(font, fontSize, fontOutline)
 	row.name:SetJustifyH('LEFT')
 
 	row.zone = row:CreateFontString(nil, 'OVERLAY')
 	row.zone:SetPoint('RIGHT', row, 'RIGHT', 0, 0)
-	row.zone:SetWidth(130)
 	row.zone:FontTemplate(font, fontSize, fontOutline)
 	row.zone:SetJustifyH('RIGHT')
 
@@ -332,10 +355,31 @@ local function ApplyFonts()
 	local font, fontSize, fontOutline = GetDTFont()
 	if headerText then headerText:FontTemplate(font, fontSize + 2, 'OUTLINE') end
 	for _, row in ipairs(rows) do
-		row.level:FontTemplate(font, fontSize, fontOutline)
-		row.name:FontTemplate(font, fontSize, fontOutline)
-		row.zone:FontTemplate(font, fontSize, fontOutline)
+		local fs = row.isHeader and (fontSize + 2) or fontSize
+		row.level:FontTemplate(font, fs, fontOutline)
+		row.name:FontTemplate(font, fs, fontOutline)
+		row.zone:FontTemplate(font, fs, fontOutline)
 	end
+end
+
+local function SetupHeaderRow(row, text, prevRow)
+	row.isHeader = true
+	row.level:SetText('')
+	row.name:SetText(text)
+	local cc = E:ClassColor(E.myclass)
+	row.name:SetTextColor(cc.r, cc.g, cc.b)
+	row.zone:SetText('')
+	row.friendName = nil
+	row.friendBNetName = nil
+	row.friendClass = nil
+	row.canInvite = false
+	row.friendGameID = nil
+
+	local pad = prevRow and -SECTION_PAD or -6
+	local anchor = prevRow or headerText
+	row:SetPoint('TOPLEFT', anchor, 'BOTTOMLEFT', 0, pad)
+	row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
+	row:Show()
 end
 
 local function ShowTooltip(panel)
@@ -360,29 +404,15 @@ local function ShowTooltip(panel)
 
 	-- Section: Character friends
 	local hasCharHeader = false
+	local headerCount = 0
 	for _, info in ipairs(friendTable) do
 		if shown >= MAX_ROWS then break end
 
-		if not hasCharHeader and next(friendTable) then
+		if not hasCharHeader then
 			shown = shown + 1
+			headerCount = headerCount + 1
 			local row = GetOrCreateRow(shown)
-			row.level:SetText('')
-			row.name:SetText('Character Friends')
-			row.name:SetTextColor(0.4, 0.78, 1)
-			row.zone:SetText('')
-			row.friendName = nil
-			row.friendBNetName = nil
-			row.friendClass = nil
-			row.canInvite = false
-			row.friendGameID = nil
-			if shown == 1 then
-				row:SetPoint('TOPLEFT', headerText, 'BOTTOMLEFT', 0, -6)
-				row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
-			else
-				row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
-				row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
-			end
-			row:Show()
+			SetupHeaderRow(row, 'Character Friends', shown > 1 and rows[shown - 1] or nil)
 			hasCharHeader = true
 		end
 
@@ -395,12 +425,14 @@ local function ShowTooltip(panel)
 		row.level:SetTextColor(levelc.r, levelc.g, levelc.b)
 
 		row.name:SetText(info.name .. InGroup(info.name) .. info.status)
-		row.name:SetTextColor(classc.r, classc.g, classc.b)
+		local namec = info.statusKey and statusColor[info.statusKey] or classc
+		row.name:SetTextColor(namec.r, namec.g, namec.b)
 
 		local zonec = (E.MapInfo.zoneText and E.MapInfo.zoneText == info.zone) and activezone or inactivezone
 		row.zone:SetText(info.zone)
 		row.zone:SetTextColor(zonec.r, zonec.g, zonec.b)
 
+		row.isHeader = nil
 		row.friendName = info.name
 		row.friendBNetName = nil
 		row.friendClass = info.class
@@ -419,26 +451,11 @@ local function ShowTooltip(panel)
 		if not skip and group and #group > 0 and shown < MAX_ROWS then
 			-- Section header
 			shown = shown + 1
+			headerCount = headerCount + 1
 			local hdr = GetOrCreateRow(shown)
-			hdr.level:SetText('')
 			local tagInfo = clientTags[client]
 			local tag = tagInfo and tagInfo.tag or client
-			hdr.name:SetText(format('%s (%s)', battleNetString, tag))
-			hdr.name:SetTextColor(0.4, 0.78, 1)
-			hdr.zone:SetText('')
-			hdr.friendName = nil
-			hdr.friendBNetName = nil
-			hdr.friendClass = nil
-			hdr.canInvite = false
-			hdr.friendGameID = nil
-			if shown == 1 then
-				hdr:SetPoint('TOPLEFT', headerText, 'BOTTOMLEFT', 0, -6)
-				hdr:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
-			else
-				hdr:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
-				hdr:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
-			end
-			hdr:Show()
+			SetupHeaderRow(hdr, format('%s (%s)', battleNetString, tag), shown > 1 and rows[shown - 1] or nil)
 
 			for _, info in ipairs(group) do
 				if shown >= MAX_ROWS then break end
@@ -452,25 +469,37 @@ local function ShowTooltip(panel)
 					row.level:SetText(info.level)
 					row.level:SetTextColor(levelc.r, levelc.g, levelc.b)
 
-					local nameStr = info.name
-					if info.name ~= '' then
-						nameStr = nameStr .. InGroup(info.name, info.realmName) .. info.status
+					local nameStr = info.displayName
+					if info.showChar then
+						nameStr = nameStr .. ' - ' .. info.name
 					end
+					nameStr = nameStr .. InGroup(info.name, info.realmName) .. info.status
 					row.name:SetText(nameStr)
-					row.name:SetTextColor(classc.r, classc.g, classc.b)
+					local namec = info.statusKey and statusColor[info.statusKey] or classc
+					row.name:SetTextColor(namec.r, namec.g, namec.b)
 
 					local zonec = (E.MapInfo.zoneText and E.MapInfo.zoneText == info.zone) and activezone or inactivezone
 					row.zone:SetText(info.zone)
 					row.zone:SetTextColor(zonec.r, zonec.g, zonec.b)
 				else
 					row.level:SetText('')
-					local nameStr = info.name ~= '' and (info.name .. info.status) or ''
+					local nameStr = info.displayName
+					if info.showChar then
+						nameStr = nameStr .. ' - ' .. info.name
+					end
+					nameStr = nameStr .. info.status
 					row.name:SetText(nameStr)
-					row.name:SetTextColor(0.9, 0.9, 0.9)
-					row.zone:SetText(info.accountName or '')
+					local namec = info.statusKey and statusColor[info.statusKey]
+					if namec then
+						row.name:SetTextColor(namec.r, namec.g, namec.b)
+					else
+						row.name:SetTextColor(0.9, 0.9, 0.9)
+					end
+					row.zone:SetText('')
 					row.zone:SetTextColor(0.93, 0.93, 0.93)
 				end
 
+				row.isHeader = nil
 				row.friendName = info.name ~= '' and info.name or nil
 				row.friendBNetName = info.accountName
 				row.friendClass = info.class ~= '' and info.class or nil
@@ -489,9 +518,25 @@ local function ShowTooltip(panel)
 		rows[i]:Hide()
 	end
 
-	-- Size and position
-	local tooltipWidth = TOOLTIP_PAD * 2 + 28 + 4 + 160 + 10 + 130
-	local contentH = TOOLTIP_PAD + headerText:GetStringHeight() + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + TOOLTIP_PAD
+	-- Measure widths from actual text
+	local maxName, maxZone = 0, 0
+	for i = 1, shown do
+		local row = rows[i]
+		local nw = row.name:GetStringWidth()
+		local zw = row.zone:GetStringWidth()
+		if nw > maxName then maxName = nw end
+		if zw > maxZone then maxZone = zw end
+	end
+
+	local levelWidth = 28
+	local nameWidth = maxName + 4
+	local zoneWidth = maxZone > 0 and (maxZone + 16) or 0
+	local tooltipWidth = TOOLTIP_PAD * 2 + levelWidth + 4 + nameWidth + zoneWidth
+	local headerWidth = TOOLTIP_PAD * 2 + (headerText:GetStringWidth() or 0)
+	if headerWidth > tooltipWidth then tooltipWidth = headerWidth end
+
+	local sectionExtra = headerCount > 1 and ((headerCount - 1) * (SECTION_PAD - ROW_PAD)) or 0
+	local contentH = TOOLTIP_PAD + headerText:GetStringHeight() + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + sectionExtra + TOOLTIP_PAD
 
 	tooltip:SetSize(tooltipWidth, contentH)
 	AnchorToPanel(tooltip, panel)
