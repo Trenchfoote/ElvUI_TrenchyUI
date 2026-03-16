@@ -18,6 +18,7 @@
 	<Script file="qol\cursorcircle.lua"/>
 
 	<!-- Nameplates -->
+	<Script file="nameplates\castbarfix.lua"/>
 	<Script file="nameplates\classtarget.lua"/>
 	<Script file="nameplates\classification.lua"/>
 	<Script file="nameplates\threat.lua"/>

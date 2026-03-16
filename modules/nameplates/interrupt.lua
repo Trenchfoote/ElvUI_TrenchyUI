@@ -62,12 +62,6 @@ local function GetInterruptCooldown()
 	if interruptSpellId then return GetSpellCooldownDuration(interruptSpellId) end
 end
 
-local function PostCastFailInterrupted(castbar)
-	local c = NP.db.colors.castInterruptedColor
-	if c then castbar:SetStatusBarColor(c.r, c.g, c.b) end
-	castbar.TUI_IsInterruptedOrFailed = true
-end
-
 local function SetKickSpark(castbar, castStart, cooldown)
 	local unit = castbar.unit or castbar.__owner.unit
 	if not (unit and UnitCanAttack('player', unit)) then return end
@@ -185,6 +179,4 @@ function TUI:HookCastbarInterrupt()
 	TUI:RegisterEvent('PLAYER_TALENT_UPDATE', UpdateInterruptSpell)
 
 	hooksecurefunc(NP, 'Castbar_PostCastStart', PostCastStart)
-	hooksecurefunc(NP, 'Castbar_PostCastFail', PostCastFailInterrupted)
-	hooksecurefunc(NP, 'Castbar_PostCastInterrupted', PostCastFailInterrupted)
 end

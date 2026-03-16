@@ -36,6 +36,7 @@ function TUI:InitModules()
 		if np.classificationInstanceOnly then self:HookClassificationInstanceOnly() end
 		-- Pending removal based on ElvUI updates
 		if np.classificationOverThreat then self:HookNameplateThreat() end
+		self:HookCastbarFix()
 		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
 		-- Pending removal based on ElvUI updates
 		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
