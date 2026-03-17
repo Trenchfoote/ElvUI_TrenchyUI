@@ -7,7 +7,6 @@ local LSM = S.LSM
 
 local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
-local pairs = pairs
 
 -- Glow
 local glowColor = {}

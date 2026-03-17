@@ -323,14 +323,7 @@ function S.ApplyBarStyle(frame, vdb)
 	end
 
 	-- Stacks text on icon
-	if icon and showIcon and vdb.stacksText then
-		local stackFS = icon.Applications and icon.Applications.Applications
-		if stackFS then stackFS:SetIgnoreParentScale(true); S.StyleFontString(stackFS, vdb.stacksText) end
-		stackFS = icon.Count
-		if stackFS then stackFS:SetIgnoreParentScale(true); S.StyleFontString(stackFS, vdb.stacksText) end
-		stackFS = icon.ChargeCount and icon.ChargeCount.Current
-		if stackFS then stackFS:SetIgnoreParentScale(true); S.StyleFontString(stackFS, vdb.stacksText) end
-	end
+	if icon and showIcon then S.ApplyCountText(icon, vdb.stacksText) end
 
 	-- DebuffBorder suppression
 	if frame.DebuffBorder and not frame.tuiDebuffBorderKilled then

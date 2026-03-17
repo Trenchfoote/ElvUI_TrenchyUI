@@ -4,6 +4,34 @@ local S = TUI._cdm
 
 local hooksecurefunc = hooksecurefunc
 
+local function AnchorOptionPanel(panel, spellID, hookKey)
+	local spellInfo = C_Spell.GetSpellInfo(spellID)
+	local name = spellInfo and spellInfo.name or ('Spell ' .. spellID)
+	panel:SetTitle('|cffff2f3dTrenchyUI|r ' .. name)
+
+	panel.frame:ClearAllPoints()
+	local tsf = _G.CooldownViewerSettings
+	if tsf and tsf:IsShown() then
+		panel.frame:SetPoint('TOPLEFT', tsf, 'TOPRIGHT', 50, 0)
+	else
+		panel.frame:SetPoint('CENTER', E.UIParent, 'CENTER', 0, 100)
+	end
+
+	if tsf and not tsf[hookKey] then
+		tsf:HookScript('OnHide', function() if panel then panel:Hide() end end)
+		tsf[hookKey] = true
+	end
+
+	local editAlert = _G.CooldownViewerSettingsEditAlert
+	if editAlert then
+		if not editAlert[hookKey] then
+			editAlert:HookScript('OnShow', function() if panel then panel:Hide() end end)
+			editAlert[hookKey] = true
+		end
+		if editAlert:IsShown() then editAlert:Hide() end
+	end
+end
+
 -- Glow Options Panel
 do
 	local AceGUI = LibStub('AceGUI-3.0')
@@ -169,35 +197,7 @@ do
 		if not glowPanel then CreateGlowPanel() end
 		currentSpellID = spellID
 		TUI:HideBarColorPanel()
-
-		local spellInfo = C_Spell.GetSpellInfo(spellID)
-		local name = spellInfo and spellInfo.name or ('Spell ' .. spellID)
-		glowPanel:SetTitle('|cffff2f3dTrenchyUI|r ' .. name)
-
-		-- Anchor to Cooldown Settings panel
-		glowPanel.frame:ClearAllPoints()
-		local tsf = _G.CooldownViewerSettings
-		if tsf and tsf:IsShown() then
-			glowPanel.frame:SetPoint('TOPLEFT', tsf, 'TOPRIGHT', 50, 0)
-		else
-			glowPanel.frame:SetPoint('CENTER', E.UIParent, 'CENTER', 0, 100)
-		end
-
-		-- Close glow panel when Cooldown Settings closes or Edit Alert opens
-		if tsf and not tsf.tuiGlowHooked then
-			tsf:HookScript('OnHide', function() if glowPanel then glowPanel:Hide() end end)
-			tsf.tuiGlowHooked = true
-		end
-
-		local editAlert = _G.CooldownViewerSettingsEditAlert
-		if editAlert then
-			if not editAlert.tuiGlowHooked then
-				editAlert:HookScript('OnShow', function() if glowPanel then glowPanel:Hide() end end)
-				editAlert.tuiGlowHooked = true
-			end
-			if editAlert:IsShown() then editAlert:Hide() end
-		end
-
+		AnchorOptionPanel(glowPanel, spellID, 'tuiGlowHooked')
 		UpdatePanelWidgets()
 		glowPanel:Show()
 	end
@@ -288,33 +288,7 @@ do
 		if not barColorPanel then CreateBarColorPanel() end
 		barColorSpellID = spellID
 		TUI:HideGlowPanel()
-
-		local spellInfo = C_Spell.GetSpellInfo(spellID)
-		local name = spellInfo and spellInfo.name or ('Spell ' .. spellID)
-		barColorPanel:SetTitle('|cffff2f3dTrenchyUI|r ' .. name)
-
-		barColorPanel.frame:ClearAllPoints()
-		local tsf = _G.CooldownViewerSettings
-		if tsf and tsf:IsShown() then
-			barColorPanel.frame:SetPoint('TOPLEFT', tsf, 'TOPRIGHT', 50, 0)
-		else
-			barColorPanel.frame:SetPoint('CENTER', E.UIParent, 'CENTER', 0, 100)
-		end
-
-		if tsf and not tsf.tuiBarColorHooked then
-			tsf:HookScript('OnHide', function() if barColorPanel then barColorPanel:Hide() end end)
-			tsf.tuiBarColorHooked = true
-		end
-
-		local editAlert = _G.CooldownViewerSettingsEditAlert
-		if editAlert then
-			if not editAlert.tuiBarColorHooked then
-				editAlert:HookScript('OnShow', function() if barColorPanel then barColorPanel:Hide() end end)
-				editAlert.tuiBarColorHooked = true
-			end
-			if editAlert:IsShown() then editAlert:Hide() end
-		end
-
+		AnchorOptionPanel(barColorPanel, spellID, 'tuiBarColorHooked')
 		UpdateBarColorWidgets()
 		barColorPanel:Show()
 	end
