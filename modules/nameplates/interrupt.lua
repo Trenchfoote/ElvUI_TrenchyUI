@@ -7,26 +7,33 @@ local UF = E:GetModule('UnitFrames')
 local GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
 local EvalColorBool = C_CurveUtil.EvaluateColorValueFromBoolean
 local EvalColor = C_CurveUtil.EvaluateColorFromBoolean
-local UnitCanAttack = UnitCanAttack
-local GetSpecialization = GetSpecialization
-local GetSpecializationInfo = GetSpecializationInfo
-local IsPlayerSpell = IsPlayerSpell
-local CreateFrame = CreateFrame
-local ipairs = ipairs
 
 local INTERRUPT_BY_SPEC = {
+	-- Warrior
 	[71] = 6552, [72] = 6552, [73] = 6552,
+	-- Paladin
 	[65] = 96231, [66] = 96231, [70] = 96231,
+	-- Hunter
 	[253] = 147362, [254] = 147362, [255] = 187707,
+	-- Rogue
 	[259] = 1766, [260] = 1766, [261] = 1766,
+	-- Priest (Shadow only)
 	[256] = nil, [257] = nil, [258] = 15487,
+	-- Death Knight
 	[250] = 47528, [251] = 47528, [252] = 47528,
+	-- Shaman
 	[262] = 57994, [263] = 57994, [264] = 57994,
+	-- Mage
 	[62] = 2139, [63] = 2139, [64] = 2139,
+	-- Warlock
 	[265] = 119910, [266] = 119914, [267] = 119910,
+	-- Monk
 	[268] = 116705, [269] = 116705, [270] = 116705,
+	-- Druid
 	[102] = 78675, [103] = 106839, [104] = 106839, [105] = 106839,
+	-- Demon Hunter
 	[577] = 183752, [581] = 183752, [1480] = 183752,
+	-- Evoker
 	[1467] = 351338, [1468] = 351338, [1473] = 351338,
 }
 
