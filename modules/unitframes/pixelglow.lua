@@ -18,18 +18,22 @@ function TUI:InitPixelGlow()
 	if not enabled then return end
 	if not LCG or not LCG.PixelGlow_Start then return end
 
-	hooksecurefunc(UF, 'PostUpdate_AuraHighlight', function(_, frame, _, _, _, _, wasFiltered)
+	hooksecurefunc(UF, 'PostUpdate_AuraHighlight', function(_, frame, _, aura, _, _, wasFiltered)
 		if wasFiltered or not frame then return end
 		local element = frame.AuraHighlight
 		if not element then return end
 
-		local _, lines, speed, thickness = GetPixelGlowDB()
-		local target = frame.Health or frame
 		local r, g, b, a = element:GetVertexColor()
-
 		element:SetVertexColor(0, 0, 0, 0)
 		if frame.AuraHightlightGlow then frame.AuraHightlightGlow:Hide() end
 
+		local target = frame.Health or frame
+		if not aura then
+			LCG.PixelGlow_Stop(target, GLOW_KEY)
+			return
+		end
+
+		local _, lines, speed, thickness = GetPixelGlowDB()
 		glowColor[1], glowColor[2], glowColor[3] = r, g, b
 		LCG.PixelGlow_Start(target, glowColor, lines, speed, nil, thickness, 0, 0, false, GLOW_KEY)
 		local gf = target[GLOW_FRAME_KEY]

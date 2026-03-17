@@ -11,11 +11,10 @@ local function ApplyCircleColor()
 	local db = TUI.db.profile.qol
 	if db.cursorCircleClassColor then
 		local cc = E:ClassColor(E.myclass)
-		local a = db.cursorCircleColor and db.cursorCircleColor.a or 0.6
-		circleTexture:SetVertexColor(cc.r, cc.g, cc.b, a)
+		circleTexture:SetVertexColor(cc.r, cc.g, cc.b, 1)
 	else
-		local c = db.cursorCircleColor or { r = 1, g = 1, b = 1, a = 0.6 }
-		circleTexture:SetVertexColor(c.r, c.g, c.b, c.a or 0.6)
+		local c = db.cursorCircleColor or { r = 1, g = 1, b = 1, a = 1 }
+		circleTexture:SetVertexColor(c.r, c.g, c.b, c.a or 1)
 	end
 end
 

@@ -2931,7 +2931,6 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.nameplates.castbarInterruptReady.r = 0
     E.db.TrenchyUI.nameplates.castbarMarkerColor.b = 0.10588236153126
     E.db.TrenchyUI.nameplates.castbarMarkerColor.r = 0
-    E.db.TrenchyUI.nameplates.classificationInstanceOnly = true
     E.db.TrenchyUI.nameplates.classificationOverThreat = true
     E.db.TrenchyUI.nameplates.disableFriendlyHighlight = true
     E.db.TrenchyUI.nameplates.focusGlow.color.a = 1

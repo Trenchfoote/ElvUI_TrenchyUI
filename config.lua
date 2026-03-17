@@ -43,7 +43,6 @@ TUI.defaults = {
         nameplates = {
             classColorTargetIndicator = false,
             classificationOverThreat = false,
-            classificationInstanceOnly = false,
             interruptCastbarColors      = false,
             castbarInterruptReady       = { r = 0.2, g = 0.8, b = 0.2 },
             castbarInterruptOnCD        = { r = 0.9, g = 0.4, b = 0.1 },
@@ -1723,19 +1722,6 @@ function TUI:BuildConfig()
         end
     )
     npThreat.classificationOverThreat.customWidth = 250
-
-    npThreat.classificationInstanceOnly = ACH:Toggle(
-        "Instance Only",
-        "Disable classification colors outside of instances. "
-        .. "In the open world, nameplates fall back to selection and threat colors. "
-        .. "Inside dungeons, raids, and scenarios, classification colors are used normally.",
-        2, nil, nil, nil,
-        function() return TUI.db.profile.nameplates.classificationInstanceOnly end,
-        function(_, value)
-            TUI.db.profile.nameplates.classificationInstanceOnly = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
 
     root.nameplates.args.interrupt = ACH:Group("Interrupt Ready", nil, 2)
     root.nameplates.args.interrupt.inline = true
