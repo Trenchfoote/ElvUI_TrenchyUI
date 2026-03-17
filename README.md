@@ -74,6 +74,6 @@ All settings live under **ElvUI Options → TrenchyUI**. No separate SavedVariab
 Lots of folks and addons have inspired this addon. I'll do my best to acknowledge them.
 
 First, Jiberish. Creating a community of like-minded UI enthusiasts while always being a hype-man has been fun. This doesn't happen without you.
-Second, Blinkii. Our communication across an ocean and island barrier has been insightful. TY for letting me use your "Interrupt on CD" module for TrenchyUI. 
+Second, Blinkii. TY for letting me use your "Interrupt on CD" module for TrenchyUI. 
 
 Some of the addons that inspired features and functions within TrenchyUI: Eltruism (Pixel Glow), MinimapButtonButton/SquaredMinimapButton, Shadow & Light (Friends/Guild datatexts), CDMCentered, ArcUI, Ayije's CDM (a lot of the CDM features are inspired by some of the neat things these addons do), Details!...TDM exists because Details!, BlizzMove. The devs of these addons are basically wizards...Go check out their work!
