@@ -7,6 +7,16 @@ local LSM = E.Libs.LSM
 local Skins = E:GetModule('Skins')
 local floor = math.floor
 
+local function OpenMenuAnchored(menuItems, header)
+	E:ComplicatedMenu(menuItems, E.EasyMenu, nil, nil, nil, "MENU")
+	local mgr = Menu and Menu.GetManager and Menu.GetManager()
+	local openMenu = mgr and mgr:GetOpenMenu()
+	if openMenu then
+		openMenu:ClearAllPoints()
+		openMenu:SetPoint("BOTTOMLEFT", header, "TOPLEFT", -1, -3)
+	end
+end
+
 function S.SetupScrollWheel(win)
     win.frame:EnableMouseWheel(true)
     win.frame:SetScript("OnMouseWheel", function(_, delta)
@@ -273,13 +283,7 @@ function S.SetupHeaderContent(win, db)
             if win.drillSource then
                 S.ExitDrillDown(win)
             else
-                E:ComplicatedMenu(S.BuildModeMenu(win), E.EasyMenu, nil, nil, nil, "MENU")
-                local mgr = Menu and Menu.GetManager and Menu.GetManager()
-                local openMenu = mgr and mgr:GetOpenMenu()
-                if openMenu then
-                    openMenu:ClearAllPoints()
-                    openMenu:SetPoint("BOTTOMLEFT", header, "TOPLEFT", -1, -3)
-                end
+                OpenMenuAnchored(S.BuildModeMenu(win), header)
             end
         elseif button == "RightButton" then
             S.ToggleSession(win)
@@ -304,13 +308,7 @@ function S.SetupHeaderContent(win, db)
     header.sessArea:EnableMouse(true)
     header.sessArea:SetScript("OnMouseUp", function(_, button)
         if button == "LeftButton" then
-            E:ComplicatedMenu(S.BuildSessionMenu(win), E.EasyMenu, nil, nil, nil, "MENU")
-            local mgr = Menu and Menu.GetManager and Menu.GetManager()
-            local openMenu = mgr and mgr:GetOpenMenu()
-            if openMenu then
-                openMenu:ClearAllPoints()
-                openMenu:SetPoint("BOTTOMLEFT", header, "TOPLEFT", -1, -3)
-            end
+            OpenMenuAnchored(S.BuildSessionMenu(win), header)
         elseif button == "RightButton" then
             S.ToggleSession(win)
         end
@@ -336,9 +334,10 @@ function S.SetupWindowContent(win, db, parent)
     local headerBorder = CreateFrame("Frame", nil, parent, "BackdropTemplate")
     headerBorder:SetPoint("TOPLEFT",  headerAnchor, "TOPLEFT",  0, 0)
     headerBorder:SetPoint("TOPRIGHT", headerAnchor, "TOPRIGHT", 0, 0)
-    if not win.embedded then headerBorder:SetHeight(S.HEADER_HEIGHT + 1) end
     if win.embedded then
         headerBorder:SetPoint("BOTTOMRIGHT", headerAnchor, "BOTTOMRIGHT")
+    else
+        headerBorder:SetHeight(S.HEADER_HEIGHT + 1)
     end
     win.headerBorder = headerBorder
 
@@ -346,9 +345,10 @@ function S.SetupWindowContent(win, db, parent)
     win.header = CreateFrame("Frame", hdrName, parent)
     win.header:SetPoint("TOPLEFT",  headerAnchor, "TOPLEFT",  0, 0)
     win.header:SetPoint("TOPRIGHT", headerAnchor, "TOPRIGHT", 0, 0)
-    if not win.embedded then win.header:SetHeight(S.HEADER_HEIGHT) end
     if win.embedded then
         win.header:SetPoint("BOTTOMRIGHT", headerAnchor, "BOTTOMRIGHT")
+    else
+        win.header:SetHeight(S.HEADER_HEIGHT)
     end
     win.header:SetFrameLevel(headerAnchor:GetFrameLevel() + 1)
 
