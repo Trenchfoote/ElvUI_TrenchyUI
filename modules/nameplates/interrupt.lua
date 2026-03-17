@@ -2,12 +2,12 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
+local UF = E:GetModule('UnitFrames')
 
 local GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
 local EvalColorBool = C_CurveUtil.EvaluateColorValueFromBoolean
 local EvalColor = C_CurveUtil.EvaluateColorFromBoolean
 local UnitCanAttack = UnitCanAttack
-local UnitChannelInfo = UnitChannelInfo
 local GetSpecialization = GetSpecialization
 local GetSpecializationInfo = GetSpecializationInfo
 local IsPlayerSpell = IsPlayerSpell
@@ -34,9 +34,7 @@ local interruptSpellId
 local colors
 
 local function UpdateInterruptSpell()
-	local spec = GetSpecialization()
-	if not spec then return end
-	local specId = GetSpecializationInfo(spec)
+	local specId = select(1, GetSpecializationInfo(GetSpecialization()))
 
 	if E.myclass == 'WARLOCK' then
 		for _, spellId in ipairs({ 89766, 212619, 119914 }) do
@@ -50,15 +48,10 @@ local function UpdateInterruptSpell()
 	interruptSpellId = INTERRUPT_BY_SPEC[specId]
 end
 
-local function CacheColors()
-	local db = TUI.db.profile.nameplates
-	local ni = NP.db.colors.castNoInterruptColor
-	colors = {
-		ready = CreateColor(db.castbarInterruptReady.r, db.castbarInterruptReady.g, db.castbarInterruptReady.b),
-		onCD = CreateColor(db.castbarInterruptOnCD.r, db.castbarInterruptOnCD.g, db.castbarInterruptOnCD.b),
-		noInterrupt = CreateColor(ni.r, ni.g, ni.b),
-		marker = db.castbarMarkerColor,
-	}
+local function PostCastFailInterrupted(castbar)
+	local c = NP.db.colors.castInterruptedColor
+	if c then castbar:SetStatusBarColor(c.r, c.g, c.b) end
+	castbar.TUI_IsInterruptedOrFailed = true
 end
 
 local function GetInterruptCooldown()
@@ -74,10 +67,10 @@ local function SetKickSpark(castbar, castStart, cooldown)
 	if cooldown == nil then return end
 
 	if castStart then
-		local isChannel = UnitChannelInfo(unit) ~= nil
-		local fillStyle = isChannel and Enum.StatusBarFillStyle.Reverse or Enum.StatusBarFillStyle.Standard
-		local barAnchor = isChannel and 'LEFT' or 'RIGHT'
-		local indicatorAnchor = isChannel and 'RIGHT' or 'LEFT'
+		local isChannelOrReverse = castbar.channeling or castbar:GetReverseFill()
+		local fillStyle = isChannelOrReverse and Enum.StatusBarFillStyle.Reverse or Enum.StatusBarFillStyle.Standard
+		local barAnchor = isChannelOrReverse and 'LEFT' or 'RIGHT'
+		local indicatorAnchor = isChannelOrReverse and 'RIGHT' or 'LEFT'
 
 		kickBar:SetFillStyle(fillStyle)
 		indicator:ClearAllPoints()
@@ -98,21 +91,15 @@ end
 
 local function SetCastbarColor(castbar, cooldown)
 	if castbar.failed or castbar.interrupted or castbar.finished or cooldown == nil then
-		local c = colors.ready
-		castbar:SetStatusBarColor(c.r, c.g, c.b)
+		local c = colors.normal
+		castbar:SetStatusBarColor(c.r, c.g, c.b, c.a)
 		return
 	end
 
 	local unit = castbar.unit or castbar.__owner.unit
 	if not (unit and UnitCanAttack('player', unit)) then return end
 
-	local color = EvalColor(cooldown:IsZero(), colors.ready, colors.onCD)
-
-	-- Shielded casts: defer to ElvUI's castNoInterruptColor
-	if castbar.notInterruptible ~= nil then
-		color = EvalColor(castbar.notInterruptible, colors.noInterrupt, color)
-	end
-
+	local color = EvalColor(cooldown:IsZero(), colors.normal, colors.onCD)
 	castbar:SetStatusBarColor(color:GetRGBA())
 end
 
@@ -170,11 +157,19 @@ function TUI:HookCastbarInterrupt()
 	if self._hookedCastbarInterrupt then return end
 	self._hookedCastbarInterrupt = true
 
-	CacheColors()
+	local db = TUI.db.profile.nameplates
+	colors = {
+		onCD = CreateColor(db.castbarInterruptOnCD.r, db.castbarInterruptOnCD.g, db.castbarInterruptOnCD.b),
+		normal = CreateColor(db.castbarInterruptReady.r, db.castbarInterruptReady.g, db.castbarInterruptReady.b),
+		marker = db.castbarMarkerColor,
+	}
 
 	TUI:RegisterEvent('PLAYER_ENTERING_WORLD', UpdateInterruptSpell)
 	TUI:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', UpdateInterruptSpell)
 	TUI:RegisterEvent('PLAYER_TALENT_UPDATE', UpdateInterruptSpell)
 
 	hooksecurefunc(NP, 'Castbar_PostCastStart', PostCastStart)
+	hooksecurefunc(UF, 'PostCastStart', PostCastStart)
+	hooksecurefunc(NP, 'Castbar_PostCastFail', PostCastFailInterrupted)
+	hooksecurefunc(NP, 'Castbar_PostCastInterrupted', PostCastFailInterrupted)
 end
