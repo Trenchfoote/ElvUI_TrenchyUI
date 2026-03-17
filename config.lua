@@ -1285,7 +1285,7 @@ function TUI:BuildConfig()
         )
 
         cdmLayout.hideWhenInactive = ACH:Toggle(
-            E.NewSign .. "Hide When Inactive",
+            "Hide When Inactive",
             "Hide when no buff icons are active.",
             12, nil, nil, nil,
             function() return selVDB().hideWhenInactive end,
@@ -1304,7 +1304,7 @@ function TUI:BuildConfig()
         end
 
         cdmLayout.showTooltips = ACH:Toggle(
-            E.NewSign .. "Show Tooltips", "Show spell tooltips when hovering over icons or bars.", 13, nil, nil, nil,
+            "Show Tooltips", "Show spell tooltips when hovering over icons or bars.", 13, nil, nil, nil,
             function() return selVDB().showTooltips end,
             function(_, value)
                 selVDB().showTooltips = value
@@ -1381,7 +1381,7 @@ function TUI:BuildConfig()
         )
 
         -- Count Text group (icon viewers only)
-        cdmViewer.countText = ACH:Group(E.NewSign .. "Count Text", nil, 5)
+        cdmViewer.countText = ACH:Group("Count Text", nil, 5)
         cdmViewer.countText.inline = true
         cdmViewer.countText.hidden = isBarViewer
         local cdmCT = cdmViewer.countText.args
@@ -1598,7 +1598,7 @@ function TUI:BuildConfig()
             function() return selVDB().showTimer ~= false end,
             function(_, value) selVDB().showTimer = value; cdmRefresh() end
         )
-        cdmViewer.stacksText = BuildBarTextGroup(E.NewSign .. "Stacks Text", 10, 'stacksText')
+        cdmViewer.stacksText = BuildBarTextGroup("Stacks Text", 10, 'stacksText')
         cdmViewer.stacksText.args.enable = ACH:Toggle(
             function() return selVDB().showStacks ~= false and "|cff00ff00Show|r" or "Show" end,
             "Show stack count on bars for buffs with multiple applications.", 0, nil, nil, nil,
@@ -1696,7 +1696,7 @@ function TUI:BuildConfig()
     root.nameplates.args.target = ACH:Group("Target Indicator", nil, 0)
     root.nameplates.args.target.inline = true
     root.nameplates.args.target.args.classColorTargetIndicator = ACH:Toggle(
-        E.NewSign .. "Class Color",
+        "Class Color",
         "Override the target indicator color with your class color.",
         1, nil, nil, nil,
         function() return TUI.db.profile.nameplates.classColorTargetIndicator end,
