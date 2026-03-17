@@ -11,11 +11,14 @@
 
 ### Bug Fixes
 - Nameplates: Fixed interrupt-ready castbar color not updating when interrupt comes off cooldown during combat
+- Unit Frames: Fixed pixel glow not showing correctly on dispellable debuffs in combat
 
 ### Improvements
 - Nameplates: Rewrote interrupt-on-cooldown castbar coloring for improved accuracy and performance
 - Cooldown Manager: Improved layout and fader performance
+- Datatexts: Friends tooltip now shows Real ID names, favorites sorting, and status colors
 - Damage Meter: Improved refresh performance with cached class colors and session labels
+- General: Various performance optimizations across modules
 
 ### Removals
 - Unit Frames: Removed Ironfur custom classbar (buff bar with stacks handles this better)
