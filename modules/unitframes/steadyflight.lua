@@ -34,8 +34,7 @@ function TUI:InitSteadyFlight()
 
 		-- Poll IsFlying() and suppress the DynamicFlight condition while airborne
 		C_Timer.NewTicker(0.2, function()
-			local pf = _G.ElvUF_Player
-			if not pf or not pf.Fader then return end
+			if not playerFrame.Fader then return end
 
 			local faderDB = GetPlayerFaderDB()
 			local dbEnabled = faderDB and faderDB.dynamicflight
@@ -44,21 +43,21 @@ function TUI:InitSteadyFlight()
 			if not IsSteadyFlightEnabled() or not dbEnabled then
 				if sfOverridden then
 					sfOverridden = false
-					pf.Fader.DynamicFlight = dbEnabled or nil
-					pf.Fader:ForceUpdate()
+					playerFrame.Fader.DynamicFlight = dbEnabled or nil
+					playerFrame.Fader:ForceUpdate()
 				end
 				return
 			end
 
 			local flying = IsFlying()
 			if flying and not sfOverridden then
-				pf.Fader.DynamicFlight = false
+				playerFrame.Fader.DynamicFlight = false
 				sfOverridden = true
-				pf.Fader:ForceUpdate()
+				playerFrame.Fader:ForceUpdate()
 			elseif not flying and sfOverridden then
-				pf.Fader.DynamicFlight = true
+				playerFrame.Fader.DynamicFlight = true
 				sfOverridden = false
-				pf.Fader:ForceUpdate()
+				playerFrame.Fader:ForceUpdate()
 			end
 		end)
 	end)
