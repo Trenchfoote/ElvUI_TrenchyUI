@@ -1,0 +1,10 @@
+<Ui xmlns="http://www.blizzard.com/wow/ui/">
+	<Script file="qol.lua"/>
+	<Script file="damagemeter.lua"/>
+	<Script file="cooldownmanager.lua"/>
+	<Script file="unitframes.lua"/>
+	<Script file="nameplates.lua"/>
+	<Script file="skins.lua"/>
+	<Script file="profiles.lua"/>
+	<Script file="information.lua"/>
+</Ui>

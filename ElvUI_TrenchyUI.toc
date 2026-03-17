@@ -11,6 +11,7 @@
 
 core.lua
 config.lua
+options\load_options.xml
 init.lua
 profiles\load_profiles.xml
 modules\load_modules.xml
