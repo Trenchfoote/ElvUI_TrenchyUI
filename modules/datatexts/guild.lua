@@ -1,4 +1,5 @@
 local E, _, _, _, G = unpack(ElvUI)
+local TUI = E:GetModule('TrenchyUI')
 local DT = E:GetModule('DataTexts')
 
 local format, sort, wipe, ipairs = format, sort, wipe, ipairs
@@ -55,28 +56,6 @@ local function InGroup(name)
 	return (UnitInParty(name) or UnitInRaid(name)) and ' |cffaaaaaa*|r' or ''
 end
 
--- Anchor a frame relative to the panel using ElvUI's anchor direction
-local function GetPanelAnchor(panel)
-	local parent = panel:GetParent()
-	return parent and parent.anchor or 'ANCHOR_TOP'
-end
-
-local function AnchorToPanel(tt, panel)
-	local anchor = GetPanelAnchor(panel)
-	tt:ClearAllPoints()
-	if anchor == 'ANCHOR_TOP' or anchor == 'ANCHOR_TOPLEFT' or anchor == 'ANCHOR_TOPRIGHT' then
-		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
-	elseif anchor == 'ANCHOR_BOTTOM' or anchor == 'ANCHOR_BOTTOMLEFT' or anchor == 'ANCHOR_BOTTOMRIGHT' then
-		tt:SetPoint('TOP', panel, 'BOTTOM', 0, -4)
-	elseif anchor == 'ANCHOR_LEFT' then
-		tt:SetPoint('RIGHT', panel, 'LEFT', -4, 0)
-	elseif anchor == 'ANCHOR_RIGHT' then
-		tt:SetPoint('LEFT', panel, 'RIGHT', 4, 0)
-	else
-		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
-	end
-end
-
 
 local function SortByName(a, b)
 	if a and b then return a.name < b.name end
@@ -113,10 +92,7 @@ local function BuildGuildTable()
 end
 
 local function GetDTFont()
-	if db then
-		return E.LSM:Fetch('font', db.tooltipFont), db.tooltipFontSize, db.tooltipFontOutline
-	end
-	return E.media.normFont, 11, 'OUTLINE'
+	return TUI:GetDTFont(db)
 end
 
 local function CreateTooltip()
@@ -333,7 +309,7 @@ local function ShowTooltip(panel)
 	contentH = contentH + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + TOOLTIP_PAD
 
 	tooltip:SetSize(tooltipWidth, contentH)
-	AnchorToPanel(tooltip, panel)
+	TUI:AnchorDTTooltip(tooltip, panel)
 	tooltip:Show()
 end
 

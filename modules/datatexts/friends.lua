@@ -1,4 +1,5 @@
 local E, _, _, _, G = unpack(ElvUI)
+local TUI = E:GetModule('TrenchyUI')
 local DT = E:GetModule('DataTexts')
 
 local format, sort, wipe, ipairs, next, gsub, strfind, strmatch = format, sort, wipe, ipairs, next, gsub, strfind, strmatch
@@ -100,27 +101,11 @@ local function InGroup(name, realmName)
 	return (UnitInParty(name) or UnitInRaid(name)) and ' |cffaaaaaa*|r' or ''
 end
 
-local function GetPanelAnchor(panel)
-	local parent = panel:GetParent()
-	return parent and parent.anchor or 'ANCHOR_TOP'
-end
 
-local function AnchorToPanel(tt, panel)
-	local anchor = GetPanelAnchor(panel)
-	tt:ClearAllPoints()
-	if anchor == 'ANCHOR_TOP' or anchor == 'ANCHOR_TOPLEFT' or anchor == 'ANCHOR_TOPRIGHT' then
-		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
-	elseif anchor == 'ANCHOR_BOTTOM' or anchor == 'ANCHOR_BOTTOMLEFT' or anchor == 'ANCHOR_BOTTOMRIGHT' then
-		tt:SetPoint('TOP', panel, 'BOTTOM', 0, -4)
-	elseif anchor == 'ANCHOR_LEFT' then
-		tt:SetPoint('RIGHT', panel, 'LEFT', -4, 0)
-	elseif anchor == 'ANCHOR_RIGHT' then
-		tt:SetPoint('LEFT', panel, 'RIGHT', 4, 0)
-	else
-		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
-	end
-end
 
+local function FriendSortFunc(a, b)
+	return a.name < b.name
+end
 
 local function BuildFriendTable(total)
 	if total <= 0 then wipe(friendTable); return end
@@ -141,7 +126,7 @@ local function BuildFriendTable(total)
 			}
 		end
 	end
-	sort(friendTable, function(a, b) return a.name < b.name end)
+	sort(friendTable, FriendSortFunc)
 end
 
 local function ClientSortFunc(a, b)
@@ -238,10 +223,7 @@ local function BuildBNTable(total)
 end
 
 local function GetDTFont()
-	if db then
-		return E.LSM:Fetch('font', db.tooltipFont), db.tooltipFontSize, db.tooltipFontOutline
-	end
-	return E.media.normFont, 11, 'OUTLINE'
+	return TUI:GetDTFont(db)
 end
 
 local function CreateTooltip()
@@ -424,7 +406,8 @@ local function ShowTooltip(panel)
 		row.level:SetText(info.level)
 		row.level:SetTextColor(levelc.r, levelc.g, levelc.b)
 
-		row.name:SetText(info.name .. InGroup(info.name) .. info.status)
+		local groupTag = InGroup(info.name)
+		row.name:SetText(info.name .. groupTag .. info.status)
 		local namec = info.statusKey and statusColor[info.statusKey] or classc
 		row.name:SetTextColor(namec.r, namec.g, namec.b)
 
@@ -436,7 +419,7 @@ local function ShowTooltip(panel)
 		row.friendName = info.name
 		row.friendBNetName = nil
 		row.friendClass = info.class
-		row.canInvite = InGroup(info.name) == ''
+		row.canInvite = groupTag == ''
 		row.friendGameID = nil
 
 		row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
@@ -463,6 +446,8 @@ local function ShowTooltip(panel)
 				shown = shown + 1
 				local row = GetOrCreateRow(shown)
 
+				local groupTag = info.isWoW and InGroup(info.name or '', info.realmName) or ''
+
 				if info.isWoW and info.level and info.level > 0 then
 					local levelc = GetQuestDifficultyColor(info.level)
 					local classc = E:ClassColor(info.class) or levelc
@@ -473,7 +458,7 @@ local function ShowTooltip(panel)
 					if info.showChar then
 						nameStr = nameStr .. ' - ' .. info.name
 					end
-					nameStr = nameStr .. InGroup(info.name, info.realmName) .. info.status
+					nameStr = nameStr .. groupTag .. info.status
 					row.name:SetText(nameStr)
 					local namec = info.statusKey and statusColor[info.statusKey] or classc
 					row.name:SetTextColor(namec.r, namec.g, namec.b)
@@ -503,7 +488,7 @@ local function ShowTooltip(panel)
 				row.friendName = info.name ~= '' and info.name or nil
 				row.friendBNetName = info.accountName
 				row.friendClass = info.class ~= '' and info.class or nil
-				row.canInvite = info.isWoW and info.wowProjectID == WOW_PROJECT_ID and InGroup(info.name or '', info.realmName) == ''
+				row.canInvite = info.isWoW and info.wowProjectID == WOW_PROJECT_ID and groupTag == ''
 				row.friendGameID = info.gameID
 
 				row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
@@ -539,7 +524,7 @@ local function ShowTooltip(panel)
 	local contentH = TOOLTIP_PAD + headerText:GetStringHeight() + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + sectionExtra + TOOLTIP_PAD
 
 	tooltip:SetSize(tooltipWidth, contentH)
-	AnchorToPanel(tooltip, panel)
+	TUI:AnchorDTTooltip(tooltip, panel)
 	tooltip:Show()
 end
 

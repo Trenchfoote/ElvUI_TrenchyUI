@@ -162,6 +162,35 @@ do -- Compat popup system
 	end
 end
 
+-- Shared datatext tooltip helpers
+function TUI:GetDTFont(dtDB)
+	if dtDB then
+		return E.Libs.LSM:Fetch('font', dtDB.tooltipFont), dtDB.tooltipFontSize, dtDB.tooltipFontOutline
+	end
+	return E.media.normFont, 11, 'OUTLINE'
+end
+
+function TUI:GetDTPanelAnchor(panel)
+	local parent = panel:GetParent()
+	return parent and parent.anchor or 'ANCHOR_TOP'
+end
+
+function TUI:AnchorDTTooltip(tt, panel)
+	local anchor = self:GetDTPanelAnchor(panel)
+	tt:ClearAllPoints()
+	if anchor == 'ANCHOR_TOP' or anchor == 'ANCHOR_TOPLEFT' or anchor == 'ANCHOR_TOPRIGHT' then
+		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
+	elseif anchor == 'ANCHOR_BOTTOM' or anchor == 'ANCHOR_BOTTOMLEFT' or anchor == 'ANCHOR_BOTTOMRIGHT' then
+		tt:SetPoint('TOP', panel, 'BOTTOM', 0, -4)
+	elseif anchor == 'ANCHOR_LEFT' then
+		tt:SetPoint('RIGHT', panel, 'LEFT', -4, 0)
+	elseif anchor == 'ANCHOR_RIGHT' then
+		tt:SetPoint('LEFT', panel, 'RIGHT', 4, 0)
+	else
+		tt:SetPoint('BOTTOM', panel, 'TOP', 0, 4)
+	end
+end
+
 function TUI:GetClassColor(classFilename)
 	classFilename = classFilename or select(2, UnitClass('player'))
 	if not classFilename then return nil end
