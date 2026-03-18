@@ -353,18 +353,29 @@ function S.LayoutCustomViewer()
 	end
 end
 
+-- Debounced update: coalesces rapid event bursts into one update
+local updatePending = false
+local function ScheduleUpdate()
+	if updatePending then return end
+	updatePending = true
+	C_Timer.After(0.1, function()
+		updatePending = false
+		UpdateAllIcons()
+	end)
+end
+
 -- Event handler
 local function OnEvent(event, ...)
 	if event == 'SPELL_UPDATE_COOLDOWN' or event == 'BAG_UPDATE_COOLDOWN' or event == 'BAG_UPDATE' or event == 'PLAYER_ENTERING_WORLD' then
-		UpdateAllIcons()
+		ScheduleUpdate()
 	elseif event == 'PLAYER_EQUIPMENT_CHANGED' then
 		local slot = ...
 		if slot == 13 or slot == 14 then
-			UpdateAllIcons()
+			ScheduleUpdate()
 		end
 	elseif event == 'ACTIVE_TALENT_GROUP_CHANGED' or event == 'PLAYER_TALENT_UPDATE' then
 		DetectRacials()
-		UpdateAllIcons()
+		ScheduleUpdate()
 	end
 end
 

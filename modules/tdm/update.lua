@@ -483,12 +483,7 @@ function TUI:UpdateFlightTicker()
     end
 end
 
-local timerElapsed = 0
-local function OnUpdate(_, dt)
-    timerElapsed = timerElapsed + dt
-    if timerElapsed < 0.5 then return end
-    timerElapsed = 0
-
+local function UpdateTimers()
     for _, win in pairs(S.windows) do
         if not win.header or not win.header.timer then break end
         if win.sessionType then
@@ -674,7 +669,7 @@ function TUI:InitDamageMeter()
         TUI:RegisterEvent('GROUP_ROSTER_UPDATE', OnTDMEvent)
         TUI:RegisterEvent('PET_BATTLE_OPENING_START', OnTDMEvent)
         TUI:RegisterEvent('PET_BATTLE_CLOSE', OnTDMEvent)
-        win1.frame:SetScript("OnUpdate", OnUpdate)
+        C_Timer.NewTicker(0.5, UpdateTimers)
 
         TUI:UpdateFlightTicker()
 
