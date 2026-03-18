@@ -35,9 +35,11 @@ local function OnCDMEvent(event, unit, ...)
 			local val = ...
 			if val == '0' then
 				cdmDisabledByCVar = true
-				for viewerKey in pairs(S.VIEWER_KEYS) do
-					local container = S.containers[viewerKey]
-					if container then container:Hide() end
+				for viewerKey, info in pairs(S.VIEWER_KEYS) do
+					if info.global then
+						local container = S.containers[viewerKey]
+						if container then container:Hide() end
+					end
 				end
 				E:Print('|cffff2f3dTrenchyUI|r: Cooldown Manager requires Blizzard\'s Cooldown Viewer. Re-enable it in Options > Gameplay Enhancements > Enable Cooldown Manager.')
 			else
@@ -220,6 +222,7 @@ function TUI:RefreshCDM()
 		S.LayoutContainer(viewerKey, true)
 	end
 
+	S.RefreshCustomViewer()
 	self:UpdateCDMVisibility()
 
 	if S.previewActive then
@@ -258,10 +261,14 @@ function TUI:InitCooldownManager()
 
 	C_Timer.After(0, function()
 		for viewerKey in pairs(S.VIEWER_KEYS) do
-			S.CreateContainer(viewerKey)
-			HookViewer(viewerKey)
-			S.LayoutContainer(viewerKey, true)
+			if viewerKey ~= 'custom' then
+				S.CreateContainer(viewerKey)
+				HookViewer(viewerKey)
+				S.LayoutContainer(viewerKey, true)
+			end
 		end
+
+		S.InitCustomViewer()
 
 		-- Resolve viewerKey from a frame or its parents via styledFrames/tuiViewerKey
 		local function ResolveViewerKey(frame)
@@ -408,7 +415,7 @@ local function TryHookConfigClose()
 	configFrame.frame:HookScript('OnHide', function()
 		cdmTabActive = false
 		S.HideBlizzardCDMSettings()
-		S.HidePreview()
+		if S.previewActive then S.HidePreview() end
 	end)
 end
 
@@ -426,11 +433,10 @@ C_Timer.After(0, function()
 			if pathContainsCDM and not cdmTabActive then
 				cdmTabActive = true
 				S.ShowBlizzardCDMSettings()
-				S.ShowPreview()
 			elseif not pathContainsCDM and cdmTabActive then
 				cdmTabActive = false
 				S.HideBlizzardCDMSettings()
-				S.HidePreview()
+				if S.previewActive then S.HidePreview() end
 			end
 		end
 
@@ -476,7 +482,6 @@ C_Timer.After(0, function()
 			if db then db.selectedViewer = viewerKey end
 			E.Libs.AceConfigRegistry:NotifyChange('ElvUI')
 			S.ShowBlizzardCDMSettings()
-			S.ShowPreview()
 		end
 
 		-- Also try to hook config close from here as a fallback

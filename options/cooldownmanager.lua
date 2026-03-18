@@ -12,9 +12,12 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     end
     local selVDB = function() return cdmDB().viewers[cdmDB().selectedViewer] end
 
-    local VIEWER_CHOICES = { essential = 'Essential', utility = 'Utility', buffIcon = 'Buff Icon', buffBar = 'Buff Bar' }
+    local VIEWER_CHOICES_ORDER = { 'buffIcon', 'essential', 'utility', 'buffBar', 'custom' }
+    local VIEWER_CHOICES = { essential = 'Essential', utility = 'Utility', buffIcon = 'Buff Icon', buffBar = 'Buff Bar', custom = 'Custom Tracker' }
     local isBarViewer = function() return cdmDB().selectedViewer == 'buffBar' end
     local isIconViewer = function() return cdmDB().selectedViewer ~= 'buffBar' end
+    local isCustomViewer = function() return cdmDB().selectedViewer == 'custom' end
+    local isNotCustomViewer = function() return cdmDB().selectedViewer ~= 'custom' end
     local POSITIONS = { CENTER = 'Center', TOP = 'Top', BOTTOM = 'Bottom', LEFT = 'Left', RIGHT = 'Right',
         TOPLEFT = 'Top Left', TOPRIGHT = 'Top Right', BOTTOMLEFT = 'Bottom Left', BOTTOMRIGHT = 'Bottom Right' }
 
@@ -41,6 +44,22 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         end
     )
 
+    cdmGen.previewText = ACH:Toggle(
+        function()
+            local S = TUI._cdm
+            return S and S.previewActive and "|cff00ff00Preview Text|r" or "Preview Text"
+        end,
+        "Show sample text on all CDM icons to preview font, size, and position settings.",
+        2.5, nil, nil, nil,
+        function() local S = TUI._cdm; return S and S.previewActive end,
+        function()
+            local S = TUI._cdm
+            if not S then return end
+            if S.previewActive then S.HidePreview() else S.ShowPreview() end
+        end,
+        cdmDisabled
+    )
+
     cdmGen.hideSwipe = ACH:Toggle(
         "Hide GCD Swipe", "Hide the cooldown swipe overlay on CDM icons.",
         3, nil, nil, nil,
@@ -63,6 +82,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
             cdmDB().selectedViewer = value
         end
     )
+    cdmViewer.selectedViewer.sorting = VIEWER_CHOICES_ORDER
 
     -- Layout group
     cdmViewer.layout = ACH:Group("Layout", nil, 3)
@@ -174,6 +194,17 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function() return selVDB().growthDirection end,
         function(_, value) selVDB().growthDirection = value; cdmRefresh() end
     )
+    cdmLayout.growthDirection.hidden = isCustomViewer
+
+    cdmLayout.customGrowth = ACH:Select(
+        "Growth Direction", "Direction icons grow from the mover. Center distributes evenly.", 10,
+        { CENTER = 'Center', LEFT = 'Left', RIGHT = 'Right', UP = 'Up', DOWN = 'Down' },
+        nil, nil,
+        function() return selVDB().growthDirection end,
+        function(_, value) selVDB().growthDirection = value; E:StaticPopup_Show('CONFIG_RL') end
+    )
+    cdmLayout.customGrowth.sorting = { 'CENTER', 'LEFT', 'RIGHT', 'UP', 'DOWN' }
+    cdmLayout.customGrowth.hidden = isNotCustomViewer
 
     cdmLayout.visibleSetting = ACH:Select(
         "Visibility", "When to show this viewer. 'Player Fader' mirrors the player unitframe's fader alpha.", 11,
@@ -211,12 +242,64 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function(_, value)
             selVDB().showTooltips = value
             local v = cdmDB().selectedViewer
-            if TUI.SetEditModeSetting and Enum.EditModeCooldownViewerSetting then
+            if v ~= 'custom' and TUI.SetEditModeSetting and Enum.EditModeCooldownViewerSetting then
                 TUI:SetEditModeSetting(v, Enum.EditModeCooldownViewerSetting.ShowTooltips, value and 1 or 0)
             end
-            E:StaticPopup_Show('CONFIG_RL')
+            if v ~= 'custom' then E:StaticPopup_Show('CONFIG_RL') end
         end
     )
+
+    -- Custom Tracker options (only shown when custom viewer is selected)
+    cdmViewer.customTracker = ACH:Group("Custom Tracker", nil, 2.5)
+    cdmViewer.customTracker.inline = true
+    cdmViewer.customTracker.hidden = isNotCustomViewer
+    local cdmCustom = cdmViewer.customTracker.args
+
+    cdmCustom.enabled = ACH:Toggle(
+        function() return selVDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
+        "Enable the Custom Tracker viewer. Tracks racials, healthstones, and trinkets independently of Blizzard's Cooldown Manager.",
+        1, nil, nil, nil,
+        function() return selVDB().enabled end,
+        function(_, value) selVDB().enabled = value; E:StaticPopup_Show('CONFIG_RL') end
+    )
+
+    cdmCustom.showRacials = ACH:Toggle(
+        "Show Racials", "Track your racial ability cooldown.", 2, nil, nil, nil,
+        function() return selVDB().showRacials end,
+        function(_, value) selVDB().showRacials = value; cdmRefresh() end,
+        function() return not selVDB().enabled end
+    )
+
+    cdmCustom.showHealthstone = ACH:Toggle(
+        "Show Healthstone", "Track healthstone cooldown and count.", 3, nil, nil, nil,
+        function() return selVDB().showHealthstone end,
+        function(_, value) selVDB().showHealthstone = value; cdmRefresh() end,
+        function() return not selVDB().enabled end
+    )
+
+    cdmCustom.showPotions = ACH:Toggle(
+        "Show Healing Potions", "Track Midnight healing potion cooldowns.", 3.5, nil, nil, nil,
+        function() return selVDB().showPotions end,
+        function(_, value) selVDB().showPotions = value; cdmRefresh() end,
+        function() return not selVDB().enabled end
+    )
+
+    cdmCustom.showCombatPotions = ACH:Toggle(
+        "Show Combat Potions", "Track Midnight combat potion cooldowns.", 3.6, nil, nil, nil,
+        function() return selVDB().showCombatPotions end,
+        function(_, value) selVDB().showCombatPotions = value; cdmRefresh() end,
+        function() return not selVDB().enabled end
+    )
+
+    cdmCustom.trinketMode = ACH:Select(
+        "Trinkets", "Which trinkets to track.", 4,
+        { both = 'Both', slot1 = 'Trinket 1', slot2 = 'Trinket 2', none = 'None' },
+        nil, nil,
+        function() return selVDB().trinketMode end,
+        function(_, value) selVDB().trinketMode = value; cdmRefresh() end,
+        function() return not selVDB().enabled end
+    )
+    cdmCustom.trinketMode.sorting = { 'both', 'slot1', 'slot2', 'none' }
 
     -- Cooldown Text group (icon viewers only)
     cdmViewer.cooldownText = ACH:Group("Cooldown Text", nil, 4)

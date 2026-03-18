@@ -47,6 +47,7 @@
 	<Script file="cdm\state.lua"/>
 	<Script file="cdm\styling.lua"/>
 	<Script file="cdm\viewers.lua"/>
+	<Script file="cdm\custom.lua"/>
 	<Script file="cdm\layout.lua"/>
 	<Script file="cdm\init.lua"/>
 </Ui>

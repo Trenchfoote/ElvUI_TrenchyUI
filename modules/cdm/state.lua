@@ -14,6 +14,7 @@ S.VIEWER_KEYS = {
 	utility   = { global = 'UtilityCooldownViewer',  label = 'Utility CDs',    mover = 'TUI_CDM_Utility' },
 	buffIcon  = { global = 'BuffIconCooldownViewer', label = 'Buff Icon CDs',  mover = 'TUI_CDM_BuffIcon' },
 	buffBar   = { global = 'BuffBarCooldownViewer',  label = 'Buff Bar CDs',   mover = 'TUI_CDM_BuffBar' },
+	custom    = { global = nil,                      label = 'Custom Tracker',  mover = 'TUI_CDM_Custom' },
 }
 
 -- Shared mutable state

@@ -23,6 +23,10 @@ function S.CreateContainer(viewerKey)
 	if viewerKey == 'buffBar' then
 		w = vdb and vdb.barWidth or 200
 		h = (vdb and vdb.barHeight or 20) * 4
+	elseif viewerKey == 'custom' then
+		local iconW = vdb and vdb.iconWidth or 36
+		w = iconW
+		h = (vdb and vdb.keepSizeRatio and iconW) or (vdb and vdb.iconHeight or 36)
 	else
 		local iconW = vdb and vdb.iconWidth or 30
 		local iconH = (vdb and vdb.keepSizeRatio and iconW) or (vdb and vdb.iconHeight or 30)
@@ -66,6 +70,7 @@ function S.AnchorToMover(viewerKey, growUp)
 end
 
 function S.LayoutContainer(viewerKey, isCapture)
+	if viewerKey == 'custom' then return S.LayoutCustomViewer() end
 	if viewerKey == 'buffBar' then return S.LayoutBuffBar(viewerKey, isCapture) end
 
 	local container = S.containers[viewerKey]

@@ -129,6 +129,7 @@ end
 
 function S.StyleFontString(fs, tdb)
 	if not fs then return end
+	fs:SetIgnoreParentScale(true)
 	fs:ClearAllPoints()
 	fs:SetPoint(tdb.position, tdb.xOffset, tdb.yOffset)
 	fs:FontTemplate(LSM:Fetch('font', tdb.font), tdb.fontSize, tdb.fontOutline)
@@ -140,11 +141,11 @@ function S.ApplyCountText(itemFrame, tdb)
 
 	local fs
 	fs = itemFrame.Applications and itemFrame.Applications.Applications
-	if fs then fs:SetIgnoreParentScale(true); S.StyleFontString(fs, tdb) end
+	if fs then S.StyleFontString(fs, tdb) end
 	fs = itemFrame.Count
-	if fs then fs:SetIgnoreParentScale(true); S.StyleFontString(fs, tdb) end
+	if fs then S.StyleFontString(fs, tdb) end
 	fs = itemFrame.ChargeCount and itemFrame.ChargeCount.Current
-	if fs then fs:SetIgnoreParentScale(true); S.StyleFontString(fs, tdb) end
+	if fs then S.StyleFontString(fs, tdb) end
 end
 
 -- Shield pattern: store ref in cooldown.tuiText, nil cooldown.Text so ElvUI's CooldownText skips font styling
@@ -157,7 +158,6 @@ function S.ApplyCooldownText(cooldown, tdb)
 	if text and text.SetTextColor then
 		cooldown.tuiText = text
 		cooldown.Text = nil
-		text:SetIgnoreParentScale(true)
 		S.StyleFontString(text, tdb)
 	end
 end
@@ -231,7 +231,6 @@ function S.SetPreviewText(itemFrame, show, vdb)
 				itemFrame.tuiCDPreview = itemFrame:CreateFontString(nil, 'OVERLAY')
 			end
 			local pfs = itemFrame.tuiCDPreview
-			pfs:SetIgnoreParentScale(true)
 			S.StyleFontString(pfs, tdb)
 			pfs:SetText('12')
 			pfs:Show()
@@ -256,6 +255,8 @@ function S.ShowPreview()
 			end
 		end
 	end
+
+	if S.RefreshCustomViewer then S.RefreshCustomViewer() end
 end
 
 function S.HidePreview()
@@ -273,5 +274,6 @@ function S.HidePreview()
 		end
 	end
 
+	if S.RefreshCustomViewer then S.RefreshCustomViewer() end
 	S.ScheduleRelayout()
 end
