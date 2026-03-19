@@ -10,6 +10,7 @@ local mbbButtons = {}
 local mbbInCombat = false
 local mbbSkinned = {}
 
+local UpdateVisibility
 local MBB_PADDING = 4
 local backdropInsets = { left = 0, right = 0, top = 0, bottom = 0 }
 local backdropTable = { insets = backdropInsets }
@@ -191,6 +192,11 @@ local function LayoutBar()
 
 		btn:SetPoint(anchorPoint, mbbBar, anchorPoint, x, y)
 		btn:SetParent(mbbBar)
+		if not btn.tuiMouseHooked then
+			btn:HookScript('OnEnter', function() UpdateVisibility() end)
+			btn:HookScript('OnLeave', function() UpdateVisibility() end)
+			btn.tuiMouseHooked = true
+		end
 		btn:Show()
 	end
 end
@@ -220,7 +226,7 @@ local function UpdateBarStyle()
 	end
 end
 
-local function UpdateVisibility()
+UpdateVisibility = function()
 	if not mbbBar then return end
 	local db = GetMBBDB()
 
@@ -278,6 +284,7 @@ function TUI:InitMinimapButtonBar()
 
 		mbbBar:SetScript('OnEnter', UpdateVisibility)
 		mbbBar:SetScript('OnLeave', UpdateVisibility)
+		mbbBar:HookScript('OnShow', UpdateVisibility)
 
 		TUI:RegisterEvent('PLAYER_REGEN_DISABLED', function()
 			mbbInCombat = true
