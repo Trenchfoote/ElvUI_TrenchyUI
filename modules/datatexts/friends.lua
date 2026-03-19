@@ -2,7 +2,7 @@ local E, _, _, _, G = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local DT = E:GetModule('DataTexts')
 
-local format, sort, wipe, ipairs, next, gsub, strfind, strmatch, max = format, sort, wipe, ipairs, next, gsub, strfind, strmatch, math.max
+local format, sort, wipe, ipairs, next, gsub, strfind, strmatch = format, sort, wipe, ipairs, next, gsub, strfind, strmatch
 local BNConnected = BNConnected
 local BNGetNumFriends = BNGetNumFriends
 local GetQuestDifficultyColor = GetQuestDifficultyColor
@@ -262,19 +262,16 @@ local function GetOrCreateRow(index)
 
 	row.level = row:CreateFontString(nil, 'OVERLAY')
 	row.level:SetPoint('LEFT', row, 'LEFT', 0, 0)
-	row.level:SetWidth(24)
 	row.level:FontTemplate(font, fontSize, fontOutline)
 	row.level:SetJustifyH('RIGHT')
 
 	row.name = row:CreateFontString(nil, 'OVERLAY')
 	row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
-	row.name:SetPoint('RIGHT', row.zone, 'LEFT', -4, 0)
 	row.name:FontTemplate(font, fontSize, fontOutline)
 	row.name:SetJustifyH('LEFT')
 	row.name:SetWordWrap(false)
 
 	row.zone = row:CreateFontString(nil, 'OVERLAY')
-	row.zone:SetPoint('RIGHT', row, 'RIGHT', 0, 0)
 	row.zone:FontTemplate(font, fontSize, fontOutline)
 	row.zone:SetJustifyH('RIGHT')
 
@@ -388,7 +385,6 @@ local function SetupHeaderRow(row, text, prevRow, client)
 	local pad = prevRow and -SECTION_PAD or -6
 	local anchor = prevRow or headerText
 	row:SetPoint('TOPLEFT', anchor, 'BOTTOMLEFT', 0, pad)
-	row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
 	row:Show()
 end
 
@@ -452,7 +448,6 @@ local function ShowTooltip(panel)
 		row.friendGameID = nil
 
 		row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
-		row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
 		row:Show()
 	end
 
@@ -526,7 +521,6 @@ local function ShowTooltip(panel)
 				row.friendGameID = info.gameID
 
 				row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
-				row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
 				row:Show()
 			end
 		end
@@ -539,36 +533,44 @@ local function ShowTooltip(panel)
 
 	ApplyFonts()
 
-	-- Measure widths from actual text
-	local maxName, maxZone, maxNonWoWName = 0, 0, 0
+	-- Measure the widest row by summing each row's actual content
+	local nameZoneGap = 12
+	local levelGap = 4
+	local iconWidth = 20
+	local maxRowWidth = 0
 	for i = 1, shown do
 		local row = rows[i]
-		local nw = row.name:GetUnboundedStringWidth()
-		local zw = row.zone:GetUnboundedStringWidth()
 		if row.isHeader then
-			-- header width includes icon; tracked separately via headerWidth
-		elseif zw > 0 then
-			if nw > maxName then maxName = nw end
+			local hw = (row.clientIcon and row.clientIcon:IsShown() and (iconWidth + 4) or 0) + row.name:GetStringWidth()
+			if hw > maxRowWidth then maxRowWidth = hw end
 		else
-			if nw > maxNonWoWName then maxNonWoWName = nw end
+			local lw = row.level:GetStringWidth()
+			local nw = row.name:GetStringWidth()
+			local zw = row.zone:GetStringWidth()
+			local rw = (lw > 0 and (lw + levelGap) or 0) + nw + (zw > 0 and (nameZoneGap + zw) or 0)
+			if rw > maxRowWidth then maxRowWidth = rw end
 		end
-		if zw > maxZone then maxZone = zw end
 	end
 
-	local levelWidth = 30
-	local iconWidth = 20
-	local gap = 16
-	local nameWidth = maxName + 12
-	local zoneWidth = maxZone > 0 and (maxZone + gap) or 0
-	local wowRowWidth = TOOLTIP_PAD * 2 + levelWidth + nameWidth + zoneWidth
-	local nonWoWRowWidth = TOOLTIP_PAD * 2 + maxNonWoWName + 12
-	local headerWidth = TOOLTIP_PAD * 2 + iconWidth + (headerText:GetUnboundedStringWidth() or 0)
-	local tooltipWidth = max(wowRowWidth, nonWoWRowWidth, headerWidth)
+	local headerWidth = headerText:GetStringWidth() or 0
+	if headerWidth > maxRowWidth then maxRowWidth = headerWidth end
 
+	local tooltipWidth = TOOLTIP_PAD * 2 + maxRowWidth
 	local sectionExtra = headerCount > 1 and ((headerCount - 1) * (SECTION_PAD - ROW_PAD)) or 0
 	local contentH = TOOLTIP_PAD + headerText:GetStringHeight() + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + sectionExtra + TOOLTIP_PAD
 
 	tooltip:SetSize(tooltipWidth, contentH)
+
+	-- Now apply row RIGHT anchors and zone positioning
+	for i = 1, shown do
+		local row = rows[i]
+		row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
+		if not row.isHeader then
+			row.zone:ClearAllPoints()
+			row.zone:SetPoint('RIGHT', row, 'RIGHT', 0, 0)
+		end
+	end
+
 	TUI:AnchorDTTooltip(tooltip, panel)
 	tooltip:Show()
 end
