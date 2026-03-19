@@ -8,6 +8,7 @@
 - Nameplates: ElvUI nameplate modules now automatically disabled when ElvUI nameplates are off
 
 ### Bug Fixes
+- Cooldown Manager: Fixed "In Combat" visibility mode not showing viewers when entering combat
 - Friends Datatext: Fixed tooltip not resizing dynamically when friends go online/offline
 - Friends Datatext: Fixed name and zone columns overlapping on long names
 - QoL: Fixed "Hide Objectives in Combat" label being truncated in config
