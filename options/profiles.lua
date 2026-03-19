@@ -68,6 +68,12 @@ function TUI:BuildProfilesConfig(root, tuiName)
         E:StaticPopup_Show('CONFIG_RL')
     end, nil, nil, nil, nil, nil, addonDisabled('ls_Toasts'))
 
+    indArgs.installPlatynator = ACH:Execute("Platynator", "Imports the TrenchyUI nameplate design into Platynator.", 5, function()
+        TUI:ApplyPlatynatorProfile()
+        E:Print(tuiName .. ": Platynator profile applied.")
+        E:StaticPopup_Show('CONFIG_RL')
+    end, nil, nil, nil, nil, nil, addonDisabled('Platynator'))
+
     -- Inject TUI datatext options into ElvUI's Customization tab
     do
         local dtSettings = E.Options.args.datatexts.args.settings.args

@@ -5,7 +5,7 @@
 ## Version: 1.1
 ## IconTexture: Interface\AddOns\ElvUI_TrenchyUI\media\TrenchyUI_Tiny
 ## RequiredDeps: ElvUI
-## OptionalDeps: WarpDeplete, BigWigs, Auctionator, BugSack, OPie, ls_Toasts
+## OptionalDeps: WarpDeplete, BigWigs, Auctionator, BugSack, OPie, ls_Toasts, Platynator
 ## X-Wago-ID: RNLk7bGo
 ## SavedVariables:
 

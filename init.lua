@@ -20,9 +20,9 @@ function TUI:InitModules()
 	if self.InitMinimapButtonBar then self:InitMinimapButtonBar() end
 	if db.cursorCircle then self:InitCursorCircle() end
 
-	-- Nameplates
+	-- Nameplates (skip entirely if ElvUI nameplates are disabled)
 	local np = self.db.profile.nameplates
-	if np then
+	if np and E.private.nameplates.enable then
 		if np.hideFriendlyRealm then self:InitHideFriendlyRealm() end
 		-- Override target indicator color with player's class color
 		self:HookClassColorTargetIndicator()
@@ -33,6 +33,9 @@ function TUI:InitModules()
 		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
 		if np.questColor and np.questColor.enabled then self:HookQuestColor() end
 	end
+
+	-- Platynator tweaks (independent of ElvUI nameplates)
+	if E:IsAddOnEnabled('Platynator') then self:InitPlatynatorTweaks() end
 
 	-- Unit Frames
 	if self.db.profile.fakePower.soulFragments and self.InitSoulFragments then self:InitSoulFragments() end

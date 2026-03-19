@@ -2,12 +2,21 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local ACH = E.Libs.ACH
 
-function TUI:BuildNameplatesConfig(root, tuiName)
-    root.nameplates = ACH:Group("Nameplates", nil, 4)
+local elvEnabled = E.private.nameplates.enable
+local platyEnabled = E:IsAddOnEnabled('Platynator')
 
-    root.nameplates.args.target = ACH:Group("Target Indicator", nil, 0)
-    root.nameplates.args.target.inline = true
-    root.nameplates.args.target.args.classColorTargetIndicator = ACH:Toggle(
+function TUI:BuildNameplatesConfig(root, tuiName)
+    root.nameplates = ACH:Group("Nameplates", nil, 4, "tree")
+
+    -- ElvUI Nameplates sub-group
+    root.nameplates.args.elvui = ACH:Group("ElvUI", nil, 1)
+    root.nameplates.args.elvui.disabled = not elvEnabled
+    local elv = root.nameplates.args.elvui.args
+
+    elv.target = ACH:Group("Target Indicator", nil, 0)
+    elv.target.inline = true
+    elv.target.args = {}
+    elv.target.args.classColorTargetIndicator = ACH:Toggle(
         "Class Color",
         "Override the target indicator color with your class color.",
         1, nil, nil, nil,
@@ -17,9 +26,9 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         end
     )
 
-    root.nameplates.args.threat = ACH:Group("Threat", nil, 1)
-    root.nameplates.args.threat.inline = true
-    local npThreat = root.nameplates.args.threat.args
+    elv.threat = ACH:Group("Threat", nil, 1)
+    elv.threat.inline = true
+    local npThreat = elv.threat.args
 
     npThreat.classificationOverThreat = ACH:Toggle(
         "Classification Over Threat",
@@ -35,9 +44,9 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     )
     npThreat.classificationOverThreat.customWidth = 250
 
-    root.nameplates.args.interrupt = ACH:Group("Interrupt Ready", nil, 2)
-    root.nameplates.args.interrupt.inline = true
-    local npInt = root.nameplates.args.interrupt.args
+    elv.interrupt = ACH:Group("Interrupt Ready", nil, 2)
+    elv.interrupt.inline = true
+    local npInt = elv.interrupt.args
 
     local blinkii = '|CFF6559F1B|r|CFF7A4DEFl|r|CFF8845ECi|r|CFFA037E9n|r|CFFB32DE6k|r|CFFBC26E5i|r|CFFCB1EE3i|r'
     npInt.interruptCredit = ACH:Description(
@@ -106,9 +115,9 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         intDisabled
     )
 
-    root.nameplates.args.quest = ACH:Group("Quest Color", nil, 3)
-    root.nameplates.args.quest.inline = true
-    local npQuest = root.nameplates.args.quest.args
+    elv.quest = ACH:Group("Quest Color", nil, 3)
+    elv.quest.inline = true
+    local npQuest = elv.quest.args
 
     npQuest.questColorEnabled = ACH:Toggle(
         function() return TUI.db.profile.nameplates.questColor.enabled and "|cff00ff00Enable|r" or "Enable" end,
@@ -135,9 +144,9 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         function() return not TUI.db.profile.nameplates.questColor.enabled end
     )
 
-    root.nameplates.args.highlight = ACH:Group("Friendly Nameplates", nil, 5)
-    root.nameplates.args.highlight.inline = true
-    local npHL = root.nameplates.args.highlight.args
+    elv.highlight = ACH:Group("Friendly Nameplates", nil, 5)
+    elv.highlight.inline = true
+    local npHL = elv.highlight.args
 
     npHL.disableFriendlyHighlight = ACH:Toggle(
         "Disable Friendly Highlight",
@@ -163,9 +172,9 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     )
     npHL.hideFriendlyRealm.customWidth = 250
 
-    root.nameplates.args.focus = ACH:Group("Focus Indicator", nil, 4)
-    root.nameplates.args.focus.inline = true
-    local npFocus = root.nameplates.args.focus.args
+    elv.focus = ACH:Group("Focus Indicator", nil, 4)
+    elv.focus.inline = true
+    local npFocus = elv.focus.args
 
     local focusDisabled = function() return not TUI.db.profile.nameplates.focusGlow.enabled end
 
@@ -198,5 +207,47 @@ function TUI:BuildNameplatesConfig(root, tuiName)
             c.r, c.g, c.b, c.a = r, g, b, a
         end,
         focusDisabled
+    )
+
+    -- Platynator sub-group
+    root.nameplates.args.platynator = ACH:Group("Platynator", nil, 2)
+    root.nameplates.args.platynator.disabled = not platyEnabled
+    local platy = root.nameplates.args.platynator.args
+
+    platy.general = ACH:Group("General", nil, 1)
+    platy.general.inline = true
+    local platyGen = platy.general.args
+
+    platyGen.hidePercentSign = ACH:Toggle(
+        "Hide Percent Sign",
+        "Remove the % symbol from health percentage text on nameplates.",
+        1, nil, nil, nil,
+        function() return TUI.db.profile.platynator.hidePercentSign end,
+        function(_, value)
+            TUI.db.profile.platynator.hidePercentSign = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    platyGen.classColorTarget = ACH:Toggle(
+        "Class Color Target",
+        "Color the target highlight with your class color instead of the design default.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.platynator.classColorTarget end,
+        function(_, value)
+            TUI.db.profile.platynator.classColorTarget = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    platyGen.classColorMouseover = ACH:Toggle(
+        "Class Color Mouseover",
+        "Color the mouseover highlight with your class color instead of the design default.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.platynator.classColorMouseover end,
+        function(_, value)
+            TUI.db.profile.platynator.classColorMouseover = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
     )
 end

@@ -25,6 +25,7 @@
 	<Script file="nameplates\friendlyhighlight.lua"/>
 	<Script file="nameplates\friendlyrealm.lua"/>
 	<Script file="nameplates\questcolor.lua"/>
+	<Script file="nameplates\platynator.lua"/>
 
 	<!-- Unit Frames -->
 	<Script file="unitframes\tags.lua"/>
