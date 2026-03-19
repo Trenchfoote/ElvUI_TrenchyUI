@@ -21,12 +21,14 @@ local C_FriendList_ShowFriends = C_FriendList.ShowFriends
 local C_PartyInfo_InviteUnit = C_PartyInfo.InviteUnit
 local ChatFrame_SendBNetTell = (ChatFrameUtil and ChatFrameUtil.SendBNetTell) or ChatFrame_SendBNetTell
 local BNInviteFriend = BNInviteFriend
+local GetTitleIconTexture = C_Texture.GetTitleIconTexture
+local ICON_VERSION = Enum.TitleIconVersion and Enum.TitleIconVersion.Small
 
 local friendOnline, friendOffline = gsub(_G.ERR_FRIEND_ONLINE_SS, '|Hplayer:%%s|h%[%%s%]|h', ''), gsub(_G.ERR_FRIEND_OFFLINE_S, '%%s', '')
 local FRIENDS = _G.FRIENDS
 local WOW_PROJECT_ID = WOW_PROJECT_ID
 local wowString = _G.BNET_CLIENT_WOW
-local battleNetString = _G.BATTLENET_OPTIONS_LABEL
+
 
 local friendTable, bnTable = {}, {}
 local clientGroups, clientOrder = {}, {}
@@ -34,27 +36,27 @@ local displayString = ''
 local db
 
 local clientTags = {
-	WoW  = { index = 1,  tag = 'WoW' },
-	WTCG = { index = 2,  tag = 'HS' },
-	Hero = { index = 3,  tag = 'HotS' },
-	Pro  = { index = 4,  tag = 'OW' },
-	OSI  = { index = 5,  tag = 'D2' },
-	D3   = { index = 6,  tag = 'D3' },
-	Fen  = { index = 7,  tag = 'D4' },
-	ANBS = { index = 8,  tag = 'DI' },
-	S1   = { index = 9,  tag = 'SC' },
-	S2   = { index = 10, tag = 'SC2' },
-	W3   = { index = 11, tag = 'WC3' },
-	RTRO = { index = 12, tag = 'AC' },
-	WLBY = { index = 13, tag = 'CB4' },
-	VIPR = { index = 14, tag = 'BO4' },
-	ODIN = { index = 15, tag = 'WZ' },
-	AUKS = { index = 16, tag = 'WZ2' },
-	LAZR = { index = 17, tag = 'MW2' },
-	ZEUS = { index = 18, tag = 'CW' },
-	FORE = { index = 19, tag = 'VG' },
-	GRY  = { index = 20, tag = 'AR' },
-	App  = { index = 21, tag = 'App' },
+	WoW  = { index = 1,  tag = 'World of Warcraft' },
+	WTCG = { index = 2,  tag = 'Hearthstone' },
+	Hero = { index = 3,  tag = 'Heroes of the Storm' },
+	Pro  = { index = 4,  tag = 'Overwatch' },
+	OSI  = { index = 5,  tag = 'Diablo II' },
+	D3   = { index = 6,  tag = 'Diablo III' },
+	Fen  = { index = 7,  tag = 'Diablo IV' },
+	ANBS = { index = 8,  tag = 'Diablo Immortal' },
+	S1   = { index = 9,  tag = 'StarCraft' },
+	S2   = { index = 10, tag = 'StarCraft II' },
+	W3   = { index = 11, tag = 'Warcraft III' },
+	RTRO = { index = 12, tag = 'Arcade Collection' },
+	WLBY = { index = 13, tag = 'Crash Bandicoot 4' },
+	VIPR = { index = 14, tag = 'Black Ops 4' },
+	ODIN = { index = 15, tag = 'Warzone' },
+	AUKS = { index = 16, tag = 'Warzone 2.0' },
+	LAZR = { index = 17, tag = 'Modern Warfare II' },
+	ZEUS = { index = 18, tag = 'Cold War' },
+	FORE = { index = 19, tag = 'Vanguard' },
+	GRY  = { index = 20, tag = 'Arclight Rumble' },
+	App  = { index = 21, tag = 'Battle.net' },
 	BSAp = { index = 22, tag = 'Mobile' },
 }
 
@@ -177,18 +179,18 @@ local function BuildBNTable(total)
 
 			local isBTag = accountInfo.isBattleTagFriend
 			local btagName = accountInfo.battleTag and strmatch(accountInfo.battleTag, '([^#]+)')
+			local realName = accountInfo.accountName or ''
 			local displayName
 			if isBTag then
-				displayName = btagName or accountInfo.accountName or ''
+				displayName = btagName or realName
 			else
-				displayName = accountInfo.accountName or ''
-				if btagName then displayName = displayName .. ' (' .. btagName .. ')' end
+				displayName = realName
 			end
 			-- Only show charName when it differs from the battletag name
 			local showChar = charName ~= '' and charName ~= btagName
 
 			local entry = {
-				accountName = accountInfo.accountName,
+				accountName = realName,
 				battleTag = accountInfo.battleTag,
 				displayName = displayName,
 				name = charName,
@@ -344,18 +346,42 @@ local function ApplyFonts()
 	end
 end
 
-local function SetupHeaderRow(row, text, prevRow)
+local function GetOrCreateIcon(row)
+	if row.clientIcon then return row.clientIcon end
+	local icon = row:CreateTexture(nil, 'OVERLAY')
+	icon:SetSize(16, 16)
+	icon:SetPoint('LEFT', row, 'LEFT', 0, 0)
+	row.clientIcon = icon
+	return icon
+end
+
+local function SetupHeaderRow(row, text, prevRow, client)
 	row.isHeader = true
 	row.level:SetText('')
-	row.name:SetText(text)
-	local cc = E:ClassColor(E.myclass)
-	row.name:SetTextColor(cc.r, cc.g, cc.b)
 	row.zone:SetText('')
 	row.friendName = nil
 	row.friendBNetName = nil
 	row.friendClass = nil
 	row.canInvite = false
 	row.friendGameID = nil
+
+	local icon = GetOrCreateIcon(row)
+	row.name:ClearAllPoints()
+	if client and GetTitleIconTexture and ICON_VERSION then
+		icon:SetTexture(nil)
+		icon:Show()
+		GetTitleIconTexture(client, ICON_VERSION, function(success, texture)
+			if success and texture then icon:SetTexture(texture) end
+		end)
+		row.name:SetPoint('LEFT', icon, 'RIGHT', 4, 0)
+	else
+		icon:Hide()
+		row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
+	end
+
+	row.name:SetText(text)
+	local cc = E:ClassColor(E.myclass)
+	row.name:SetTextColor(cc.r, cc.g, cc.b)
 
 	local pad = prevRow and -SECTION_PAD or -6
 	local anchor = prevRow or headerText
@@ -378,8 +404,6 @@ local function ShowTooltip(panel)
 	local totalOnline = #friendTable + #bnTable
 	if totalOnline == 0 then return end
 
-	ApplyFonts()
-
 	headerText:SetText(format('%s  |cff999999Online: %d|r', FRIENDS, totalOnline))
 
 	local shown = 0
@@ -400,6 +424,9 @@ local function ShowTooltip(panel)
 
 		shown = shown + 1
 		local row = GetOrCreateRow(shown)
+		if row.clientIcon then row.clientIcon:Hide() end
+		row.name:ClearAllPoints()
+		row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
 		local levelc = GetQuestDifficultyColor(info.level)
 		local classc = E:ClassColor(info.class) or levelc
 
@@ -438,13 +465,16 @@ local function ShowTooltip(panel)
 			local hdr = GetOrCreateRow(shown)
 			local tagInfo = clientTags[client]
 			local tag = tagInfo and tagInfo.tag or client
-			SetupHeaderRow(hdr, format('%s (%s)', battleNetString, tag), shown > 1 and rows[shown - 1] or nil)
+			SetupHeaderRow(hdr, tag, shown > 1 and rows[shown - 1] or nil, client)
 
 			for _, info in ipairs(group) do
 				if shown >= MAX_ROWS then break end
 
 				shown = shown + 1
 				local row = GetOrCreateRow(shown)
+				if row.clientIcon then row.clientIcon:Hide() end
+				row.name:ClearAllPoints()
+				row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
 
 				local groupTag = info.isWoW and InGroup(info.name or '', info.realmName) or ''
 
@@ -468,6 +498,8 @@ local function ShowTooltip(panel)
 					row.zone:SetTextColor(zonec.r, zonec.g, zonec.b)
 				else
 					row.level:SetText('')
+					row.name:ClearAllPoints()
+					row.name:SetPoint('LEFT', row, 'LEFT', 0, 0)
 					local nameStr = info.displayName
 					if info.showChar then
 						nameStr = nameStr .. ' - ' .. info.name
@@ -503,20 +535,22 @@ local function ShowTooltip(panel)
 		rows[i]:Hide()
 	end
 
+	ApplyFonts()
+
 	-- Measure widths from actual text
 	local maxName, maxZone = 0, 0
 	for i = 1, shown do
 		local row = rows[i]
-		local nw = row.name:GetStringWidth()
-		local zw = row.zone:GetStringWidth()
+		local nw = row.name:GetUnboundedStringWidth()
+		local zw = row.zone:GetUnboundedStringWidth()
 		if nw > maxName then maxName = nw end
 		if zw > maxZone then maxZone = zw end
 	end
 
 	local levelWidth = 28
-	local nameWidth = maxName + 4
+	local nameWidth = maxName + 8
 	local zoneWidth = maxZone > 0 and (maxZone + 16) or 0
-	local tooltipWidth = TOOLTIP_PAD * 2 + levelWidth + 4 + nameWidth + zoneWidth
+	local tooltipWidth = TOOLTIP_PAD * 2 + levelWidth + nameWidth + zoneWidth
 	local headerWidth = TOOLTIP_PAD * 2 + (headerText:GetStringWidth() or 0)
 	if headerWidth > tooltipWidth then tooltipWidth = headerWidth end
 
