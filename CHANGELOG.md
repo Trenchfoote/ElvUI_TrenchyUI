@@ -1,15 +1,17 @@
 # TrenchyUI Changelog
 
-## v1.1
+## v1.2
 
 ### New Features
-- Cooldown Manager: New Custom Tracker viewer — track racials, healthstones, healing potions, combat potions, and trinkets in a standalone viewer with its own mover
-- Cooldown Manager: Preview Text toggle to show sample text on all CDM viewers for font/size previewing
+- Nameplates: Platynator support — hide percent sign on health text, class color target highlight, class color mouseover highlight
+- Nameplates: Platynator profile with 4 nameplate designs (ElvUI, BetterBlizz, Name Only, Custom)
+- Nameplates: ElvUI nameplate modules now automatically disabled when ElvUI nameplates are off
 
 ### Bug Fixes
-- QoL: Fixed cursor circle appearing dim when using class color mode
+- Friends Datatext: Fixed tooltip not resizing dynamically when friends go online/offline
+- Friends Datatext: Fixed name and zone columns overlapping on long names
+- QoL: Fixed "Hide Objectives in Combat" label being truncated in config
 
 ### Improvements
-- Cooldown Manager: All CDM text now renders at true pixel size for consistent font display across all viewers
-- Nameplates: Rewritten interrupt on CD module for improved accuracy
-- General: Removed modules now handled natively by ElvUI (castbar interrupted color, class power scaling, classification instance filter)
+- Nameplates: Config restructured into ElvUI and Platynator sub-tabs with automatic detection
+- Friends Datatext: Game icons on section headers, full game names, Real ID display, left-aligned non-WoW friends
