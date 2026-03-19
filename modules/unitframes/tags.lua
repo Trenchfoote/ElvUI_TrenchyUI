@@ -13,3 +13,4 @@ E:AddTag('tui-smartpower', 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 	end
 end)
 E:AddTagInfo('tui-smartpower', E:TextGradient('TrenchyUI', 1.00,0.18,0.24, 0.80,0.10,0.20), 'Shows power percentage for mana specs, current power for others')
+

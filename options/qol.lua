@@ -64,6 +64,7 @@ function TUI:BuildQoLConfig(root, tuiName)
             E:StaticPopup_Show('CONFIG_RL')
         end
     )
+    qolGen.hideObjectiveInCombat.customWidth = 250
 
     root.qol.args.cursorCircle = ACH:Group("Cursor Circle", nil, 1.5)
     root.qol.args.cursorCircle.inline = true
