@@ -18,7 +18,7 @@ function TUI:BuildInformationConfig(root, tuiName)
     info.credits = ACH:Group("Credits", nil, 3)
     info.credits.inline = true
     info.credits.args.desc = ACH:Description(
-        E:TextGradient('Jiberish', 1.00,0.08,0.56, 1.00,0.41,0.71) .. " — For the encouragement to actually do this, permission to use his Fabled icons, and for letting me die in keys while you were tinkering with your UI.\n\n"
+        E:TextGradient('Jiberish', 1.00,0.08,0.56, 1.00,0.41,0.71) .. " — For the encouragement to actually do this, permission to use the Fabled icons for TDM, and for letting me die in keys while you were tinkering with your UI.\n\n"
         .. E:TextGradient('Requiem', 0.13,0.37,0.13, 0.30,0.57,0.25) .. " — For entertaining me while making this, and being the first tester and adopter of " .. tuiName .. ", your feedback has helped shape this plugin.\n\n"
         .. E:TextGradient('Menios', 0.64,0.19,0.79, 0.46,0.33,0.80) .. " — For the 10+ years of trolling and entertainment, and helping me kill 4+ Guilds during Legion.\n\n"
         .. E:TextGradient('Nessa', 0.00,0.43,1.00, 0.30,0.65,1.00) .. " — For years of splashing me with the shaman heals and being the best healer ever.\n\n"
