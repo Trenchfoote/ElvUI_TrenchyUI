@@ -51,15 +51,11 @@ local function OnCDMEvent(event, unit, ...)
 		return
 	end
 	if cdmDisabledByCVar then return end
-	if event == 'PLAYER_REGEN_DISABLED' then
-		S.inCombat = true
+	-- Track combat state from any event since PLAYER_REGEN may not fire
+	local inCombat = InCombatLockdown()
+	if inCombat ~= S.inCombat then
+		S.inCombat = inCombat
 		TUI:UpdateCDMVisibility()
-		return
-	elseif event == 'PLAYER_REGEN_ENABLED' then
-		S.inCombat = false
-		TUI:UpdateCDMVisibility()
-		S.ScheduleRelayout()
-		return
 	end
 	if event == 'UNIT_AURA' and unit ~= 'player' then return end
 	S.ScheduleRelayout()
@@ -335,8 +331,6 @@ function TUI:InitCooldownManager()
 		TUI:RegisterEvent('UNIT_AURA', OnCDMEvent)
 		TUI:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnCDMEvent)
 		TUI:RegisterEvent('SPELLS_CHANGED', OnCDMEvent)
-		TUI:RegisterEvent('PLAYER_REGEN_DISABLED', OnCDMEvent)
-		TUI:RegisterEvent('PLAYER_REGEN_ENABLED', OnCDMEvent)
 		TUI:RegisterEvent('CVAR_UPDATE', OnCDMEvent)
 
 		TUI:UpdateCDMVisibility()

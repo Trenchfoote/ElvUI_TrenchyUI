@@ -298,7 +298,9 @@ function S.LayoutCustomViewer()
 		container:Hide()
 		return
 	end
-	container:Show()
+	if not container:IsShown() and S.ShouldShowContainer('custom') then
+		container:Show()
+	end
 
 	local db = S.GetDB()
 	for _, icon in ipairs(activeIcons) do
