@@ -2,7 +2,7 @@ local E, _, _, _, G = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local DT = E:GetModule('DataTexts')
 
-local format, sort, wipe, ipairs, next, gsub, strfind, strmatch = format, sort, wipe, ipairs, next, gsub, strfind, strmatch
+local format, sort, wipe, ipairs, next, gsub, strfind, strmatch, max = format, sort, wipe, ipairs, next, gsub, strfind, strmatch, math.max
 local BNConnected = BNConnected
 local BNGetNumFriends = BNGetNumFriends
 local GetQuestDifficultyColor = GetQuestDifficultyColor
@@ -268,8 +268,10 @@ local function GetOrCreateRow(index)
 
 	row.name = row:CreateFontString(nil, 'OVERLAY')
 	row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
+	row.name:SetPoint('RIGHT', row.zone, 'LEFT', -4, 0)
 	row.name:FontTemplate(font, fontSize, fontOutline)
 	row.name:SetJustifyH('LEFT')
+	row.name:SetWordWrap(false)
 
 	row.zone = row:CreateFontString(nil, 'OVERLAY')
 	row.zone:SetPoint('RIGHT', row, 'RIGHT', 0, 0)
@@ -538,21 +540,30 @@ local function ShowTooltip(panel)
 	ApplyFonts()
 
 	-- Measure widths from actual text
-	local maxName, maxZone = 0, 0
+	local maxName, maxZone, maxNonWoWName = 0, 0, 0
 	for i = 1, shown do
 		local row = rows[i]
 		local nw = row.name:GetUnboundedStringWidth()
 		local zw = row.zone:GetUnboundedStringWidth()
-		if nw > maxName then maxName = nw end
+		if row.isHeader then
+			-- header width includes icon; tracked separately via headerWidth
+		elseif zw > 0 then
+			if nw > maxName then maxName = nw end
+		else
+			if nw > maxNonWoWName then maxNonWoWName = nw end
+		end
 		if zw > maxZone then maxZone = zw end
 	end
 
-	local levelWidth = 28
-	local nameWidth = maxName + 8
-	local zoneWidth = maxZone > 0 and (maxZone + 16) or 0
-	local tooltipWidth = TOOLTIP_PAD * 2 + levelWidth + nameWidth + zoneWidth
-	local headerWidth = TOOLTIP_PAD * 2 + (headerText:GetStringWidth() or 0)
-	if headerWidth > tooltipWidth then tooltipWidth = headerWidth end
+	local levelWidth = 30
+	local iconWidth = 20
+	local gap = 16
+	local nameWidth = maxName + 12
+	local zoneWidth = maxZone > 0 and (maxZone + gap) or 0
+	local wowRowWidth = TOOLTIP_PAD * 2 + levelWidth + nameWidth + zoneWidth
+	local nonWoWRowWidth = TOOLTIP_PAD * 2 + maxNonWoWName + 12
+	local headerWidth = TOOLTIP_PAD * 2 + iconWidth + (headerText:GetUnboundedStringWidth() or 0)
+	local tooltipWidth = max(wowRowWidth, nonWoWRowWidth, headerWidth)
 
 	local sectionExtra = headerCount > 1 and ((headerCount - 1) * (SECTION_PAD - ROW_PAD)) or 0
 	local contentH = TOOLTIP_PAD + headerText:GetStringHeight() + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + sectionExtra + TOOLTIP_PAD
