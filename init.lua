@@ -8,6 +8,7 @@ function TUI:InitModules()
 	if self.InitSkinAuctionator then self:InitSkinAuctionator() end
 	if self.InitSkinBugSack then self:InitSkinBugSack() end
 	if self.InitSkinOPie then self:InitSkinOPie() end
+	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
 
 	-- QoL
 	local db = self.db.profile.qol

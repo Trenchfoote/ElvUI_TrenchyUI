@@ -39,6 +39,7 @@ TUI.defaults = {
             skinAuctionator = false,
             skinOPie        = false,
             skinBugSack     = false,
+            skinPlatynator  = false,
         },
         nameplates = {
             classColorTargetIndicator = false,

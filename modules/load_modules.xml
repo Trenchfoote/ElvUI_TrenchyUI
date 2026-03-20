@@ -6,6 +6,7 @@
 	<Script file="skins\bugsack.lua"/>
 	<Script file="skins\opie.lua"/>
 	<Script file="skins\cooldownviewer.lua"/>
+	<Script file="skins\platynator.lua"/>
 
 	<!-- QoL -->
 	<Script file="qol\talkinghead.lua"/>

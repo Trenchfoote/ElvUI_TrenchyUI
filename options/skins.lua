@@ -14,7 +14,8 @@ function TUI:BuildSkinsConfig(root, tuiName)
         { key = "skinBigWigs",     addon = "BigWigs",     label = "BigWigs",      order = 2 },
         { key = "skinBugSack",     addon = "BugSack",     label = "BugSack",      order = 3 },
         { key = "skinOPie",        addon = "OPie",        label = "OPie",         order = 4 },
-        { key = "skinWarpDeplete", addon = "WarpDeplete",  label = "WarpDeplete",  order = 5 },
+        { key = "skinPlatynator",  addon = "Platynator",    label = "Platynator",   order = 5 },
+        { key = "skinWarpDeplete", addon = "WarpDeplete",  label = "WarpDeplete",  order = 6 },
     }
 
     for _, def in ipairs(skinDefs) do
