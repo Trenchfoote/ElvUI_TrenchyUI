@@ -58,30 +58,40 @@ function TUI:InitPlatynatorTweaks()
 	local db = self.db.profile.platynator
 	if not db then return end
 
-	eventFrame:RegisterEvent('NAME_PLATE_UNIT_ADDED')
-	eventFrame:SetScript('OnEvent', function(_, _, unit)
-		C_Timer_After(0, function()
-			local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
-			if not nameplate then return end
-			-- Scan nameplate children for Platynator's display
-			for _, child in pairs({ nameplate:GetChildren() }) do
-				if child.widgets then
+	-- Find Platynator display anchored to a nameplate
+	local function FindAndProcess(nameplate)
+		-- Check nameplate children first (fast path)
+		for _, child in pairs({ nameplate:GetChildren() }) do
+			if child.widgets then
+				ProcessDisplay(child)
+				return
+			end
+		end
+		-- Fallback: scan UIParent children anchored to this nameplate
+		for _, child in pairs({ UIParent:GetChildren() }) do
+			if child.widgets and child:IsShown() then
+				local _, anchor = child:GetPoint(1)
+				if anchor == nameplate then
 					ProcessDisplay(child)
-					break
+					return
 				end
 			end
+		end
+	end
+
+	eventFrame:RegisterEvent('NAME_PLATE_UNIT_ADDED')
+	eventFrame:SetScript('OnEvent', function(_, _, unit)
+		C_Timer_After(0.1, function()
+			local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+			if not nameplate then return end
+			FindAndProcess(nameplate)
 		end)
 	end)
 
 	-- Hook any displays already visible
-	C_Timer_After(0, function()
+	C_Timer_After(0.1, function()
 		for _, nameplate in pairs(C_NamePlate.GetNamePlates()) do
-			for _, child in pairs({ nameplate:GetChildren() }) do
-				if child.widgets then
-					ProcessDisplay(child)
-					break
-				end
-			end
+			FindAndProcess(nameplate)
 		end
 	end)
 end
