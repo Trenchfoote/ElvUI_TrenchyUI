@@ -356,7 +356,7 @@ function TUI:ApplyPlatynatorProfile()
 				{ kind = "creatureName", showWhenWowDoes = false, truncate = true, align = "LEFT", layer = 2, maxWidth = 0.75, autoColors = {}, anchor = { "LEFT", -69, 0 }, color = { r = 1, g = 1, b = 1 }, scale = 1 },
 				{ kind = "castSpellName", scale = 0.75, color = { b = 1, g = 1, r = 1 }, layer = 2, truncate = true, anchor = { "TOPLEFT", -69.5, -11 }, align = "LEFT", maxWidth = 0.44 },
 				{ kind = "castTimeLeft", scale = 0.8, align = "CENTER", layer = 2, truncate = false, color = { b = 1, g = 1, r = 1 }, anchor = { "TOPRIGHT", 70.5, -11 }, maxWidth = 0 },
-				{ kind = "castInterrupter", scale = 0.8, color = { b = 1, g = 1, r = 1 }, layer = 2, truncate = false, anchor = { "TOPRIGHT", 36.5, -10.5 }, align = "CENTER", maxWidth = 0, applyClassColors = true },
+				{ kind = "castInterrupter", scale = 0.8, color = { b = 1, g = 1, r = 1 }, layer = 2, truncate = false, anchor = { "TOPLEFT", -69.5, -22 }, align = "CENTER", maxWidth = 0, applyClassColors = true },
 			},
 		},
 	}
