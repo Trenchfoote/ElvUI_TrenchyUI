@@ -67,8 +67,8 @@ local TOOLTIP_PAD = 8
 local MAX_ROWS = 30
 
 local statusText = {
-	AFK = ' |cffFF9900AFK|r',
-	DND = ' |cffFF3333DND|r',
+	AFK = ' |cffFF9900[AFK]|r',
+	DND = ' |cffFF3333[DND]|r',
 }
 
 local statusColor = {
@@ -433,8 +433,7 @@ local function ShowTooltip(panel)
 
 		local groupTag = InGroup(info.name)
 		row.name:SetText(info.name .. groupTag .. info.status)
-		local namec = info.statusKey and statusColor[info.statusKey] or classc
-		row.name:SetTextColor(namec.r, namec.g, namec.b)
+		row.name:SetTextColor(classc.r, classc.g, classc.b)
 
 		local zonec = (E.MapInfo.zoneText and E.MapInfo.zoneText == info.zone) and activezone or inactivezone
 		row.zone:SetText(info.zone)
@@ -487,8 +486,7 @@ local function ShowTooltip(panel)
 					end
 					nameStr = nameStr .. groupTag .. info.status
 					row.name:SetText(nameStr)
-					local namec = info.statusKey and statusColor[info.statusKey] or classc
-					row.name:SetTextColor(namec.r, namec.g, namec.b)
+					row.name:SetTextColor(classc.r, classc.g, classc.b)
 
 					local zonec = (E.MapInfo.zoneText and E.MapInfo.zoneText == info.zone) and activezone or inactivezone
 					row.zone:SetText(info.zone)
@@ -534,7 +532,7 @@ local function ShowTooltip(panel)
 	ApplyFonts()
 
 	-- Measure the widest row by summing each row's actual content
-	local nameZoneGap = 12
+	local nameZoneGap = 36
 	local levelGap = 4
 	local iconWidth = 20
 	local maxRowWidth = 0
