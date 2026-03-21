@@ -1577,10 +1577,11 @@ local function SetupProfileDB()
     E.db.unitframe.colors.healPrediction.absorbs.b = 0.44313728809357
     E.db.unitframe.colors.healPrediction.absorbs.g = 0.39607846736908
     E.db.unitframe.colors.healPrediction.absorbs.r = 0.26666668057442
-    E.db.unitframe.colors.healPrediction.healAbsorbs.b = 1
-    E.db.unitframe.colors.healPrediction.healAbsorbs.g = 0.69019609689713
-    E.db.unitframe.colors.healPrediction.healAbsorbs.r = 0.55294120311737
-    E.db.unitframe.colors.healPrediction.maxOverflow = 0.01
+    E.db.unitframe.colors.healPrediction.healAbsorbs.a = 0.09803921729326
+    E.db.unitframe.colors.healPrediction.healAbsorbs.b = 0.59215688705444
+    E.db.unitframe.colors.healPrediction.healAbsorbs.g = 0
+    E.db.unitframe.colors.healPrediction.healAbsorbs.r = 1
+    E.db.unitframe.colors.healPrediction.maxOverflow = 0
     E.db.unitframe.colors.healPrediction.overabsorbs.b = 0.44313728809357
     E.db.unitframe.colors.healPrediction.overabsorbs.g = 0.43529415130615
     E.db.unitframe.colors.healPrediction.overabsorbs.r = 0.37647062540054
