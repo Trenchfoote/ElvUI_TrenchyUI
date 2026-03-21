@@ -30,7 +30,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
         return "A profile update is available. Installing will overwrite your current TrenchyUI settings."
     end
 
-    allArgs.desc = ACH:Description("Apply ElvUI, BigWigs, WarpDeplete, and LS: Toasts profiles in one click.", 1, "medium")
+    allArgs.desc = ACH:Description("Apply ElvUI, BigWigs, WarpDeplete, LS: Toasts, and Platynator profiles in one click.", 1, "medium")
     allArgs.install = ACH:Execute("Install All Profiles", nil, 2, function()
         E:StaticPopup_Show('TUI_INSTALL_ALL')
     end)
@@ -165,6 +165,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
             TUI:ApplyElvUIProfile()
             if E:IsAddOnEnabled('WarpDeplete') and TUI.ApplyWarpDepleteProfile then TUI:ApplyWarpDepleteProfile() end
             if E:IsAddOnEnabled('ls_Toasts') and TUI.ApplyLSToastsProfile then TUI:ApplyLSToastsProfile() end
+            if E:IsAddOnEnabled('Platynator') and TUI.ApplyPlatynatorProfile then TUI:ApplyPlatynatorProfile() end
 
             if BigWigsAPI and TUI.ApplyBigWigsProfile then
                 E.db.TrenchyUI._pendingBigWigsProfile = true
