@@ -90,7 +90,7 @@ do -- LFG Timer Skin
 		local popupWidth = LFGDungeonReadyPopup and LFGDungeonReadyPopup:GetWidth()
 		if not popupWidth or popupWidth < 50 then popupWidth = 303 end
 
-		timerBarRef:SetSize(popupWidth, s.height)
+		timerBarRef:SetSize(popupWidth, DEFAULTS_BARS.normalHeight)
 		timerBarRef:ClearAllPoints()
 		timerBarRef:SetPoint('TOP', LFGDungeonReadyPopup, 'BOTTOM', 0, -3)
 
