@@ -74,6 +74,12 @@ function TUI:BuildProfilesConfig(root, tuiName)
         E:StaticPopup_Show('CONFIG_RL')
     end, nil, nil, nil, nil, nil, addonDisabled('Platynator'))
 
+    indArgs.installBaganator = ACH:Execute("Baganator", "Imports TrenchyUI bag categories into Baganator.", 6, function()
+        TUI:ApplyBaganatorProfile()
+        E:Print(tuiName .. ": Baganator categories applied.")
+        E:StaticPopup_Show('CONFIG_RL')
+    end, nil, nil, nil, nil, nil, addonDisabled('Baganator'))
+
     -- Inject TUI datatext options into ElvUI's Customization tab
     do
         local dtSettings = E.Options.args.datatexts.args.settings.args
@@ -166,6 +172,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
             if E:IsAddOnEnabled('WarpDeplete') and TUI.ApplyWarpDepleteProfile then TUI:ApplyWarpDepleteProfile() end
             if E:IsAddOnEnabled('ls_Toasts') and TUI.ApplyLSToastsProfile then TUI:ApplyLSToastsProfile() end
             if E:IsAddOnEnabled('Platynator') and TUI.ApplyPlatynatorProfile then TUI:ApplyPlatynatorProfile() end
+            if E:IsAddOnEnabled('Baganator') and TUI.ApplyBaganatorProfile then TUI:ApplyBaganatorProfile() end
 
             if BigWigsAPI and TUI.ApplyBigWigsProfile then
                 E.db.TrenchyUI._pendingBigWigsProfile = true

@@ -4,4 +4,5 @@
 	<Script file="warpdeplete.lua"/>
 	<Script file="lstoasts.lua"/>
 	<Script file="platynator.lua"/>
+	<Script file="baganator.lua"/>
 </Ui>
