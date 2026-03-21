@@ -138,7 +138,7 @@ local floor = math.floor
 
 function S.ScanRoster()
     local pg = UnitGUID('player')
-    if pg then
+    if pg and not S.IsSecret(pg) then
         S.nameCache[pg] = UnitName('player')
         S.classCache[pg] = select(2, UnitClass('player'))
     end
@@ -146,7 +146,7 @@ function S.ScanRoster()
         for i = 1, GetNumGroupMembers() do
             local unit = 'raid' .. i
             local guid = UnitGUID(unit)
-            if guid then
+            if guid and not S.IsSecret(guid) then
                 S.nameCache[guid] = UnitName(unit)
                 S.classCache[guid] = select(2, UnitClass(unit))
             end
@@ -155,7 +155,7 @@ function S.ScanRoster()
         for i = 1, GetNumGroupMembers() - 1 do
             local unit = 'party' .. i
             local guid = UnitGUID(unit)
-            if guid then
+            if guid and not S.IsSecret(guid) then
                 S.nameCache[guid] = UnitName(unit)
                 S.classCache[guid] = select(2, UnitClass(unit))
             end
