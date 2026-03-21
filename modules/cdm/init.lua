@@ -192,7 +192,7 @@ function TUI:UpdateCDMVisibility()
 		local viewer = S.GetViewer(viewerKey)
 
 		if container then container:SetShown(show) end
-		if viewer then viewer:SetShown(show) end
+		if viewer and not InCombatLockdown() then viewer:SetShown(show) end
 
 		-- Sync alpha: FADER mirrors player frame, others reset to full
 		if vdb and vdb.visibleSetting == 'FADER' then
