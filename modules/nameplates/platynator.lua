@@ -6,6 +6,7 @@ local UnitHealthPercent = UnitHealthPercent
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local ScaleTo100 = CurveConstants and CurveConstants.ScaleTo100
 local C_Timer_After = C_Timer.After
+local C_NamePlate = C_NamePlate
 
 local hookedWidgets = {}
 
@@ -49,6 +50,29 @@ local function ProcessDisplay(display)
 	end
 end
 
+-- Find a Platynator display on a nameplate by scanning children
+local function FindDisplay(nameplate)
+	for _, child in pairs({ nameplate:GetChildren() }) do
+		if child.widgets then return child end
+	end
+end
+
+-- Retry finding and processing a display with exponential backoff
+local function ProcessWithRetry(nameplate, attempt)
+	local display = FindDisplay(nameplate)
+	if display then
+		ProcessDisplay(display)
+		return
+	end
+	if attempt < 4 then
+		C_Timer_After(0.1 * attempt, function()
+			if nameplate:IsShown() then
+				ProcessWithRetry(nameplate, attempt + 1)
+			end
+		end)
+	end
+end
+
 local eventFrame = CreateFrame('Frame')
 
 function TUI:InitPlatynatorTweaks()
@@ -58,40 +82,19 @@ function TUI:InitPlatynatorTweaks()
 	local db = self.db.profile.platynator
 	if not db then return end
 
-	-- Find Platynator display anchored to a nameplate
-	local function FindAndProcess(nameplate)
-		-- Check nameplate children first (fast path)
-		for _, child in pairs({ nameplate:GetChildren() }) do
-			if child.widgets then
-				ProcessDisplay(child)
-				return
-			end
-		end
-		-- Fallback: scan UIParent children anchored to this nameplate
-		for _, child in pairs({ UIParent:GetChildren() }) do
-			if child.widgets and child:IsShown() then
-				local _, anchor = child:GetPoint(1)
-				if anchor == nameplate then
-					ProcessDisplay(child)
-					return
-				end
-			end
-		end
-	end
-
 	eventFrame:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 	eventFrame:SetScript('OnEvent', function(_, _, unit)
-		C_Timer_After(0.1, function()
+		C_Timer_After(0, function()
 			local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
 			if not nameplate then return end
-			FindAndProcess(nameplate)
+			ProcessWithRetry(nameplate, 1)
 		end)
 	end)
 
 	-- Hook any displays already visible
-	C_Timer_After(0.1, function()
+	C_Timer_After(0.5, function()
 		for _, nameplate in pairs(C_NamePlate.GetNamePlates()) do
-			FindAndProcess(nameplate)
+			ProcessWithRetry(nameplate, 1)
 		end
 	end)
 end
