@@ -30,7 +30,7 @@ function TUI:InitCursorCircle()
 	circleTexture = circleFrame:CreateTexture(nil, 'OVERLAY')
 	circleTexture:SetAllPoints()
 	circleTexture:SetTexture(TEXTURE_PATH .. (db.cursorCircleThickness or 'medium'))
-	ApplyCircleColor()
+	C_Timer.After(0, ApplyCircleColor)
 
 	local lastX, lastY = 0, 0
 	circleFrame:SetScript('OnUpdate', function(frame)
@@ -43,6 +43,10 @@ function TUI:InitCursorCircle()
 	end)
 
 	circleFrame:Show()
+
+	if _G.CUSTOM_CLASS_COLORS and _G.CUSTOM_CLASS_COLORS.RegisterCallback then
+		_G.CUSTOM_CLASS_COLORS:RegisterCallback(ApplyCircleColor)
+	end
 end
 
 function TUI:UpdateCursorCircle()
