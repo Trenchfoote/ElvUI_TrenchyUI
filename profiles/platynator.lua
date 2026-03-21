@@ -230,13 +230,10 @@ function TUI:ApplyPlatynatorProfile()
 					border = { color = { a = 1, r = 0, g = 0, b = 0 }, height = 1, asset = "Platy: 1px", width = 1.15 },
 					marker = { asset = "none" },
 					autoColors = {
-						{ kind = "execute", colors = { execute = { b = 0.760784387588501, g = 0.1450980454683304, r = 0.8196079134941101 } } },
 						{ combatOnly = true, kind = "threat", useSafeColor = false, instancesOnly = false, colors = { safe = { b = 0.2431372702121735, g = 0.9019608497619628, r = 0.3686274588108063 }, transition = { b = 0, g = 0.6274509803921569, r = 1 }, offtank = { b = 0.7843137254901961, g = 0.6666666666666666, r = 0.05882352941176471 }, warning = { b = 0, g = 0, r = 0.8 } } },
 						{ kind = "quest", colors = { neutral = { b = 0, g = 0.5372549295425415, r = 1 }, friendly = { b = 0, g = 0.5372549295425415, r = 1 }, hostile = { b = 0, g = 0.5372549295425415, r = 1 } } },
 						{ kind = "delveType", delves = true, outsideInstances = false, colors = { elite = { b = 0.7372549019607844, g = 0, r = 0.5647058823529412 }, boss = { b = 0, g = 0.1098039215686275, r = 0.7372549019607844 }, melee = { b = 0.9882352941176471, g = 0.9882352941176471, r = 0.9882352941176471 }, caster = { b = 0.7372549019607844, g = 0.4549019607843137, r = 0 }, trivial = { b = 0.3333333333333333, g = 0.5568627450980392, r = 0.6980392156862745 }, rare = { b = 0.5372549019607843, g = 0.3254901960784314, r = 0.7372549019607844 } } },
 						{ kind = "eliteType", instancesOnly = true, colors = { boss = { b = 0.6392157077789307, g = 0, r = 1 }, melee = { b = 0.4862745404243469, g = 0.7647059559822083, r = 0.988235354423523 }, caster = { r = 0, g = 0.4549019607843137, b = 0.7372549019607844 }, trivial = { r = 0.6980392156862745, g = 0.5568627450980392, b = 0.3333333333333333 }, miniboss = { r = 0.5647058823529412, g = 0, b = 0.7372549019607844 } } },
-						{ kind = "tapped", colors = { tapped = { r = 0.4313725490196079, g = 0.4313725490196079, b = 0.4313725490196079 } } },
-						{ kind = "classColors", colors = {} },
 						{ kind = "reaction", colors = { unfriendly = { b = 0, g = 0.5058823529411765, r = 1 }, hostile = { b = 0, g = 0, r = 1 }, friendly = { b = 0, g = 1, r = 0 }, neutral = { b = 0, g = 1, r = 1 } } },
 					},
 				},
@@ -252,6 +249,7 @@ function TUI:ApplyPlatynatorProfile()
 					interruptMarker = { color = { a = 1, r = 0.1803921610116959, g = 1, b = 0.03921568766236305 }, asset = "wide/glow" },
 					autoColors = {
 						{ kind = "interruptReady", colors = { ready = { b = 0, g = 1, r = 0 } } },
+						{ kind = "interruptNotReady", colors = { notReady = { a = 1, r = 1, g = 0.5686274766921997, b = 0.19607844948768617 } } },
 						{ kind = "uninterruptableCast", colors = { uninterruptable = { b = 0.5294117647058824, g = 0.5294117647058824, r = 0.5294117647058824 } } },
 						{ kind = "cast", colors = { cast = { b = 0, g = 0.7411764705882353, r = 1 }, interrupted = { b = 0.8784313725490196, g = 0.211764705882353, r = 0.9882352941176472 }, channel = { b = 0.2156862745098039, g = 0.7764705882352941, r = 0.2431372549019608 } } },
 					},
