@@ -7,6 +7,7 @@
 
 ### Bug Fixes
 - Cooldown Manager: Fixed taint error when viewer visibility changes during combat
+- Nameplates: Improved reliability of Platynator hooks (percent sign, class color highlights)
 
 ### Improvements
 - Profiles: Platynator tweaks
