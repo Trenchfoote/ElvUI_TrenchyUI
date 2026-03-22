@@ -292,7 +292,7 @@ function S.RefreshWindow(win)
                 elseif specIcon and not S.specCollisions[specIcon] and S.specNameCache[specIcon] then
                     plainName = S.specNameCache[specIcon]
                 elseif not S.IsSecret(src.name) and src.name and src.name ~= '' then
-                    plainName = (strsplit('-', src.name))
+                    plainName = Ambiguate(src.name, 'short')
                 end
                 -- Populate specIcon cache; mark collision if two names share the same specIcon
                 if plainName and specIcon then
@@ -634,6 +634,10 @@ function TUI:InitDamageMeter()
                 TUI:RefreshMeter()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
+                wipe(S.nameCache)
+                wipe(S.classCache)
+                wipe(S.specNameCache)
+                wipe(S.specCollisions)
                 S.ScanRoster()
                 return
             elseif event == 'PLAYER_ENTERING_WORLD' then

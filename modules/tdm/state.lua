@@ -102,6 +102,10 @@ E.PopupDialogs.TUI_METER_RESET = {
     button2      = CANCEL,
     OnAccept     = function()
         C_DamageMeter.ResetAllCombatSessions()
+        wipe(S.nameCache)
+        wipe(S.classCache)
+        wipe(S.specNameCache)
+        wipe(S.specCollisions)
         TUI:RefreshMeter()
     end,
     timeout      = 0,
