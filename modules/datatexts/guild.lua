@@ -2,7 +2,7 @@ local E, _, _, _, G = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local DT = E:GetModule('DataTexts')
 
-local format, sort, wipe, ipairs = format, sort, wipe, ipairs
+local format, sort, wipe, ipairs, strmatch = format, sort, wipe, ipairs, strmatch
 local GetGuildInfo = GetGuildInfo
 local GetGuildRosterInfo = GetGuildRosterInfo
 local GetNumGuildMembers = GetNumGuildMembers
@@ -27,8 +27,8 @@ local MAX_ROWS = 30
 
 local onlinestatus = {
 	[0] = '',
-	[1] = ' |cffFF9900AFK|r',
-	[2] = ' |cffFF3333DND|r',
+	[1] = ' |cffFF9900[AFK]|r',
+	[2] = ' |cffFF3333[DND]|r',
 }
 
 local activezone = { r = 0.3, g = 1.0, b = 0.3 }
@@ -75,8 +75,13 @@ local function BuildGuildTable()
 		local name, rank, rankIndex, level, _, zone, _, _, connected, memberstatus, className, _, _, isMobile, _, _, guid = GetGuildRosterInfo(i)
 		if not name then break end
 		if connected or isMobile then
+			local displayName = E:StripMyRealm(name)
+			if db and db.hideRealm then
+				displayName = strmatch(displayName, '([^%-]+)') or displayName
+			end
 			guildTable[#guildTable + 1] = {
-				name = E:StripMyRealm(name),
+				name = displayName,
+				fullName = E:StripMyRealm(name),
 				rank = rank,
 				rankIndex = rankIndex,
 				level = level,
@@ -137,21 +142,21 @@ local function GetOrCreateRow(index)
 
 	row.level = row:CreateFontString(nil, 'OVERLAY')
 	row.level:SetPoint('LEFT', row, 'LEFT', 0, 0)
-	row.level:SetWidth(28)
 	row.level:FontTemplate(font, fontSize, fontOutline)
 	row.level:SetJustifyH('RIGHT')
+	row.level:SetWordWrap(false)
 
 	row.name = row:CreateFontString(nil, 'OVERLAY')
 	row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
-	row.name:SetWidth(140)
 	row.name:FontTemplate(font, fontSize, fontOutline)
 	row.name:SetJustifyH('LEFT')
+	row.name:SetWordWrap(false)
 
 	row.zone = row:CreateFontString(nil, 'OVERLAY')
 	row.zone:SetPoint('RIGHT', row, 'RIGHT', 0, 0)
-	row.zone:SetWidth(130)
 	row.zone:FontTemplate(font, fontSize, fontOutline)
 	row.zone:SetJustifyH('RIGHT')
+	row.zone:SetWordWrap(false)
 
 	row.highlight = row:CreateTexture(nil, 'HIGHLIGHT')
 	row.highlight:SetAllPoints()
@@ -210,7 +215,6 @@ local function ShowTooltip(panel)
 
 	if not IsInGuild() then return end
 	BuildGuildTable()
-	ApplyFonts()
 
 	local shiftDown = IsShiftKeyDown()
 	if shiftDown then
@@ -254,7 +258,7 @@ local function ShowTooltip(panel)
 		row.level:SetText(info.level)
 		row.level:SetTextColor(levelc.r, levelc.g, levelc.b)
 
-		local nameStr = info.name .. InGroup(info.name) .. info.status
+		local nameStr = info.name .. InGroup(info.fullName) .. info.status
 		row.name:SetText(nameStr)
 		row.name:SetTextColor(classc.r, classc.g, classc.b)
 
@@ -262,7 +266,7 @@ local function ShowTooltip(panel)
 		row.zone:SetText(info.zone)
 		row.zone:SetTextColor(zonec.r, zonec.g, zonec.b)
 
-		row.memberName = info.name
+		row.memberName = info.fullName
 		row.memberRank = info.rank
 		row.memberClass = info.class
 
@@ -299,8 +303,27 @@ local function ShowTooltip(panel)
 		for i = shown + 1, #rows do rows[i]:Hide() end
 	end
 
-	-- Size and position
-	local tooltipWidth = TOOLTIP_PAD * 2 + 28 + 4 + 140 + 10 + 130
+	ApplyFonts()
+
+	-- Measure widths from actual text
+	local maxLevel, maxName, maxZone = 0, 0, 0
+	for i = 1, shown do
+		local row = rows[i]
+		local lw = row.level:GetStringWidth()
+		local nw = row.name:GetStringWidth()
+		local zw = row.zone:GetStringWidth()
+		if lw > maxLevel then maxLevel = lw end
+		if nw > maxName then maxName = nw end
+		if zw > maxZone then maxZone = zw end
+	end
+
+	local levelCol = maxLevel + 4
+	local nameZoneGap = 36
+	local zoneCol = maxZone > 0 and (maxZone + 8) or 0
+	local tooltipWidth = TOOLTIP_PAD * 2 + levelCol + maxName + nameZoneGap + zoneCol
+	local headerWidth = TOOLTIP_PAD * 2 + (headerText:GetStringWidth() or 0)
+	if headerWidth > tooltipWidth then tooltipWidth = headerWidth end
+
 	local contentH = TOOLTIP_PAD + headerText:GetStringHeight()
 	if motdText:IsShown() then
 		motdText:SetWidth(tooltipWidth - TOOLTIP_PAD * 2)
@@ -309,6 +332,16 @@ local function ShowTooltip(panel)
 	contentH = contentH + 6 + (shown * (ROW_HEIGHT + ROW_PAD)) + TOOLTIP_PAD
 
 	tooltip:SetSize(tooltipWidth, contentH)
+
+	-- Apply RIGHT anchors after sizing
+	for i = 1, shown do
+		local row = rows[i]
+		if row.zone:GetText() and row.zone:GetText() ~= '' then
+			row.zone:SetWidth(zoneCol)
+			row.name:SetPoint('RIGHT', row.zone, 'LEFT', -4, 0)
+		end
+	end
+
 	TUI:AnchorDTTooltip(tooltip, panel)
 	tooltip:Show()
 end
@@ -373,4 +406,5 @@ defaults.hideMOTD = false
 defaults.tooltipFont = 'Expressway'
 defaults.tooltipFontSize = 11
 defaults.tooltipFontOutline = 'OUTLINE'
+defaults.hideRealm = false
 DT.DataTextList['TUI Guild'] = E:TextGradient('TUI Guild', 1.00,0.18,0.24, 0.80,0.10,0.20)

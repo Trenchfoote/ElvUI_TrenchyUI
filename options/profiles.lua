@@ -97,6 +97,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
         if guildOpts then
             guildOpts.name = tuiGradient('TUI Guild')
             guildOpts.args.hideMOTD = ACH:Toggle('Hide MOTD', 'Hide the guild Message of the Day in the tooltip.', 10)
+            guildOpts.args.hideRealm = ACH:Toggle('Hide Realm', 'Remove realm names from guild member names in the tooltip.', 11)
             guildOpts.args.tooltipFontGroup = ACH:Group('Tooltip Font', nil, 20)
             guildOpts.args.tooltipFontGroup.inline = true
             local gf = guildOpts.args.tooltipFontGroup.args
