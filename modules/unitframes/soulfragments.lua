@@ -23,13 +23,16 @@ local function UpdateSoulFragmentColors()
 	if not sfBar then return end
 
 	local custom_backdrop = UF.db.colors.customclasspowerbackdrop and UF.db.colors.classpower_backdrop
-	local _, powers, fallback = UF:ClassPower_GetColor(UF.db.colors, 'SOUL_FRAGMENTS')
-	local color = powers or fallback
+	local c = TUI.db.profile.fakePower.soulFragmentsColor
+	if not c then
+		local _, powers, fallback = UF:ClassPower_GetColor(UF.db.colors, 'SOUL_FRAGMENTS')
+		c = powers or fallback
+	end
 
 	for i = 1, SOUL_FRAGMENT_MAX do
 		local cell = sfCells[i]
 		if cell then
-			UF:SetStatusBarColor(cell, color.r, color.g, color.b, custom_backdrop)
+			UF:SetStatusBarColor(cell, c.r, c.g, c.b, custom_backdrop)
 		end
 	end
 end

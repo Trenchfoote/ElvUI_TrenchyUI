@@ -85,4 +85,41 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
             E:StaticPopup_Show('CONFIG_RL')
         end
     )
+
+    fp.soulFragmentsColor = ACH:Color("Soul Fragments Color", nil, 2, nil, nil,
+        function()
+            local c = TUI.db.profile.fakePower.soulFragmentsColor
+            return c.r, c.g, c.b
+        end,
+        function(_, r, g, b)
+            local c = TUI.db.profile.fakePower.soulFragmentsColor
+            c.r, c.g, c.b = r, g, b
+            E:StaticPopup_Show('CONFIG_RL')
+        end,
+        function() return not TUI.db.profile.fakePower.soulFragments end
+    )
+
+    fp.tipOfTheSpear = ACH:Toggle(
+        "SV: Tip of the Spear",
+        "Show a Tip of the Spear stack bar for Survival Hunters. Anchors to the ElvUI class bar mover.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.fakePower.tipOfTheSpear end,
+        function(_, value)
+            TUI.db.profile.fakePower.tipOfTheSpear = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    fp.tipOfTheSpearColor = ACH:Color("Tip of the Spear Color", nil, 4, nil, nil,
+        function()
+            local c = TUI.db.profile.fakePower.tipOfTheSpearColor
+            return c.r, c.g, c.b
+        end,
+        function(_, r, g, b)
+            local c = TUI.db.profile.fakePower.tipOfTheSpearColor
+            c.r, c.g, c.b = r, g, b
+            E:StaticPopup_Show('CONFIG_RL')
+        end,
+        function() return not TUI.db.profile.fakePower.tipOfTheSpear end
+    )
 end

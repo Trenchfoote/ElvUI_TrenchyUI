@@ -74,6 +74,9 @@ TUI.defaults = {
         },
         fakePower = {
             soulFragments = true,
+            soulFragmentsColor = { r = 0.82, g = 0.01, b = 0.76 },
+            tipOfTheSpear = true,
+            tipOfTheSpearColor = { r = 0.89, g = 0.49, b = 0.04 },
         },
         fader = {
             steadyFlight = false,

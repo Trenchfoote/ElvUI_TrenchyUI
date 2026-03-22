@@ -40,6 +40,7 @@ function TUI:InitModules()
 
 	-- Unit Frames
 	if self.db.profile.fakePower.soulFragments and self.InitSoulFragments then self:InitSoulFragments() end
+	if self.db.profile.fakePower.tipOfTheSpear and self.InitTipOfTheSpear then self:InitTipOfTheSpear() end
 	if not self:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
 

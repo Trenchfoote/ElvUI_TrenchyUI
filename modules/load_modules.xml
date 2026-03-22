@@ -31,6 +31,7 @@
 	<!-- Unit Frames -->
 	<Script file="unitframes\tags.lua"/>
 	<Script file="unitframes\soulfragments.lua"/>
+	<Script file="unitframes\tipofthespear.lua"/>
 	<Script file="unitframes\pixelglow.lua"/>
 	<Script file="unitframes\steadyflight.lua"/>
 
