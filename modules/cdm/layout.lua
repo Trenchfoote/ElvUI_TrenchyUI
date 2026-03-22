@@ -376,11 +376,9 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 	local vis = vdb.visibleSetting or 'ALWAYS'
 	if vdb.hideWhenInactive and count == 0 then
 		container:Hide()
-		if viewer then viewer:Hide() end
 	elseif vis ~= 'HIDDEN' and not container:IsShown() then
 		if S.ShouldShowContainer(viewerKey) then
 			container:Show()
-			if viewer then viewer:Show() end
 		end
 	end
 
