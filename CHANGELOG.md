@@ -1,11 +1,10 @@
 # TrenchyUI Changelog
 
-## v1.3.2
+## v1.3.3
 
 ### New Features
-- Guild Datatext: Hide Realm toggle to strip realm names from guild member names
-- Guild Datatext: Dynamic tooltip sizing matching friends datatext
+- Unit Frames: Tip of the Spear stack bar for Survival Hunters — tracks buff stacks on the class bar mover
+- Unit Frames: Custom color pickers for Soul Fragments and Tip of the Spear bars
 
 ### Bug Fixes
-- QoL: Fixed cursor circle not using ElvUI custom class colors on reload
-- Cooldown Manager: Fixed buff bars not showing in combat
+- Damage Meter: Fixed stale player names persisting across group changes
