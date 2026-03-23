@@ -103,9 +103,6 @@ E.PopupDialogs.TUI_METER_RESET = {
     OnAccept     = function()
         C_DamageMeter.ResetAllCombatSessions()
         wipe(S.nameCache)
-        wipe(S.classCache)
-        wipe(S.specNameCache)
-        wipe(S.specCollisions)
         TUI:RefreshMeter()
     end,
     timeout      = 0,
@@ -125,9 +122,6 @@ TUI._meterTestMode = false
 
 -- Caches
 S.nameCache  = {}
-S.classCache = {}
-S.specNameCache = {}
-S.specCollisions = {}
 S.spellCache = {}
 S.winDBCache = {}
 S.sessionLabelCache = {}
@@ -144,7 +138,6 @@ function S.ScanRoster()
     local pg = UnitGUID('player')
     if pg and not S.IsSecret(pg) then
         S.nameCache[pg] = UnitName('player')
-        S.classCache[pg] = select(2, UnitClass('player'))
     end
     if IsInRaid() then
         for i = 1, GetNumGroupMembers() do
@@ -152,7 +145,6 @@ function S.ScanRoster()
             local guid = UnitGUID(unit)
             if guid and not S.IsSecret(guid) then
                 S.nameCache[guid] = UnitName(unit)
-                S.classCache[guid] = select(2, UnitClass(unit))
             end
         end
     elseif IsInGroup() then
@@ -161,7 +153,6 @@ function S.ScanRoster()
             local guid = UnitGUID(unit)
             if guid and not S.IsSecret(guid) then
                 S.nameCache[guid] = UnitName(unit)
-                S.classCache[guid] = select(2, UnitClass(unit))
             end
         end
     end
@@ -183,13 +174,6 @@ function S.FindUnitByGUID(guid)
     end
 end
 
-function S.RoundIfPlain(val)
-    if val and not S.IsSecret(val) then
-        return floor(val + 0.5)
-    end
-    return val
-end
-
 -- Strip decimals from sub-1K abbreviated strings (e.g. "209.385" -> "209")
 function S.TruncateDecimals(text)
     if type(text) ~= 'string' or S.IsSecret(text) then return text end
@@ -198,29 +182,22 @@ function S.TruncateDecimals(text)
 end
 
 function S.FormatValueText(fontString, val)
-    if not val then
-        fontString:SetText('0')
-        return
+    if not val then fontString:SetText('0'); return end
+    if S.IsSecret(val) then
+        fontString:SetFormattedText('%s', AbbreviateNumbers(val))
+    else
+        fontString:SetText(S.TruncateDecimals(AbbreviateNumbers(floor(val + 0.5))))
     end
-    fontString:SetText(S.TruncateDecimals(AbbreviateNumbers(S.RoundIfPlain(val))))
 end
 
 function S.FormatCombinedText(fontString, total, perSec)
-    if not total and not perSec then
-        fontString:SetText('0')
-        return
-    end
-    local ok = pcall(function()
-        local p = S.TruncateDecimals(perSec and AbbreviateNumbers(S.RoundIfPlain(perSec)) or '0')
-        local t = S.TruncateDecimals(total and AbbreviateNumbers(S.RoundIfPlain(total)) or '0')
+    if not total and not perSec then fontString:SetText('0'); return end
+    if S.IsSecret(total) or S.IsSecret(perSec) then
+        fontString:SetFormattedText('%s (%s)', AbbreviateNumbers(perSec or 0), AbbreviateNumbers(total or 0))
+    else
+        local p = S.TruncateDecimals(perSec and AbbreviateNumbers(floor(perSec + 0.5)) or '0')
+        local t = S.TruncateDecimals(total and AbbreviateNumbers(floor(total + 0.5)) or '0')
         fontString:SetText(p .. ' (' .. t .. ')')
-    end)
-    if not ok then
-        if total then
-            fontString:SetText(S.TruncateDecimals(AbbreviateNumbers(S.RoundIfPlain(total))))
-        else
-            fontString:SetText('0')
-        end
     end
 end
 

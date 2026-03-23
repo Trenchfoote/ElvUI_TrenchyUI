@@ -201,7 +201,6 @@ function S.SetupBarInteraction(bar, win)
             GameTooltip_SetDefaultAnchor(GameTooltip, self)
             if self.sourceName then
                 local cls = self.sourceClass
-                if not cls then cls = guid and S.classCache[guid] end
                 if not cls and self.testIndex then
                     local td = S.GetTestData(win)[self.testIndex]
                     if td then cls = td.class end
@@ -238,8 +237,7 @@ function S.SetupBarInteraction(bar, win)
                 return
             end
             if self.sourceGUID and self.sourceName then
-                local class = S.classCache[self.sourceGUID]
-                S.EnterDrillDown(win, self.sourceGUID, self.sourceName, class)
+                S.EnterDrillDown(win, self.sourceGUID, self.sourceName, self.sourceClass)
             end
         end
     end)

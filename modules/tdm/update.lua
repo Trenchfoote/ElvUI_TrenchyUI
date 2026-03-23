@@ -6,6 +6,7 @@ if not S then return end
 local LSM = E.Libs.LSM
 local floor = math.floor
 local wipe = wipe
+local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 
 function S.RefreshWindow(win)
     if not win or not win.frame or not win.header then return end
@@ -77,9 +78,10 @@ function S.RefreshWindow(win)
             else
                 bar.frame:Show()
                 local rawSpellID = s.spellID or (type(s[1]) == "number" and s[1]) or nil
-                local spellID   = (rawSpellID and not issecretvalue(rawSpellID)) and rawSpellID or nil
+                local isSecretID = rawSpellID and issecretvalue(rawSpellID)
+                local spellID = (rawSpellID and not isSecretID) and rawSpellID or nil
                 local spellName = (type(s[1]) == "string" and s[1]) or nil
-                local amt       = s.totalAmount or s[2] or 0
+                local amt = s.totalAmount or s[2] or 0
 
                 local iconID
                 if spellID then
@@ -88,12 +90,13 @@ function S.RefreshWindow(win)
                         spellName = cached.name or spellName
                         iconID = cached.icon
                     else
-                        local ok, name = pcall(C_Spell.GetSpellName, spellID)
-                        if ok and name then spellName = name end
-                        local ok2, tex = pcall(C_Spell.GetSpellTexture, spellID)
-                        if ok2 and tex then iconID = tex end
+                        spellName = C_Spell.GetSpellName(spellID) or spellName
+                        iconID = C_Spell.GetSpellTexture(spellID)
                         S.spellCache[spellID] = { name = spellName, icon = iconID }
                     end
+                elseif isSecretID then
+                    spellName = C_Spell.GetSpellName(rawSpellID)
+                    iconID = C_Spell.GetSpellTexture(rawSpellID)
                 end
                 if not spellName then spellName = "?" end
 
@@ -139,16 +142,21 @@ function S.RefreshWindow(win)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 bar.statusbar:SetMinMaxValues(0, topVal)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
-                bar.leftText:SetText(spellName)
+                if s.isDeadly then
+                    bar.leftText:SetFormattedText('|cffff0000!|r %s', spellName)
+                elseif s.isAvoidable then
+                    bar.leftText:SetFormattedText('|cffffff00*|r %s', spellName)
+                else
+                    bar.leftText:SetFormattedText('%s', spellName)
+                end
                 bar.leftText:SetTextColor(tR, tG, tB)
 
+                bar.statusbar:SetValue(amt)
                 if issecretvalue(amt) then
-                    bar.statusbar:SetValue(0)
-                    bar.rightText:SetText('?')
+                    bar.rightText:SetFormattedText('%s', AbbreviateNumbers(amt))
                     bar.pctText:SetText('')
                 else
-                    bar.statusbar:SetValue(amt)
-                    bar.rightText:SetText(S.TruncateDecimals(AbbreviateNumbers(S.RoundIfPlain(amt))))
+                    bar.rightText:SetText(S.TruncateDecimals(AbbreviateNumbers(floor(amt + 0.5))))
                     bar.pctText:SetText(totalAmt > 0 and format('%.1f%%', (amt / totalAmt) * 100) or '')
                 end
                 bar.rightText:SetTextColor(vR, vG, vB)
@@ -232,7 +240,7 @@ function S.RefreshWindow(win)
 
     if win.sessionType then
         local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
-        if dur and not issecretvalue(dur) then
+        if dur then
             win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))
         else
             win.header.timer:SetText('')
@@ -266,10 +274,7 @@ function S.RefreshWindow(win)
                 bar.frame.testIndex    = nil
                 bar.frame.drillSpellID = nil
 
-                -- classFilename is NeverSecret per docs
                 local classFilename = src.classFilename
-                if not classFilename and guid then classFilename = S.classCache[guid] end
-                if guid and classFilename then S.classCache[guid] = classFilename end
                 bar.frame.sourceClass = classFilename
 
                 local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', classFilename)
@@ -280,29 +285,21 @@ function S.RefreshWindow(win)
                 local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
 
-                -- Name resolution: roster cache > specIcon cache > C_DamageMeter > secret fallback
+                -- Name resolution: roster cache > GetPlayerInfoByGUID > C_DamageMeter
                 local isLocal = src.isLocalPlayer
-                local specIcon = src.specIconID
                 local plainName
                 if isLocal then
                     local pg = UnitGUID('player')
                     plainName = (pg and S.nameCache[pg]) or UnitName('player') or '?'
                 elseif guid and S.nameCache[guid] then
                     plainName = S.nameCache[guid]
-                elseif specIcon and not S.specCollisions[specIcon] and S.specNameCache[specIcon] then
-                    plainName = S.specNameCache[specIcon]
                 elseif not S.IsSecret(src.name) and src.name and src.name ~= '' then
                     plainName = Ambiguate(src.name, 'short')
                 end
-                -- Populate specIcon cache; mark collision if two names share the same specIcon
-                if plainName and specIcon then
-                    local existing = S.specNameCache[specIcon]
-                    if existing and existing ~= plainName then
-                        S.specCollisions[specIcon] = true
-                    end
-                    S.specNameCache[specIcon] = plainName
-                end
                 bar.frame.sourceName = plainName or '?'
+
+                -- Secret name fallback: GetPlayerInfoByGUID accepts secret GUIDs
+                local secretName = (not plainName) and src.sourceGUID and select(6, GetPlayerInfoByGUID(src.sourceGUID))
 
                 local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
                 if plainName then
@@ -313,11 +310,11 @@ function S.RefreshWindow(win)
                     else
                         bar.leftText:SetText(plainName)
                     end
-                elseif S.IsSecret(src.name) then
+                elseif secretName then
                     if db.showRank then
-                        bar.leftText:SetFormattedText('%d. %s', srcIdx, src.name)
+                        bar.leftText:SetFormattedText('%d. %s', srcIdx, secretName)
                     else
-                        bar.leftText:SetFormattedText('%s', src.name)
+                        bar.leftText:SetFormattedText('%s', secretName)
                     end
                 else
                     bar.leftText:SetText('?')
@@ -488,7 +485,7 @@ local function UpdateTimers()
         if not win.header or not win.header.timer then break end
         if win.sessionType then
             local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
-            if dur and not issecretvalue(dur) then
+            if dur then
                 win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))
             end
         end
@@ -635,9 +632,6 @@ function TUI:InitDamageMeter()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
                 wipe(S.nameCache)
-                wipe(S.classCache)
-                wipe(S.specNameCache)
-                wipe(S.specCollisions)
                 S.ScanRoster()
                 return
             elseif event == 'PLAYER_ENTERING_WORLD' then
