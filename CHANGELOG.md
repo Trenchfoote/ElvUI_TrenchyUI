@@ -8,3 +8,7 @@
 
 ### Bug Fixes
 - Damage Meter: Fixed stale player names persisting across group changes
+
+### Improvements
+- Nameplates: Platynator custom class color names — use ElvUI custom class colors for friendly player name text
+- Nameplates: Platynator config restructured into Health Text, Highlights, and Player Names sections

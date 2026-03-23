@@ -4,6 +4,8 @@ local TUI = E:GetModule('TrenchyUI')
 
 local UnitHealthPercent = UnitHealthPercent
 local UnitIsDeadOrGhost = UnitIsDeadOrGhost
+local UnitIsPlayer = UnitIsPlayer
+local UnitClassBase = UnitClassBase
 local ScaleTo100 = CurveConstants and CurveConstants.ScaleTo100
 local C_Timer_After = C_Timer.After
 local C_NamePlate = C_NamePlate
@@ -17,6 +19,15 @@ local function HookWidget(widget, hookName, callback)
 	if not hookedWidgets[widget] then hookedWidgets[widget] = {} end
 	hookedWidgets[widget][hookName] = true
 	hooksecurefunc(widget, hookName, callback)
+end
+
+local function HasClassColors(widget)
+	local ac = widget.details and widget.details.autoColors
+	if not ac then return false end
+	for _, entry in ipairs(ac) do
+		if entry.kind == 'classColors' then return true end
+	end
+	return false
 end
 
 local function ProcessDisplay(display)
@@ -38,6 +49,15 @@ local function ProcessDisplay(display)
 				if not self:IsShown() or not self.highlight then return end
 				local cc = E:ClassColor(E.myclass)
 				if cc then self.highlight:SetVertexColor(cc.r, cc.g, cc.b, self.highlight:GetAlpha()) end
+			end)
+		end
+		if db.classColorNames and w.SetColor and w.text and w.details and w.details.kind == 'creatureName' and HasClassColors(w) then
+			HookWidget(w, 'SetColor', function(self)
+				if not self.unit or not UnitIsPlayer(self.unit) then return end
+				local class = UnitClassBase(self.unit)
+				if not class then return end
+				local cc = E:ClassColor(class)
+				if cc then self.text:SetTextColor(cc.r, cc.g, cc.b) end
 			end)
 		end
 		if db.classColorMouseover and w.ApplyMouseover and w.highlight and w.details and w.details.kind == 'mouseover' then

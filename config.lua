@@ -64,6 +64,7 @@ TUI.defaults = {
             hidePercentSign    = false,
             classColorTarget   = false,
             classColorMouseover = false,
+            classColorNames = false,
         },
         pixelGlow = {
             enabled   = false,
