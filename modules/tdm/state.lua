@@ -181,10 +181,27 @@ function S.TruncateDecimals(text)
     return (strsplit('.', text))
 end
 
+-- Abbreviation config: no decimals (fractionDivisor = 1 at all breakpoints)
+local ABBREV_SHORT = E.Abbreviate and E.Abbreviate.short
+if not ABBREV_SHORT and AbbreviateNumbers then
+    local breakpoints = {
+        { breakpoint = 1000000000, abbreviation = 'NUMBER_ABBREVIATION_BILLIONS',  significandDivisor = 1000000000, fractionDivisor = 1 },
+        { breakpoint = 1000000,    abbreviation = 'NUMBER_ABBREVIATION_MILLIONS',  significandDivisor = 1000000,    fractionDivisor = 1 },
+        { breakpoint = 10000,      abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 1000,       fractionDivisor = 1 },
+        { breakpoint = 1000,       abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 100,        fractionDivisor = 1, abbreviationIsGlobal = true },
+    }
+    if CreateAbbreviateConfig then
+        ABBREV_SHORT = { config = CreateAbbreviateConfig(breakpoints) }
+    else
+        ABBREV_SHORT = { breakpointData = breakpoints }
+    end
+end
+S.ABBREV_SHORT = ABBREV_SHORT
+
 function S.FormatValueText(fontString, val)
     if not val then fontString:SetText('0'); return end
     if S.IsSecret(val) then
-        fontString:SetFormattedText('%s', AbbreviateNumbers(val))
+        fontString:SetFormattedText('%s', AbbreviateNumbers(val, ABBREV_SHORT))
     else
         fontString:SetText(S.TruncateDecimals(AbbreviateNumbers(floor(val + 0.5))))
     end
@@ -193,7 +210,7 @@ end
 function S.FormatCombinedText(fontString, total, perSec)
     if not total and not perSec then fontString:SetText('0'); return end
     if S.IsSecret(total) or S.IsSecret(perSec) then
-        fontString:SetFormattedText('%s (%s)', AbbreviateNumbers(perSec or 0), AbbreviateNumbers(total or 0))
+        fontString:SetFormattedText('%s (%s)', AbbreviateNumbers(perSec or 0, ABBREV_SHORT), AbbreviateNumbers(total or 0, ABBREV_SHORT))
     else
         local p = S.TruncateDecimals(perSec and AbbreviateNumbers(floor(perSec + 0.5)) or '0')
         local t = S.TruncateDecimals(total and AbbreviateNumbers(floor(total + 0.5)) or '0')

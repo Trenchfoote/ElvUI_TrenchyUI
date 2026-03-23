@@ -26,16 +26,25 @@ function S.RefreshWindow(win)
         S.ApplySessionHighlight(win, db)
         win.header.timer:Hide()
 
-        local spells
+        local spells, sourceMaxAmount, sourceTotalAmount
         if S.testMode then
             local tdata = S.GetTestData(win)
             for _, td in ipairs(tdata) do
-                if td.name == ds.name then spells = td.spells; break end
+                if td.name == ds.name then
+                    spells = td.spells
+                    sourceMaxAmount = td.spells[1] and (td.spells[1].totalAmount or td.spells[1][2]) or 1
+                    local sum = 0
+                    for _, sp in ipairs(td.spells) do sum = sum + (sp.totalAmount or sp[2] or 0) end
+                    sourceTotalAmount = sum
+                    break
+                end
             end
         else
             local meterType  = S.ResolveMeterType(modeEntry)
             local sourceData = ds.guid and S.GetSessionSource(win, meterType, ds.guid)
             spells = sourceData and sourceData.combatSpells
+            sourceMaxAmount = sourceData and sourceData.maxAmount
+            sourceTotalAmount = sourceData and sourceData.totalAmount
         end
 
         if not spells or #spells == 0 then
@@ -49,17 +58,8 @@ function S.RefreshWindow(win)
         local total = #spells
         win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
 
-        local topVal, totalAmt = 0, 0
-        for si = 1, total do
-            local s = spells[si]
-            local amt = s.totalAmount or s[2] or 0
-            if not S.IsSecret(amt) then
-                if amt > topVal then topVal = amt end
-                totalAmt = totalAmt + amt
-            end
-        end
-        if topVal == 0 then topVal = 1 end
-        if totalAmt == 0 then totalAmt = 1 end
+        local topVal = sourceMaxAmount or 1
+        local totalAmt = sourceTotalAmount or 1
 
         local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
         local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
@@ -114,8 +114,20 @@ function S.RefreshWindow(win)
 
                 if not bar._isDrill then
                     bar._isDrill = true
+                    if not bar.dpsText then
+                        bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
+                        bar.dpsText:SetJustifyH('RIGHT')
+                        bar.dpsText:SetWordWrap(false)
+                        bar.dpsText:SetShadowOffset(1, -1)
+                        bar.dpsText:SetParent(bar.textFrame)
+                    end
                     bar.rightText:ClearAllPoints()
-                    bar.rightText:SetPoint("RIGHT", -64, 0)
+                    bar.rightText:SetPoint('RIGHT', -4, 0)
+                    bar.dpsText:ClearAllPoints()
+                    bar.dpsText:SetPoint('RIGHT', bar.rightText, 'LEFT', -4, 0)
+                    bar.dpsText:Show()
+                    bar.pctText:ClearAllPoints()
+                    bar.pctText:SetPoint('RIGHT', bar.dpsText, 'LEFT', -4, 0)
                     bar.pctText:Show()
                     bar.leftText:ClearAllPoints()
                     if iconID then
@@ -123,7 +135,7 @@ function S.RefreshWindow(win)
                     else
                         bar.leftText:SetPoint("LEFT", 4, 0)
                     end
-                    bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
+                    bar.leftText:SetPoint("RIGHT", bar.pctText, "LEFT", -4, 0)
                 elseif iconID then
                     if bar._drillHasIcon ~= spellID then
                         bar.leftText:ClearAllPoints()
@@ -142,22 +154,35 @@ function S.RefreshWindow(win)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 bar.statusbar:SetMinMaxValues(0, topVal)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
-                if s.isDeadly then
-                    bar.leftText:SetFormattedText('|cffff0000!|r %s', spellName)
-                elseif s.isAvoidable then
-                    bar.leftText:SetFormattedText('|cffffff00*|r %s', spellName)
-                else
-                    bar.leftText:SetFormattedText('%s', spellName)
-                end
+                bar.leftText:SetFormattedText('%s', spellName)
                 bar.leftText:SetTextColor(tR, tG, tB)
 
                 bar.statusbar:SetValue(amt)
+
+                -- Value in parens
                 if issecretvalue(amt) then
-                    bar.rightText:SetFormattedText('%s', AbbreviateNumbers(amt))
-                    bar.pctText:SetText('')
+                    bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, S.ABBREV_SHORT))
                 else
-                    bar.rightText:SetText(S.TruncateDecimals(AbbreviateNumbers(floor(amt + 0.5))))
-                    bar.pctText:SetText(totalAmt > 0 and format('%.1f%%', (amt / totalAmt) * 100) or '')
+                    bar.rightText:SetText('(' .. S.TruncateDecimals(AbbreviateNumbers(floor(amt + 0.5))) .. ')')
+                end
+
+                -- DPS
+                local dps = s.amountPerSecond
+                if bar.dpsText then
+                    bar.dpsText:SetFont(bar.rightText:GetFont())
+                    bar.dpsText:SetTextColor(vR, vG, vB)
+                    if dps then
+                        S.FormatValueText(bar.dpsText, dps)
+                    else
+                        bar.dpsText:SetText('')
+                    end
+                end
+
+                -- Percentage
+                if not issecretvalue(amt) and not S.IsSecret(totalAmt) and totalAmt > 0 then
+                    bar.pctText:SetText(format('%.1f%%', (amt / totalAmt) * 100))
+                else
+                    bar.pctText:SetText('')
                 end
                 bar.rightText:SetTextColor(vR, vG, vB)
                 bar.pctText:SetTextColor(vR * 0.7, vG * 0.7, vB * 0.7)

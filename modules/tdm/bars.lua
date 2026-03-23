@@ -255,6 +255,7 @@ function S.ResetDrillBar(bar, db)
     bar._isDrill = nil
     bar._drillHasIcon = nil
     bar.pctText:Hide()
+    if bar.dpsText then bar.dpsText:Hide() end
     bar.rightText:ClearAllPoints()
     bar.rightText:SetPoint("RIGHT", -4, 0)
     bar.classIcon:SetTexture(S.CLASS_ICONS)
