@@ -2,11 +2,8 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 
-local UnitHealthPercent = UnitHealthPercent
-local UnitIsDeadOrGhost = UnitIsDeadOrGhost
 local UnitIsPlayer = UnitIsPlayer
 local UnitClassBase = UnitClassBase
-local ScaleTo100 = CurveConstants and CurveConstants.ScaleTo100
 local C_Timer_After = C_Timer.After
 local C_NamePlate = C_NamePlate
 
@@ -35,15 +32,6 @@ local function ProcessDisplay(display)
 	if not db or not display.widgets then return end
 
 	for _, w in ipairs(display.widgets) do
-		if db.hidePercentSign and w.UpdateText and w.text and w.details and w.details.kind == 'health' then
-			HookWidget(w, 'UpdateText', function(self)
-				if not self.unit or not self.text then return end
-				if UnitIsDeadOrGhost(self.unit) then return end
-				local pct = UnitHealthPercent(self.unit, true, ScaleTo100)
-				if pct then self.text:SetFormattedText('%d', pct) end
-			end)
-			if w.unit then w:UpdateText() end
-		end
 		if db.classColorTarget and w.ApplyTarget and w.highlight and w.details and w.details.kind == 'target' then
 			HookWidget(w, 'ApplyTarget', function(self)
 				if not self:IsShown() or not self.highlight then return end

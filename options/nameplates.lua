@@ -214,20 +214,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     root.nameplates.args.platynator.disabled = not platyEnabled
     local platy = root.nameplates.args.platynator.args
 
-    platy.healthText = ACH:Group("Health Text", nil, 1)
-    platy.healthText.inline = true
-    platy.healthText.args.hidePercentSign = ACH:Toggle(
-        "Hide Percent Sign",
-        "Remove the % symbol from health percentage text on nameplates.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.platynator.hidePercentSign end,
-        function(_, value)
-            TUI.db.profile.platynator.hidePercentSign = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-
-    platy.highlights = ACH:Group("Highlights", nil, 2)
+    platy.highlights = ACH:Group("Highlights", nil, 1)
     platy.highlights.inline = true
     platy.highlights.args.classColorTarget = ACH:Toggle(
         "Class Color Target",
@@ -252,7 +239,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     )
     platy.highlights.args.classColorMouseover.customWidth = 250
 
-    platy.playerNames = ACH:Group("Player Names", nil, 3)
+    platy.playerNames = ACH:Group("Player Names", nil, 2)
     platy.playerNames.inline = true
     platy.playerNames.args.classColorNames = ACH:Toggle(
         "Custom Class Color Names",

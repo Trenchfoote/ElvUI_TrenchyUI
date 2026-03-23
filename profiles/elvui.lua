@@ -3012,7 +3012,6 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.nameplates.questColor.color.b = 0
     E.db.TrenchyUI.platynator.classColorMouseover = true
     E.db.TrenchyUI.platynator.classColorTarget = true
-    E.db.TrenchyUI.platynator.hidePercentSign = true
     E.db.TrenchyUI.qol.cursorCircle = true
     E.db.TrenchyUI.qol.cursorCircleSize = 70
     E.db.TrenchyUI.qol.cursorCircleThickness = 'medium'

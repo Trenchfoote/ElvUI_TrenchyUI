@@ -61,7 +61,6 @@ TUI.defaults = {
             },
         },
         platynator = {
-            hidePercentSign    = false,
             classColorTarget   = false,
             classColorMouseover = false,
             classColorNames = false,
