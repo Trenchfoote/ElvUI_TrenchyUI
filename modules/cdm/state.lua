@@ -23,12 +23,10 @@ S.styledFrames = {}
 S.glowActive = {}
 S.previewActive = false
 S.inCombat = false
-S.configOpen = false
 S.hookedAlerts = {}
 S.hookedSwipes = {}
 S.hookedViewers = {}
 S.iconCache = {}
-S.containerDirty = {}
 S.moverToViewer = {}
 
 S.sortFunc = function(a, b) return (a.layoutIndex or 0) < (b.layoutIndex or 0) end

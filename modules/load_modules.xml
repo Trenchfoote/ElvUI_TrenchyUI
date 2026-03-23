@@ -48,9 +48,12 @@
 
 	<!-- Cooldown Manager -->
 	<Script file="cdm\state.lua"/>
-	<Script file="cdm\styling.lua"/>
-	<Script file="cdm\viewers.lua"/>
+	<Script file="cdm\shared.lua"/>
+	<Script file="cdm\essentials.lua"/>
+	<Script file="cdm\utility.lua"/>
+	<Script file="cdm\bufficons.lua"/>
+	<Script file="cdm\buffbars.lua"/>
 	<Script file="cdm\custom.lua"/>
-	<Script file="cdm\layout.lua"/>
+	<Script file="cdm\viewers.lua"/>
 	<Script file="cdm\init.lua"/>
 </Ui>
