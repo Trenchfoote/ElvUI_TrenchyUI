@@ -13,4 +13,6 @@
 - Damage Meter: Improved secret value handling — show actual values in combat instead of '?', deadly/avoidable spell indicators in drill-down
 - Nameplates: Platynator custom class color names — use ElvUI custom class colors for friendly player name text
 - Nameplates: Platynator config restructured into Health Text, Highlights, and Player Names sections
+- Damage Meter: Drill-down view now shows DPS/HPS per spell, spell icons, and abbreviated values in combat
+- Nameplates: Removed Platynator hide percent sign (now handled natively by Platynator)
 - General: Cooldown Manager code cleanup and optimization
