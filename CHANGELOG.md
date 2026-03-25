@@ -3,7 +3,6 @@
 ## v1.3.3
 
 ### New Features
-- Cooldown Manager: Show Spell Cooldown toggle for Essential and Utility viewers — replaces buff duration with the spell's actual cooldown timer, desaturates icons when on cooldown, proc- and charge-aware
 - Damage Meter: Click in Combat toggle — optionally allow drilling into player spell breakdowns during combat
 - Unit Frames: Tip of the Spear stack bar for Survival Hunters — tracks buff stacks on the class bar mover
 - Unit Frames: Custom color pickers for Soul Fragments and Tip of the Spear bars

@@ -249,17 +249,6 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         end
     )
 
-    cdmLayout.showSpellCooldown = ACH:Toggle(
-        E.NewSign .. "Show Spell Cooldown", "Show the spell's cooldown timer instead of the buff duration. Desaturates the icon when the spell is on cooldown.",
-        14, nil, nil, nil,
-        function() return selVDB().showSpellCooldown end,
-        function(_, value) selVDB().showSpellCooldown = value; cdmRefresh() end
-    )
-    cdmLayout.showSpellCooldown.hidden = function()
-        local v = cdmDB().selectedViewer
-        return v ~= 'essential' and v ~= 'utility'
-    end
-
     -- Custom Tracker options (only shown when custom viewer is selected)
     cdmViewer.customTracker = ACH:Group("Custom Tracker", nil, 2.5)
     cdmViewer.customTracker.inline = true
