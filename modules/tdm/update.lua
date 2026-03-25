@@ -18,10 +18,19 @@ function S.RefreshWindow(win)
         local modeEntry = S.MODE_ORDER[win.modeIndex]
         local modeLabel = S.MODE_SHORT[modeEntry] or S.MODE_LABELS[modeEntry] or "?"
         local sessLabel = S.GetSessionLabel(win)
+        local drillName = ds.name
+        if (not drillName or drillName == '?') and (ds.secretGUID or ds.guid) then
+            local resolved = select(6, GetPlayerInfoByGUID(ds.secretGUID or ds.guid))
+            if resolved and not S.IsSecret(resolved) and resolved ~= '' then
+                drillName = Ambiguate(resolved, 'short')
+                ds.name = drillName
+            end
+        end
+        drillName = drillName or "?"
 
         local cr, cg, cb = TUI:GetClassColor(ds.class)
         local nameHex = cr and format("%02x%02x%02x", cr * 255, cg * 255, cb * 255) or "ffffff"
-        win.header.modeText:SetText(format("|cff%s%s|r \226\128\148 %s", nameHex, ds.name, modeLabel))
+        win.header.modeText:SetText(format("|cff%s%s|r \226\128\148 %s", nameHex, drillName, modeLabel))
         win.header.sessText:SetText(" (" .. sessLabel .. ")")
         S.ApplySessionHighlight(win, db)
         win.header.timer:Hide()
@@ -40,8 +49,41 @@ function S.RefreshWindow(win)
                 end
             end
         else
-            local meterType  = S.ResolveMeterType(modeEntry)
-            local sourceData = ds.guid and S.GetSessionSource(win, meterType, ds.guid)
+            local meterType = S.ResolveMeterType(modeEntry)
+            local sourceData = ds.sourceData
+
+            -- Use sourceIndex to resolve metadata (name, class, guid) from the summary list
+            if ds.sourceIndex then
+                local session = S.GetSession(win, meterType)
+                local src = session and session.combatSources and session.combatSources[ds.sourceIndex]
+                if src then
+                    if (not ds.name or ds.name == '?') and not S.IsSecret(src.name) and src.name and src.name ~= '' then
+                        ds.name = Ambiguate(src.name, 'short')
+                    end
+                    if (not ds.class) and src.classFilename and not S.IsSecret(src.classFilename) then
+                        ds.class = src.classFilename
+                    end
+                    if (not ds.guid) and src.sourceGUID and not S.IsSecret(src.sourceGUID) then
+                        ds.guid = src.sourceGUID
+                    end
+                    if not ds.secretGUID and src.sourceGUID then
+                        ds.secretGUID = src.sourceGUID
+                    end
+                    if (not ds.sourceCreatureID) and src.sourceCreatureID and not S.IsSecret(src.sourceCreatureID) then
+                        ds.sourceCreatureID = src.sourceCreatureID
+                    end
+                end
+            end
+
+            -- GetSessionSource returns full source data including combatSpells
+            local lookupGUID = ds.guid or S.ResolveGUID(ds.secretGUID, ds.specIconID)
+            if lookupGUID or ds.sourceCreatureID then
+                local fullSource = S.GetSessionSource(win, meterType, lookupGUID, ds.sourceCreatureID)
+                if fullSource then
+                    sourceData = fullSource
+                    ds.sourceData = fullSource
+                end
+            end
             spells = sourceData and sourceData.combatSpells
             sourceMaxAmount = sourceData and sourceData.maxAmount
             sourceTotalAmount = sourceData and sourceData.totalAmount
@@ -276,6 +318,7 @@ function S.RefreshWindow(win)
 
     local session    = S.GetSession(win, meterType)
     local sources    = session and session.combatSources
+    S.UpdateSpecIconCache(sources)
     local usePerSec  = (modeEntry == Enum.DamageMeterType.Dps or modeEntry == Enum.DamageMeterType.Hps)
     local useCombined = (modeEntry == S.COMBINED_DAMAGE or modeEntry == S.COMBINED_HEALING)
     local numVisible = S.ComputeNumVisible(win)
@@ -294,8 +337,14 @@ function S.RefreshWindow(win)
             if src then
                 bar.frame:Show()
 
-                local guid = (not S.IsSecret(src.sourceGUID)) and src.sourceGUID or nil
+                local specIcon = src.specIconID
+                local guid = (not S.IsSecret(src.sourceGUID)) and src.sourceGUID
+                    or S.ResolveGUID(src.sourceGUID, specIcon)
                 bar.frame.sourceGUID   = guid
+                bar.frame.specIconID   = specIcon
+                bar.frame.sourceCreatureID = src.sourceCreatureID
+                bar.frame.sourceData = src
+                bar.frame.sourceIndex  = srcIdx
                 bar.frame.testIndex    = nil
                 bar.frame.drillSpellID = nil
 
@@ -312,19 +361,53 @@ function S.RefreshWindow(win)
 
                 -- Name resolution: roster cache > GetPlayerInfoByGUID > C_DamageMeter
                 local isLocal = src.isLocalPlayer
-                local plainName
+                local plainName, sourceUnit
                 if isLocal then
                     local pg = UnitGUID('player')
                     plainName = (pg and S.nameCache[pg]) or UnitName('player') or '?'
+                    sourceUnit = 'player'
                 elseif guid and S.nameCache[guid] then
                     plainName = S.nameCache[guid]
+                    sourceUnit = S.FindUnitByGUID(guid)
                 elseif not S.IsSecret(src.name) and src.name and src.name ~= '' then
                     plainName = Ambiguate(src.name, 'short')
                 end
                 bar.frame.sourceName = plainName or '?'
+                if not sourceUnit and plainName then
+                    sourceUnit = S.FindUnitByName(plainName)
+                end
+                bar.frame.sourceUnit = sourceUnit
 
-                -- Secret name fallback: GetPlayerInfoByGUID accepts secret GUIDs
+                -- Unit token fallback: resolves secret GUIDs to real unit/name/GUID
+                if not sourceUnit and src.sourceGUID then
+                    local token = UnitTokenFromGUID(src.sourceGUID)
+                    if token and not S.IsSecret(token) then
+                        sourceUnit = token
+                        bar.frame.sourceUnit = token
+                        if not plainName then
+                            plainName = UnitName(token)
+                            bar.frame.sourceName = plainName or '?'
+                        end
+                        if not guid then
+                            local realGUID = UnitGUID(token)
+                            if realGUID and not S.IsSecret(realGUID) then
+                                guid = realGUID
+                                bar.frame.sourceGUID = guid
+                            end
+                        end
+                        if not classFilename or S.IsSecret(classFilename) then
+                            local _, cls = UnitClass(token)
+                            if cls then
+                                classFilename = cls
+                                bar.frame.sourceClass = cls
+                            end
+                        end
+                    end
+                end
+
+                -- Secret name fallback for display when unit token unavailable
                 local secretName = (not plainName) and src.sourceGUID and select(6, GetPlayerInfoByGUID(src.sourceGUID))
+                bar.frame.secretName = secretName
 
                 local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
                 if plainName then
@@ -371,6 +454,7 @@ function S.RefreshWindow(win)
                 bar.frame:Hide()
                 bar.frame.sourceGUID = nil
                 bar.frame.sourceName = nil
+                bar.frame.sourceData = nil
             end
         end
     end
@@ -647,6 +731,7 @@ function TUI:InitDamageMeter()
                 TUI:UpdateMeterVisibility()
                 return
             elseif event == 'PLAYER_REGEN_DISABLED' then
+                S.ScanRoster()
                 for _, w in pairs(S.windows) do
                     S.ExitDrillDown(w)
                 end
@@ -657,6 +742,7 @@ function TUI:InitDamageMeter()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
                 wipe(S.nameCache)
+                wipe(S.specIconCache)
                 S.ScanRoster()
                 return
             elseif event == 'PLAYER_ENTERING_WORLD' then

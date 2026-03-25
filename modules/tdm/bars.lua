@@ -145,8 +145,62 @@ function S.ResizeStandalone(win)
     end
 end
 
-function S.EnterDrillDown(win, guid, name, classFilename)
-    win.drillSource = { guid = guid, name = name, class = classFilename }
+function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUID, sourceCreatureID, sourceUnit, sourceData, specIconID)
+    local safeName = (name and not S.IsSecret(name)) and name or nil
+
+    if not guid and sourceUnit then
+        local unitGUID = UnitGUID(sourceUnit)
+        if unitGUID and not S.IsSecret(unitGUID) then
+            guid = unitGUID
+        end
+    end
+
+    if not guid and safeName then
+        guid = S.FindGUIDByName(safeName)
+    end
+
+    if sourceIndex then
+        local meterType = S.ResolveMeterType(S.MODE_ORDER[win.modeIndex])
+        local session = S.GetSession(win, meterType)
+        local src = session and session.combatSources and session.combatSources[sourceIndex]
+        if src then
+            sourceData = sourceData or src
+            if not guid and not S.IsSecret(src.sourceGUID) then
+                guid = src.sourceGUID
+            end
+            if not secretGUID and src.sourceGUID then
+                secretGUID = src.sourceGUID
+            end
+            if not sourceCreatureID and not S.IsSecret(src.sourceCreatureID) then
+                sourceCreatureID = src.sourceCreatureID
+            end
+            if (not safeName or safeName == '?') and not S.IsSecret(src.name) and src.name and src.name ~= '' then
+                safeName = Ambiguate(src.name, 'short')
+            end
+            if (not safeName or safeName == '?') and src.sourceGUID then
+                local secretName = select(6, GetPlayerInfoByGUID(src.sourceGUID))
+                if secretName and not S.IsSecret(secretName) then
+                    safeName = secretName
+                end
+            end
+        end
+    end
+
+    -- Resolve GUID via specIconID cache if still secret
+    if not guid and specIconID then
+        guid = S.ResolveGUID(nil, specIconID)
+    end
+
+    win.drillSource = {
+        guid = guid,
+        name = safeName,
+        class = classFilename,
+        sourceIndex = sourceIndex,
+        secretGUID = secretGUID,
+        sourceCreatureID = sourceCreatureID,
+        sourceData = sourceData,
+        specIconID = specIconID,
+    }
     win.scrollOffset = 0
     S.RefreshWindow(win)
 end
@@ -170,8 +224,12 @@ function S.GetDrillSpellCount(win)
         return 0
     end
 
-    local meterType  = S.ResolveMeterType(S.MODE_ORDER[win.modeIndex])
-    local sourceData = ds.guid and S.GetSessionSource(win, meterType, ds.guid)
+    local meterType = S.ResolveMeterType(S.MODE_ORDER[win.modeIndex])
+    local lookupGUID = ds.guid or S.ResolveGUID(ds.secretGUID, ds.specIconID)
+    local sourceData
+    if lookupGUID or ds.sourceCreatureID then
+        sourceData = S.GetSessionSource(win, meterType, lookupGUID, ds.sourceCreatureID)
+    end
     return (sourceData and sourceData.combatSpells) and #sourceData.combatSpells or 0
 end
 
@@ -186,31 +244,33 @@ function S.SetupBarInteraction(bar, win)
             return
         end
 
-        local unitShown = false
-        local guid = self.sourceGUID
-        if guid then
-            local unit = S.FindUnitByGUID(guid)
-            if unit then
-                GameTooltip:SetOwner(self, "ANCHOR_NONE")
-                GameTooltip_SetDefaultAnchor(GameTooltip, self)
-                GameTooltip:SetUnit(unit)
-                unitShown = true
-            end
+        -- Try full unit tooltip: cached unit > secret GUID token > GUID lookup > name lookup
+        local unit = self.sourceUnit
+        if not unit and self.secretGUID then
+            local token = UnitTokenFromGUID(self.secretGUID)
+            if token and not issecretvalue(token) then unit = token end
         end
-        if not unitShown then
-            GameTooltip_SetDefaultAnchor(GameTooltip, self)
-            if self.sourceName then
-                local cls = self.sourceClass
-                if not cls and self.testIndex then
-                    local td = S.GetTestData(win)[self.testIndex]
-                    if td then cls = td.class end
-                end
+        if not unit and self.sourceGUID then
+            unit = S.FindUnitByGUID(self.sourceGUID)
+        end
+        if not unit and self.sourceName and self.sourceName ~= '?' then
+            unit = S.FindUnitByName(self.sourceName)
+        end
+
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        if unit then
+            GameTooltip:SetUnit(unit)
+        else
+            local name = self.sourceName
+            if (not name or name == '?') and self.secretName then name = self.secretName end
+            if name then
+                local cls = self.sourceClass or (self.testIndex and S.GetTestData(win)[self.testIndex] and S.GetTestData(win)[self.testIndex].class)
                 local cr, cg, cb = 1, 1, 1
                 if cls then
                     local r, g, b = TUI:GetClassColor(cls)
                     if r then cr, cg, cb = r, g, b end
                 end
-                GameTooltip:AddLine(self.sourceName, cr, cg, cb)
+                GameTooltip:AddLine(name, cr, cg, cb)
             end
         end
         GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
@@ -228,6 +288,8 @@ function S.SetupBarInteraction(bar, win)
         end
 
         if button == "LeftButton" then
+            local db = S.GetWinDB(win.index)
+            if InCombatLockdown() and db and not db.clickInCombat then return end
             GameTooltip:Hide()
             if S.testMode and self.testIndex then
                 local td = S.GetTestData(win)[self.testIndex]
@@ -236,9 +298,11 @@ function S.SetupBarInteraction(bar, win)
                 end
                 return
             end
-            if self.sourceGUID and self.sourceName then
-                S.EnterDrillDown(win, self.sourceGUID, self.sourceName, self.sourceClass)
+            local sourceName = self.sourceName
+            if (not sourceName or sourceName == '?') and self.secretName then
+                sourceName = self.secretName
             end
+            S.EnterDrillDown(win, self.sourceGUID, sourceName or '?', self.sourceClass, self.sourceIndex, self.secretGUID, self.sourceCreatureID, self.sourceUnit, self.sourceData, self.specIconID)
         end
     end)
 end

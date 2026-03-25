@@ -395,6 +395,14 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
         selWinDisabled
     )
 
+    dmBars.clickInCombat = ACH:Toggle(
+        "Click in Combat", "Allow clicking bars to drill down during combat. When disabled, bars are only interactive out of combat.",
+        1.5, nil, nil, nil,
+        function() return winGet('clickInCombat') end,
+        function(_, value) winSet('clickInCombat', value) end,
+        selWinDisabled
+    )
+
     dmBars.barSpacing = ACH:Range(
         "Spacing", "Vertical gap between bars in pixels.", 2,
         { min = 0, max = 10, step = 1 }, nil,

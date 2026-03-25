@@ -103,6 +103,8 @@ E.PopupDialogs.TUI_METER_RESET = {
     OnAccept     = function()
         C_DamageMeter.ResetAllCombatSessions()
         wipe(S.nameCache)
+        wipe(S.guidByName)
+        wipe(S.specIconCache)
         TUI:RefreshMeter()
     end,
     timeout      = 0,
@@ -125,6 +127,7 @@ S.nameCache  = {}
 S.spellCache = {}
 S.winDBCache = {}
 S.sessionLabelCache = {}
+S.specIconCache = {}
 
 -- Localized globals
 local strsplit = strsplit
@@ -134,17 +137,24 @@ local GetNumGroupMembers = GetNumGroupMembers
 local UnitGUID = UnitGUID
 local floor = math.floor
 
+S.guidByName = {}
+
 function S.ScanRoster()
+    wipe(S.guidByName)
     local pg = UnitGUID('player')
     if pg and not S.IsSecret(pg) then
-        S.nameCache[pg] = UnitName('player')
+        local name = UnitName('player')
+        S.nameCache[pg] = name
+        if name then S.guidByName[name] = pg end
     end
     if IsInRaid() then
         for i = 1, GetNumGroupMembers() do
             local unit = 'raid' .. i
             local guid = UnitGUID(unit)
             if guid and not S.IsSecret(guid) then
-                S.nameCache[guid] = UnitName(unit)
+                local name = UnitName(unit)
+                S.nameCache[guid] = name
+                if name then S.guidByName[name] = guid end
             end
         end
     elseif IsInGroup() then
@@ -152,7 +162,9 @@ function S.ScanRoster()
             local unit = 'party' .. i
             local guid = UnitGUID(unit)
             if guid and not S.IsSecret(guid) then
-                S.nameCache[guid] = UnitName(unit)
+                local name = UnitName(unit)
+                S.nameCache[guid] = name
+                if name then S.guidByName[name] = guid end
             end
         end
     end
@@ -171,6 +183,24 @@ function S.FindUnitByGUID(guid)
     for i = 1, 4 do
         local unit = 'party' .. i
         if UnitGUID(unit) == guid then return unit end
+    end
+end
+
+function S.FindGUIDByName(name)
+    if not name or S.IsSecret(name) then return end
+    return S.guidByName[name]
+end
+
+function S.FindUnitByName(name)
+    if not name or S.IsSecret(name) then return end
+    if UnitName('player') == name then return 'player' end
+    for i = 1, 40 do
+        local unit = 'raid' .. i
+        if UnitName(unit) == name then return unit end
+    end
+    for i = 1, 4 do
+        local unit = 'party' .. i
+        if UnitName(unit) == name then return unit end
     end
 end
 
@@ -286,11 +316,38 @@ function S.GetSession(win, meterType)
     return C_DamageMeter.GetCombatSessionFromType(win.sessionType, meterType)
 end
 
-function S.GetSessionSource(win, meterType, guid)
-    if win.sessionId and C_DamageMeter.GetCombatSessionSourceFromID then
-        return C_DamageMeter.GetCombatSessionSourceFromID(win.sessionId, meterType, guid)
+-- Build specIconID -> GUID cache from combatSources when GUIDs are readable
+function S.UpdateSpecIconCache(sources)
+    if not sources then return end
+    local seen = {}
+    for _, src in ipairs(sources) do
+        local icon = src.specIconID
+        if icon and not S.IsSecret(icon) and icon > 0 then
+            if seen[icon] then
+                S.specIconCache[icon] = nil
+            elseif not S.IsSecret(src.sourceGUID) then
+                S.specIconCache[icon] = src.sourceGUID
+            end
+            seen[icon] = true
+        end
     end
-    return C_DamageMeter.GetCombatSessionSourceFromType(win.sessionType, meterType, guid)
+end
+
+function S.ResolveGUID(guid, specIconID)
+    if guid and not S.IsSecret(guid) then return guid end
+    if specIconID and not S.IsSecret(specIconID) and S.specIconCache[specIconID] then
+        return S.specIconCache[specIconID]
+    end
+    return nil
+end
+
+function S.GetSessionSource(win, meterType, guid, sourceCreatureID)
+    if guid and S.IsSecret(guid) then guid = nil end
+    if sourceCreatureID and S.IsSecret(sourceCreatureID) then sourceCreatureID = nil end
+    if win.sessionId and C_DamageMeter.GetCombatSessionSourceFromID then
+        return C_DamageMeter.GetCombatSessionSourceFromID(win.sessionId, meterType, guid, sourceCreatureID)
+    end
+    return C_DamageMeter.GetCombatSessionSourceFromType(win.sessionType, meterType, guid, sourceCreatureID)
 end
 
 function S.GetSessionLabel(win)
