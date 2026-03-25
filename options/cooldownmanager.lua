@@ -249,6 +249,17 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         end
     )
 
+    cdmLayout.showKeybind = ACH:Toggle(
+        E.NewSign .. "Show Keybind", "Display the spell's keybind text on the icon.",
+        14, nil, nil, nil,
+        function() return selVDB().showKeybind end,
+        function(_, value) selVDB().showKeybind = value; cdmRefresh() end
+    )
+    cdmLayout.showKeybind.hidden = function()
+        local v = cdmDB().selectedViewer
+        return v ~= 'essential' and v ~= 'utility'
+    end
+
     -- Custom Tracker options (only shown when custom viewer is selected)
     cdmViewer.customTracker = ACH:Group("Custom Tracker", nil, 2.5)
     cdmViewer.customTracker.inline = true
@@ -427,6 +438,73 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         { min = -45, max = 45, step = 1 }, nil,
         function() return selVDB().countText.yOffset end,
         function(_, value) selVDB().countText.yOffset = value; cdmRefresh() end
+    )
+
+    -- Keybind Text group — Essential and Utility only
+    cdmViewer.keybindText = ACH:Group("Keybind Text", nil, 5.5)
+    cdmViewer.keybindText.inline = true
+    cdmViewer.keybindText.hidden = function()
+        local v = cdmDB().selectedViewer
+        return (v ~= 'essential' and v ~= 'utility') or not selVDB().showKeybind
+    end
+    local cdmKB = cdmViewer.keybindText.args
+
+    cdmKB.font = ACH:SharedMediaFont("Font", nil, 1, nil,
+        function() return selVDB().keybindText.font end,
+        function(_, value) selVDB().keybindText.font = value; cdmRefresh() end
+    )
+
+    cdmKB.fontSize = ACH:Range(
+        "Font Size", nil, 2,
+        { min = 6, max = 36, step = 1 }, nil,
+        function() return selVDB().keybindText.fontSize end,
+        function(_, value) selVDB().keybindText.fontSize = value; cdmRefresh() end
+    )
+
+    cdmKB.fontOutline = ACH:FontFlags(
+        "Font Outline", nil, 3, nil,
+        function() return selVDB().keybindText.fontOutline end,
+        function(_, value) selVDB().keybindText.fontOutline = value; cdmRefresh() end
+    )
+
+    cdmKB.classColor = ACH:Toggle(
+        "Class Color", "Use custom class color.", 4, nil, nil, nil,
+        function() return selVDB().keybindText.classColor end,
+        function(_, value) selVDB().keybindText.classColor = value; cdmRefresh() end
+    )
+
+    cdmKB.color = ACH:Color(
+        "Color", nil, 5, nil, nil,
+        function()
+            local c = selVDB().keybindText.color
+            return c.r, c.g, c.b
+        end,
+        function(_, r, g, b)
+            local c = selVDB().keybindText.color
+            c.r, c.g, c.b = r, g, b
+            cdmRefresh()
+        end,
+        function() return selVDB().keybindText.classColor end
+    )
+
+    cdmKB.position = ACH:Select(
+        "Position", nil, 6, POSITIONS, nil, nil,
+        function() return selVDB().keybindText.position end,
+        function(_, value) selVDB().keybindText.position = value; cdmRefresh() end
+    )
+
+    cdmKB.xOffset = ACH:Range(
+        "X-Offset", nil, 7,
+        { min = -45, max = 45, step = 1 }, nil,
+        function() return selVDB().keybindText.xOffset end,
+        function(_, value) selVDB().keybindText.xOffset = value; cdmRefresh() end
+    )
+
+    cdmKB.yOffset = ACH:Range(
+        "Y-Offset", nil, 8,
+        { min = -45, max = 45, step = 1 }, nil,
+        function() return selVDB().keybindText.yOffset end,
+        function(_, value) selVDB().keybindText.yOffset = value; cdmRefresh() end
     )
 
     -- Proc Glow group — Essential only

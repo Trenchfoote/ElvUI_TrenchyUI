@@ -10,9 +10,11 @@ local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
 local pairs = pairs
 local wipe = wipe
+local gsub = string.gsub
 local math_ceil = math.ceil
 local math_min = math.min
 local math_floor = math.floor
+local GetBindingKey = GetBindingKey
 
 local CDM_CONFIG_STRING = 'TrenchyUI,cooldownManager'
 
@@ -344,6 +346,100 @@ function S.ApplyTextOverrides(itemFrame, vdb, db)
 	S.ApplyCountText(itemFrame, vdb.countText)
 	S.ApplyCooldownText(itemFrame.Cooldown, vdb.cooldownText)
 	S.ApplySwipeOverride(itemFrame.Cooldown, db)
+end
+
+-- Keybind text
+local L = ElvUI[2]
+
+local function AbbreviateKey(key)
+	if not key then return '' end
+	key = gsub(key, 'SHIFT%-', L["KEY_SHIFT"])
+	key = gsub(key, 'ALT%-', L["KEY_ALT"])
+	key = gsub(key, 'CTRL%-', L["KEY_CTRL"])
+	key = gsub(key, 'META%-', L["KEY_META"])
+	key = gsub(key, 'BUTTON', L["KEY_MOUSEBUTTON"])
+	key = gsub(key, 'MOUSEWHEELUP', L["KEY_MOUSEWHEELUP"])
+	key = gsub(key, 'MOUSEWHEELDOWN', L["KEY_MOUSEWHEELDOWN"])
+	key = gsub(key, 'NUMPAD', L["KEY_NUMPAD"])
+	key = gsub(key, 'PAGEUP', L["KEY_PAGEUP"])
+	key = gsub(key, 'PAGEDOWN', L["KEY_PAGEDOWN"])
+	key = gsub(key, 'SPACE', L["KEY_SPACE"])
+	key = gsub(key, 'INSERT', L["KEY_INSERT"])
+	key = gsub(key, 'HOME', L["KEY_HOME"])
+	key = gsub(key, 'DELETE', L["KEY_DELETE"])
+	return key
+end
+
+-- Action slot -> binding name mapping
+local SLOT_BINDINGS = {
+	'ACTIONBUTTON',          -- slots 1-12 (main bar)
+	'ACTIONBUTTON',          -- slots 13-24 (page 2)
+	'MULTIACTIONBAR3BUTTON', -- slots 25-36
+	'MULTIACTIONBAR4BUTTON', -- slots 37-48
+	'MULTIACTIONBAR2BUTTON', -- slots 49-60
+	'MULTIACTIONBAR1BUTTON', -- slots 61-72
+	'MULTIACTIONBAR5BUTTON', -- slots 73-84
+	'MULTIACTIONBAR6BUTTON', -- slots 85-96
+	'MULTIACTIONBAR7BUTTON', -- slots 97-108
+}
+
+local function SlotToBindingName(slot)
+	if slot < 1 then return nil end
+	local barIndex = math_floor((slot - 1) / 12)
+	local prefix = SLOT_BINDINGS[barIndex + 1]
+	if not prefix then return nil end
+	return prefix .. (((slot - 1) % 12) + 1)
+end
+
+function S.GetSpellKeybind(spellID)
+	-- Try direct spell binding first
+	local spellName = C_Spell.GetSpellName(spellID)
+	if spellName then
+		local key = GetBindingKey('SPELL ' .. spellName)
+		if key then return key end
+	end
+	-- Find action bar slot containing this spell
+	local slots = C_ActionBar.FindSpellActionButtons(spellID)
+	if slots then
+		for _, slot in ipairs(slots) do
+			local bindName = SlotToBindingName(slot)
+			if bindName then
+				local key = GetBindingKey(bindName)
+				if key then return key end
+			end
+		end
+	end
+	return nil
+end
+
+function S.ApplyKeybindText(itemFrame, vdb)
+	local tdb = vdb and vdb.keybindText
+	if not vdb.showKeybind or not tdb then
+		if itemFrame.tuiKeybind then itemFrame.tuiKeybind:SetText('') end
+		return
+	end
+
+	local sid = itemFrame.GetBaseSpellID and itemFrame:GetBaseSpellID()
+	if not sid then
+		if itemFrame.tuiKeybind then itemFrame.tuiKeybind:SetText('') end
+		return
+	end
+
+	if not itemFrame.tuiKeybind then
+		itemFrame.tuiKeybind = itemFrame:CreateFontString(nil, 'OVERLAY')
+		itemFrame.tuiKeybind:SetJustifyH('RIGHT')
+		itemFrame.tuiKeybind:SetWordWrap(false)
+	end
+
+	S.StyleFontString(itemFrame.tuiKeybind, tdb)
+
+	local key = S.GetSpellKeybind(sid)
+	if key then
+		itemFrame.tuiKeybind:SetText(AbbreviateKey(key))
+		itemFrame.tuiKeybind:Show()
+	else
+		itemFrame.tuiKeybind:SetText('')
+	end
 end
 
 -- Preview text

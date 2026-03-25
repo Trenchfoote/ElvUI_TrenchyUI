@@ -330,6 +330,7 @@ function TUI:InitCooldownManager()
 		TUI:RegisterEvent('UNIT_AURA', OnCDMEvent)
 		TUI:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnCDMEvent)
 		TUI:RegisterEvent('SPELLS_CHANGED', OnCDMEvent)
+		TUI:RegisterEvent('UPDATE_BINDINGS', OnCDMEvent)
 		TUI:RegisterEvent('CVAR_UPDATE', OnCDMEvent)
 
 		TUI:UpdateCDMVisibility()
