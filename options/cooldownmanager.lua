@@ -250,7 +250,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     )
 
     cdmLayout.showSpellCooldown = ACH:Toggle(
-        "Show Spell Cooldown", "Show the spell's cooldown timer instead of the buff duration. Desaturates the icon when the spell is on cooldown.",
+        E.NewSign .. "Show Spell Cooldown", "Show the spell's cooldown timer instead of the buff duration. Desaturates the icon when the spell is on cooldown.",
         14, nil, nil, nil,
         function() return selVDB().showSpellCooldown end,
         function(_, value) selVDB().showSpellCooldown = value; cdmRefresh() end

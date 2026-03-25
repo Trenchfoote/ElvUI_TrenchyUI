@@ -396,7 +396,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
     )
 
     dmBars.clickInCombat = ACH:Toggle(
-        "Click in Combat", "Allow clicking bars to drill down during combat. When disabled, bars are only interactive out of combat.",
+        E.NewSign .. "Click in Combat", "Allow clicking bars to drill down during combat. When disabled, bars are only interactive out of combat.",
         1.5, nil, nil, nil,
         function() return winGet('clickInCombat') end,
         function(_, value) winSet('clickInCombat', value) end,
