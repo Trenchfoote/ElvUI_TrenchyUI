@@ -87,14 +87,14 @@ TUI.defaults = {
             selectedViewer = 'essential',
             viewers = {
                 essential = {
-                    visibleSetting = 'ALWAYS', showTooltips = false,
+                    visibleSetting = 'ALWAYS', showTooltips = false, showSpellCooldown = false,
                     keepSizeRatio = true, iconWidth = 30, iconHeight = 30, iconZoom = 0, spacing = 2, iconsPerRow = 12, growthDirection = 'DOWN',
                     cooldownText = { font = 'Expressway', fontSize = 16, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'CENTER', xOffset = 0, yOffset = 0 },
                     countText    = { font = 'Expressway', fontSize = 11, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'BOTTOMRIGHT', xOffset = 0, yOffset = 0 },
                     glow = { enabled = false, type = 'pixel', color = { r = 0.95, g = 0.95, b = 0.32, a = 1 }, lines = 8, speed = 0.25, thickness = 2, length = nil, particles = 4, scale = 1, startAnim = true },
                 },
                 utility = {
-                    visibleSetting = 'ALWAYS', showTooltips = false,
+                    visibleSetting = 'ALWAYS', showTooltips = false, showSpellCooldown = false,
                     keepSizeRatio = true, iconWidth = 30, iconHeight = 30, iconZoom = 0, spacing = 2, iconsPerRow = 12, growthDirection = 'DOWN',
                     cooldownText = { font = 'Expressway', fontSize = 16, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'CENTER', xOffset = 0, yOffset = 0 },
                     countText    = { font = 'Expressway', fontSize = 11, fontOutline = 'OUTLINE', classColor = false, color = { r = 1, g = 1, b = 1 }, position = 'BOTTOMRIGHT', xOffset = 0, yOffset = 0 },
@@ -176,6 +176,7 @@ TUI.defaults = {
             textColor      = { r = 1.00, g = 1.00, b = 1.00 },
             valueClassColor = false,
             valueColor      = { r = 1.00, g = 1.00, b = 1.00 },
+            clickInCombat  = false,
             showRank       = true,
             rankClassColor = false,
             rankColor      = { r = 0.60, g = 0.60, b = 0.60 },

@@ -153,7 +153,6 @@ local function UpdateTrinketIcon(frame, slot)
 	frame.icon:SetTexture(GetInventoryItemTexture('player', slot))
 	frame.countText:SetText('')
 
-	-- TODO: No Duration object API exists for inventory items; SetCooldown may break with secret values
 	local start, duration, enable = GetInventoryItemCooldown('player', slot)
 	if enable and enable ~= 0 then
 		frame.Cooldown:SetCooldown(start, duration)
@@ -178,7 +177,6 @@ local function UpdateItemIcon(frame, itemID, trackType)
 	frame.icon:SetTexture(C_Item.GetItemIconByID(itemID))
 	frame.countText:SetText(count > 1 and count or '')
 
-	-- TODO: No Duration object API exists for container items; SetCooldown may break with secret values
 	local start, duration, enable = C_Container.GetItemCooldown(itemID)
 	if enable and enable ~= 0 then
 		frame.Cooldown:SetCooldown(start, duration)
