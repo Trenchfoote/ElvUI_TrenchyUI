@@ -54,7 +54,7 @@ S.MODE_LABELS = {
     [Enum.DamageMeterType.DamageTaken]          = "Damage Taken",
     [Enum.DamageMeterType.AvoidableDamageTaken] = "Avoidable Damage Taken",
 }
-if Enum.DamageMeterType.Deaths           then S.MODE_LABELS[Enum.DamageMeterType.Deaths]           = "Deaths"              end
+if Enum.DamageMeterType.Deaths           then S.MODE_LABELS[Enum.DamageMeterType.Deaths]           = "|cffF48CBAJib's|r"   end
 if Enum.DamageMeterType.EnemyDamageTaken then S.MODE_LABELS[Enum.DamageMeterType.EnemyDamageTaken] = "Enemy Damage Taken"   end
 
 S.MODE_SHORT = {
@@ -70,7 +70,7 @@ S.MODE_SHORT = {
     [Enum.DamageMeterType.DamageTaken]          = "Dmg Taken",
     [Enum.DamageMeterType.AvoidableDamageTaken] = "Avoidable",
 }
-if Enum.DamageMeterType.Deaths           then S.MODE_SHORT[Enum.DamageMeterType.Deaths]           = "Deaths"    end
+if Enum.DamageMeterType.Deaths           then S.MODE_SHORT[Enum.DamageMeterType.Deaths]           = "|cffF48CBAJib's|r" end
 if Enum.DamageMeterType.EnemyDamageTaken then S.MODE_SHORT[Enum.DamageMeterType.EnemyDamageTaken] = "Enemy Dmg" end
 
 -- 8-value texcoords: ULx, ULy, LLx, LLy, URx, URy, LRx, LRy

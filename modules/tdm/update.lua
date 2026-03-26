@@ -754,6 +754,10 @@ function TUI:InitDamageMeter()
                     local _, instanceType = IsInInstance()
                     if instanceType == 'party' or instanceType == 'raid' or instanceType == 'scenario' then
                         C_DamageMeter.ResetAllCombatSessions()
+                        wipe(S.nameCache)
+                        wipe(S.guidByName)
+                        wipe(S.specIconCache)
+                        wipe(S.sessionLabelCache)
                     end
                 end
             elseif event == 'DAMAGE_METER_RESET' then
