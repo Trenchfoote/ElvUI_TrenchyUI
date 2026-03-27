@@ -2851,6 +2851,7 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.addons.skinOPie = true
     E.db.TrenchyUI.addons.skinPlatynator = true
     E.db.TrenchyUI.addons.skinWarpDeplete = true
+    E.db.TrenchyUI.addons.skinWorldQuestTab = true
     E.db.TrenchyUI.pixelGlow.enabled = true
     E.db.TrenchyUI.pixelGlow.thickness = 3
     E.db.TrenchyUI.fakePower.soulFragments = true
