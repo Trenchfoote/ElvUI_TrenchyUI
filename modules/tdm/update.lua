@@ -386,8 +386,14 @@ function S.RefreshWindow(win)
 
                 local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', classFilename)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
-                bar.statusbar:SetMinMaxValues(0, session.maxAmount or 1)
-                bar.statusbar:SetValue(src.totalAmount or 0)
+                local isDeathsMode = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
+                if isDeathsMode then
+                    bar.statusbar:SetMinMaxValues(0, 1)
+                    bar.statusbar:SetValue(1)
+                else
+                    bar.statusbar:SetMinMaxValues(0, session.maxAmount or 1)
+                    bar.statusbar:SetValue(src.totalAmount or 0)
+                end
 
                 local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
@@ -475,7 +481,20 @@ function S.RefreshWindow(win)
                 end
                 bar.leftText:SetTextColor(tR, tG, tB)
 
-                if useCombined then
+                local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
+                if isDeaths then
+                    local deathTime = src.deathTimeSeconds
+                    if deathTime and not S.IsSecret(deathTime) and deathTime > 0 then
+                        bar.rightText:SetText(format('%d:%02d', floor(deathTime / 60), floor(deathTime % 60)))
+                    else
+                        bar.rightText:SetText('')
+                    end
+                    if bar._mainCombined then
+                        bar._mainCombined = nil
+                        if bar.dpsText then bar.dpsText:Hide() end
+                        S.ApplyBarIconLayout(bar, db)
+                    end
+                elseif useCombined then
                     if not bar.dpsText then
                         bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
                         bar.dpsText:SetJustifyH('RIGHT')
@@ -788,14 +807,17 @@ function S.RenderDeathRecap(win, ds, db)
         return
     end
 
-    local numVisible = S.ComputeNumVisible(win)
-    local total = #events
-    win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
+    local maxHealth = C_DeathRecap.GetRecapMaxHealth(ds.deathRecapID) or 1
 
-    local maxAmt = 1
-    for _, ev in ipairs(events) do
-        if ev.amount and not S.IsSecret(ev.amount) and ev.amount > maxAmt then maxAmt = ev.amount end
+    -- Reverse so oldest event (healthy) is at top, killing blow at bottom
+    local reversed = {}
+    for idx = #events, 1, -1 do
+        reversed[#reversed + 1] = events[idx]
     end
+
+    local numVisible = S.ComputeNumVisible(win)
+    local total = #reversed
+    win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
 
     local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
     local fontPath = LSM:Fetch('font', db.barFont)
@@ -806,7 +828,7 @@ function S.RenderDeathRecap(win, ds, db)
         local bar = win.bars[i]
         if not bar then break end
         local evIdx = win.scrollOffset + i
-        local ev = events[evIdx]
+        local ev = reversed[evIdx]
 
         if i > numVisible or not ev then
             bar.frame:Hide()
@@ -838,13 +860,24 @@ function S.RenderDeathRecap(win, ds, db)
                 end
             end
 
-            -- Icon
+            -- Layout: rightText for HP%, dpsText for (-damage)
             if not bar._isDrill then
                 bar._isDrill = true
+                if not bar.dpsText then
+                    bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
+                    bar.dpsText:SetJustifyH('RIGHT')
+                    bar.dpsText:SetWordWrap(false)
+                    bar.dpsText:SetShadowOffset(1, -1)
+                    bar.dpsText:SetParent(bar.textFrame)
+                    bar.dpsText:SetFont(bar.rightText:GetFont())
+                end
+                bar.dpsText:ClearAllPoints()
+                bar.dpsText:SetPoint('RIGHT', -4, 0)
+                bar.dpsText:SetWidth(90)
                 bar.rightText:ClearAllPoints()
-                bar.rightText:SetPoint('RIGHT', -4, 0)
+                bar.rightText:SetPoint('RIGHT', bar.dpsText, 'LEFT', -2, 0)
+                bar.dpsText:Show()
                 bar.pctText:Hide()
-                if bar.dpsText then bar.dpsText:Hide() end
             end
             if iconID then
                 bar.classIcon:SetTexture(iconID)
@@ -860,51 +893,48 @@ function S.RenderDeathRecap(win, ds, db)
                 bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
             end
 
-            -- Bar colors
-            local amt = ev.amount or 0
-            if evIdx == 1 then
-                bar.statusbar:SetStatusBarColor(0.9, 0.1, 0.1)
-                bar.background:SetVertexColor(0.4, 0.05, 0.05, 0.6)
+            -- Bar colors: use standard db colors
+            local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
+            local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
+            bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
+            bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
+
+            local hp = ev.currentHP or 0
+            bar.statusbar:SetMinMaxValues(0, maxHealth)
+            bar.statusbar:SetValue(S.IsSecret(hp) and 0 or hp)
+
+            -- Left text: spell name colored by type, source in gray
+            local isKillingBlow = evIdx == total
+            local nameStr = not S.IsSecret(spellName) and spellName or '?'
+            if isKillingBlow then
+                nameStr = '|cffff3333' .. nameStr .. '|r'
             elseif ev.avoidable then
-                bar.statusbar:SetStatusBarColor(0.8, 0.6, 0.1)
-                bar.background:SetVertexColor(0.35, 0.25, 0.05, 0.5)
-            else
-                bar.statusbar:SetStatusBarColor(0.6, 0.2, 0.2)
-                bar.background:SetVertexColor(0.3, 0.1, 0.1, 0.5)
+                nameStr = '|cffffcc00' .. nameStr .. '|r'
             end
-
-            bar.statusbar:SetMinMaxValues(0, maxAmt)
-            bar.statusbar:SetValue(S.IsSecret(amt) and 0 or amt)
-
-            -- Left text: spell name with source
-            local displayParts = {}
-            if not S.IsSecret(spellName) then
-                displayParts[1] = spellName
-            else
-                displayParts[1] = '?'
-            end
-            local caster = ev.sourceName
-            if caster and not S.IsSecret(caster) and not ev.hideCaster and caster ~= '' then
-                displayParts[1] = displayParts[1] .. '  |cff999999' .. caster .. '|r'
-            end
-            if evIdx == 1 then
-                displayParts[1] = displayParts[1] .. '  |cffff3333Killing Blow|r'
-            end
-            if ev.avoidable then
-                displayParts[1] = displayParts[1] .. '  |cffffcc00Avoidable|r'
-            end
-            bar.leftText:SetText(displayParts[1])
+            bar.leftText:SetText(nameStr)
             bar.leftText:SetTextColor(1, 1, 1)
 
-            -- Right text: damage amount
-            if S.IsSecret(amt) then
-                bar.rightText:SetFormattedText('%s', AbbreviateNumbers(amt, S.ABBREV_SHORT))
-            elseif amt > 0 then
-                bar.rightText:SetText('-' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT))
-            else
+            -- Right: HP% in rightText, (-damage) in dpsText
+            if S.IsSecret(hp) or maxHealth <= 0 then
                 bar.rightText:SetText('')
+                bar.dpsText:SetText('')
+            else
+                bar.rightText:SetText(floor(hp / maxHealth * 100 + 0.5) .. '%')
+                local amt = ev.amount
+                if amt and not S.IsSecret(amt) and amt > 0 then
+                    bar.dpsText:SetText('(-' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
+                else
+                    bar.dpsText:SetText('')
+                end
             end
             bar.rightText:SetTextColor(vR, vG, vB)
+            if isKillingBlow then
+                bar.dpsText:SetTextColor(1, 0.2, 0.2)
+            elseif ev.avoidable then
+                bar.dpsText:SetTextColor(1, 0.8, 0)
+            else
+                bar.dpsText:SetTextColor(0.6, 0.6, 0.6)
+            end
         end
     end
 end
