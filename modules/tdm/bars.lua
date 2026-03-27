@@ -145,7 +145,7 @@ function S.ResizeStandalone(win)
     end
 end
 
-function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUID, sourceCreatureID, sourceUnit, sourceData, specIconID)
+function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUID, sourceCreatureID, sourceUnit, sourceData, specIconID, deathRecapID)
     local safeName = (name and not S.IsSecret(name)) and name or nil
 
     if not guid and sourceUnit then
@@ -200,6 +200,7 @@ function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUI
         sourceCreatureID = sourceCreatureID,
         sourceData = sourceData,
         specIconID = specIconID,
+        deathRecapID = deathRecapID,
     }
     win.scrollOffset = 0
     S.RefreshWindow(win)
@@ -215,6 +216,11 @@ end
 function S.GetDrillSpellCount(win)
     local ds = win.drillSource
     if not ds then return 0 end
+
+    if ds.deathRecapID then
+        local events = C_DeathRecap and C_DeathRecap.GetRecapEvents(ds.deathRecapID)
+        return events and #events or 0
+    end
 
     if S.testMode then
         local tdata = S.GetTestData(win)
@@ -277,7 +283,12 @@ function S.SetupBarInteraction(bar, win)
                 GameTooltip:AddDoubleLine(name, '', 1, 1, 1)
             end
         end
-        GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
+        local modeEntry = S.MODE_ORDER[win.modeIndex]
+        if Enum.DamageMeterType.Deaths and modeEntry == Enum.DamageMeterType.Deaths then
+            GameTooltip:AddLine("Click for death recap", 0.7, 0.7, 0.7)
+        else
+            GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
+        end
         GameTooltip:Show()
     end)
 
@@ -303,10 +314,19 @@ function S.SetupBarInteraction(bar, win)
                 return
             end
             local sourceName = self.sourceName
-            if (not sourceName or sourceName == '?') and self.secretName then
+            if (not sourceName or (not issecretvalue(sourceName) and sourceName == '?')) and self.secretName then
                 sourceName = self.secretName
             end
-            S.EnterDrillDown(win, self.sourceGUID, sourceName or '?', self.sourceClass, self.sourceIndex, self.secretGUID, self.sourceCreatureID, self.sourceUnit, self.sourceData, self.specIconID)
+            local deathRecapID
+            local modeEntry = S.MODE_ORDER[win.modeIndex]
+            if Enum.DamageMeterType.Deaths and modeEntry == Enum.DamageMeterType.Deaths then
+                local srcData = self.sourceData
+                if srcData and srcData.deathRecapID and not S.IsSecret(srcData.deathRecapID) and srcData.deathRecapID ~= 0 then
+                    deathRecapID = srcData.deathRecapID
+                end
+                if not deathRecapID then return end
+            end
+            S.EnterDrillDown(win, self.sourceGUID, sourceName or '?', self.sourceClass, self.sourceIndex, self.secretGUID, self.sourceCreatureID, self.sourceUnit, self.sourceData, self.specIconID, deathRecapID)
         end
     end)
 end

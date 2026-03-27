@@ -35,6 +35,11 @@ function S.RefreshWindow(win)
         S.ApplySessionHighlight(win, db)
         win.header.timer:Hide()
 
+        if ds.deathRecapID then
+            S.RenderDeathRecap(win, ds, db)
+            return
+        end
+
         local spells, sourceMaxAmount, sourceTotalAmount
         if S.testMode then
             local tdata = S.GetTestData(win)
@@ -771,6 +776,137 @@ function TUI:UpdateMeterLayout()
     end
 
     self:RefreshMeter()
+end
+
+-- Death recap drilldown
+function S.RenderDeathRecap(win, ds, db)
+    local events = C_DeathRecap and C_DeathRecap.GetRecapEvents and C_DeathRecap.GetRecapEvents(ds.deathRecapID)
+    if not events or #events == 0 then
+        for i = 1, S.MAX_BARS do
+            if win.bars[i] then win.bars[i].frame:Hide() end
+        end
+        return
+    end
+
+    local numVisible = S.ComputeNumVisible(win)
+    local total = #events
+    win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
+
+    local maxAmt = 1
+    for _, ev in ipairs(events) do
+        if ev.amount and not S.IsSecret(ev.amount) and ev.amount > maxAmt then maxAmt = ev.amount end
+    end
+
+    local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
+    local fontPath = LSM:Fetch('font', db.barFont)
+    local flags = S.FontFlags(db.barFontOutline)
+    local fontSize = db.barFontSize
+
+    for i = 1, S.MAX_BARS do
+        local bar = win.bars[i]
+        if not bar then break end
+        local evIdx = win.scrollOffset + i
+        local ev = events[evIdx]
+
+        if i > numVisible or not ev then
+            bar.frame:Hide()
+            bar.frame.drillSpellID = nil
+        else
+            bar.frame:Show()
+            S.StyleBarTexts(bar, fontPath, fontSize, flags)
+
+            local spellID = ev.spellId
+            local spellName = ev.spellName
+            local iconID
+            if spellID and not S.IsSecret(spellID) then
+                iconID = C_Spell.GetSpellTexture(spellID)
+                if not spellName then spellName = C_Spell.GetSpellName(spellID) end
+                bar.frame.drillSpellID = spellID
+            else
+                bar.frame.drillSpellID = nil
+            end
+
+            if not spellName or (not S.IsSecret(spellName) and spellName == '') then
+                local evType = ev.event
+                if evType == 'SWING_DAMAGE' then
+                    spellName = ACTION_SWING
+                    if not iconID then iconID = 132223 end
+                elseif evType and evType:find('ENVIRONMENTAL') then
+                    spellName = 'Environment'
+                else
+                    spellName = '?'
+                end
+            end
+
+            -- Icon
+            if not bar._isDrill then
+                bar._isDrill = true
+                bar.rightText:ClearAllPoints()
+                bar.rightText:SetPoint('RIGHT', -4, 0)
+                bar.pctText:Hide()
+                if bar.dpsText then bar.dpsText:Hide() end
+            end
+            if iconID then
+                bar.classIcon:SetTexture(iconID)
+                bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                bar.classIcon:Show()
+                bar.leftText:ClearAllPoints()
+                bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
+                bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
+            else
+                bar.classIcon:Hide()
+                bar.leftText:ClearAllPoints()
+                bar.leftText:SetPoint("LEFT", 4, 0)
+                bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
+            end
+
+            -- Bar colors
+            local amt = ev.amount or 0
+            if evIdx == 1 then
+                bar.statusbar:SetStatusBarColor(0.9, 0.1, 0.1)
+                bar.background:SetVertexColor(0.4, 0.05, 0.05, 0.6)
+            elseif ev.avoidable then
+                bar.statusbar:SetStatusBarColor(0.8, 0.6, 0.1)
+                bar.background:SetVertexColor(0.35, 0.25, 0.05, 0.5)
+            else
+                bar.statusbar:SetStatusBarColor(0.6, 0.2, 0.2)
+                bar.background:SetVertexColor(0.3, 0.1, 0.1, 0.5)
+            end
+
+            bar.statusbar:SetMinMaxValues(0, maxAmt)
+            bar.statusbar:SetValue(S.IsSecret(amt) and 0 or amt)
+
+            -- Left text: spell name with source
+            local displayParts = {}
+            if not S.IsSecret(spellName) then
+                displayParts[1] = spellName
+            else
+                displayParts[1] = '?'
+            end
+            local caster = ev.sourceName
+            if caster and not S.IsSecret(caster) and not ev.hideCaster and caster ~= '' then
+                displayParts[1] = displayParts[1] .. '  |cff999999' .. caster .. '|r'
+            end
+            if evIdx == 1 then
+                displayParts[1] = displayParts[1] .. '  |cffff3333Killing Blow|r'
+            end
+            if ev.avoidable then
+                displayParts[1] = displayParts[1] .. '  |cffffcc00Avoidable|r'
+            end
+            bar.leftText:SetText(displayParts[1])
+            bar.leftText:SetTextColor(1, 1, 1)
+
+            -- Right text: damage amount
+            if S.IsSecret(amt) then
+                bar.rightText:SetFormattedText('%s', AbbreviateNumbers(amt, S.ABBREV_SHORT))
+            elseif amt > 0 then
+                bar.rightText:SetText('-' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT))
+            else
+                bar.rightText:SetText('')
+            end
+            bar.rightText:SetTextColor(vR, vG, vB)
+        end
+    end
 end
 
 function TUI:InitDamageMeter()
