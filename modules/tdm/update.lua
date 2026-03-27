@@ -205,7 +205,7 @@ function S.RefreshWindow(win)
                 if issecretvalue(amt) then
                     bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, S.ABBREV_SHORT))
                 else
-                    bar.rightText:SetText('(' .. S.TruncateDecimals(AbbreviateNumbers(floor(amt + 0.5))) .. ')')
+                    bar.rightText:SetText('(' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
                 end
 
                 -- DPS
@@ -305,7 +305,7 @@ function S.RefreshWindow(win)
     win.header.sessText:SetText(" \226\128\148 " .. sessLabel)
     S.ApplySessionHighlight(win, db)
 
-    if win.sessionType then
+    if db.showTimer and win.sessionType then
         local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
         if dur then
             win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))
@@ -592,7 +592,11 @@ end
 local function UpdateTimers()
     for _, win in pairs(S.windows) do
         if not win.header or not win.header.timer then break end
-        if win.sessionType then
+        if win.drillSource then break end
+        local wdb = S.GetWinDB(win.index)
+        if not wdb.showTimer then
+            win.header.timer:SetText('')
+        elseif win.sessionType then
             local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
             if dur then
                 win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))

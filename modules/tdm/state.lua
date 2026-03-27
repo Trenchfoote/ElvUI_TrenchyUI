@@ -233,7 +233,7 @@ function S.FormatValueText(fontString, val)
     if S.IsSecret(val) then
         fontString:SetFormattedText('%s', AbbreviateNumbers(val, ABBREV_SHORT))
     else
-        fontString:SetText(S.TruncateDecimals(AbbreviateNumbers(floor(val + 0.5))))
+        fontString:SetText(AbbreviateNumbers(floor(val + 0.5), ABBREV_SHORT))
     end
 end
 
@@ -242,8 +242,8 @@ function S.FormatCombinedText(fontString, total, perSec)
     if S.IsSecret(total) or S.IsSecret(perSec) then
         fontString:SetFormattedText('%s (%s)', AbbreviateNumbers(perSec or 0, ABBREV_SHORT), AbbreviateNumbers(total or 0, ABBREV_SHORT))
     else
-        local p = S.TruncateDecimals(perSec and AbbreviateNumbers(floor(perSec + 0.5)) or '0')
-        local t = S.TruncateDecimals(total and AbbreviateNumbers(floor(total + 0.5)) or '0')
+        local p = perSec and AbbreviateNumbers(floor(perSec + 0.5), ABBREV_SHORT) or '0'
+        local t = total and AbbreviateNumbers(floor(total + 0.5), ABBREV_SHORT) or '0'
         fontString:SetText(p .. ' (' .. t .. ')')
     end
 end

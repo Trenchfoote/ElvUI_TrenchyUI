@@ -98,6 +98,7 @@ function S.ApplyHeaderStyle(win, db)
         header.timer:SetPoint("RIGHT", header.reset, "LEFT", -4, 0)
         header.timer:Show()
     else
+        header.timer:SetText('')
         header.timer:Hide()
     end
 end
