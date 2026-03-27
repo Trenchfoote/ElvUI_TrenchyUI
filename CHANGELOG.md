@@ -12,5 +12,4 @@
 
 ### Improvements
 - Damage Meter: DPS and total damage values are now aligned in separate columns for consistent bar readability
-- Damage Meter: Deaths mode now shows death timestamp instead of empty values
 - Damage Meter: Bar tooltips now resolve party member info during combat using secret-safe lookups
