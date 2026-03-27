@@ -136,8 +136,10 @@ local function FindViewerSettings(systemIndex)
 end
 
 local VIEWER_SYSTEM_INDEX = {
-	buffIcon = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.BuffIcon,
-	buffBar = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.BuffBar,
+	essential = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.Essential,
+	utility   = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.Utility,
+	buffIcon  = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.BuffIcon,
+	buffBar   = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.BuffBar,
 }
 
 function TUI:GetEditModeSetting(viewerKey, settingEnum)
@@ -250,6 +252,24 @@ function TUI:InitCooldownManager()
 			local val = self:GetEditModeSetting(vk, hwiSetting)
 			if vdb and val ~= nil then
 				vdb.hideWhenInactive = (val == 1)
+			end
+		end
+	end
+
+	-- Force essential/utility viewers visible if Blizzard Edit Mode has them hidden
+	local visSetting = Enum.EditModeCooldownViewerSetting and Enum.EditModeCooldownViewerSetting.VisibleSetting
+	local visAlways = Enum.CooldownViewerVisibleSetting and Enum.CooldownViewerVisibleSetting.Always
+	local visHidden = Enum.CooldownViewerVisibleSetting and Enum.CooldownViewerVisibleSetting.Hidden
+	if visSetting and visAlways and visHidden then
+		for _, vk in ipairs({'essential', 'utility'}) do
+			local val = self:GetEditModeSetting(vk, visSetting)
+			if val == visHidden then
+				self:SetEditModeSetting(vk, visSetting, visAlways)
+				local viewer = _G[S.VIEWER_KEYS[vk] and S.VIEWER_KEYS[vk].global]
+				if viewer then
+					viewer.visibleSetting = visAlways
+					viewer:UpdateShownState()
+				end
 			end
 		end
 	end
