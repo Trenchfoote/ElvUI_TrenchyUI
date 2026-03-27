@@ -272,6 +272,7 @@ function S.RefreshWindow(win)
                     bar.leftText:SetText(td.name)
                 end
                 bar.leftText:SetTextColor(tR, tG, tB)
+                if bar._isDrill then S.ResetDrillBar(bar, db) end
                 local modeEntry = S.MODE_ORDER[win.modeIndex]
                 if modeEntry == S.COMBINED_DAMAGE or modeEntry == S.COMBINED_HEALING then
                     if not bar.dpsText then
@@ -307,7 +308,6 @@ function S.RefreshWindow(win)
                 local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', td.class)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
-                if bar._isDrill then S.ResetDrillBar(bar, db) end
                 if db.showClassIcon then
                     local coords = S.CLASS_ICON_COORDS[td.class]
                     if coords then
@@ -481,6 +481,8 @@ function S.RefreshWindow(win)
                 end
                 bar.leftText:SetTextColor(tR, tG, tB)
 
+                if bar._isDrill then S.ResetDrillBar(bar, db) end
+
                 local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeaths then
                     local deathTime = src.deathTimeSeconds
@@ -529,7 +531,6 @@ function S.RefreshWindow(win)
                 local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', classFilename)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
-                if bar._isDrill then S.ResetDrillBar(bar, db) end
 
                 if db.showClassIcon then
                     local coords = classFilename and S.CLASS_ICON_COORDS[classFilename]
