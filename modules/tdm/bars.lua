@@ -244,17 +244,19 @@ function S.SetupBarInteraction(bar, win)
             return
         end
 
-        -- Try full unit tooltip: cached unit > secret GUID token > GUID lookup > name lookup
+        -- Try full unit tooltip: cached unit > GUID lookup > name lookup > secret GUID match
         local unit = self.sourceUnit
-        if not unit and self.secretGUID then
-            local token = UnitTokenFromGUID(self.secretGUID)
-            if token and not issecretvalue(token) then unit = token end
-        end
         if not unit and self.sourceGUID then
             unit = S.FindUnitByGUID(self.sourceGUID)
         end
-        if not unit and self.sourceName and self.sourceName ~= '?' then
+        if not unit and self.sourceName and not issecretvalue(self.sourceName) and self.sourceName ~= '?' then
             unit = S.FindUnitByName(self.sourceName)
+        end
+        if not unit and self.sourceGUID then
+            for i = 1, 4 do
+                local token = 'party' .. i
+                if UnitGUID(token) == self.sourceGUID then unit = token; break end
+            end
         end
 
         GameTooltip_SetDefaultAnchor(GameTooltip, self)
@@ -262,8 +264,8 @@ function S.SetupBarInteraction(bar, win)
             GameTooltip:SetUnit(unit)
         else
             local name = self.sourceName
-            if (not name or name == '?') and self.secretName then name = self.secretName end
-            if name then
+            if (not name or (not issecretvalue(name) and name == '?')) and self.secretName then name = self.secretName end
+            if name and not issecretvalue(name) then
                 local cls = self.sourceClass or (self.testIndex and S.GetTestData(win)[self.testIndex] and S.GetTestData(win)[self.testIndex].class)
                 local cr, cg, cb = 1, 1, 1
                 if cls then
@@ -271,6 +273,8 @@ function S.SetupBarInteraction(bar, win)
                     if r then cr, cg, cb = r, g, b end
                 end
                 GameTooltip:AddLine(name, cr, cg, cb)
+            elseif name then
+                GameTooltip:AddDoubleLine(name, '', 1, 1, 1)
             end
         end
         GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
@@ -318,6 +322,7 @@ end
 function S.ResetDrillBar(bar, db)
     bar._isDrill = nil
     bar._drillHasIcon = nil
+    bar._mainCombined = nil
     bar.pctText:Hide()
     if bar.dpsText then bar.dpsText:Hide() end
     bar.rightText:ClearAllPoints()
