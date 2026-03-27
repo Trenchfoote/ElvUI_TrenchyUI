@@ -114,14 +114,56 @@ local function SkinWorldQuestTab()
 	-- Settings frame
 	local settings = frame.SettingsFrame
 	if settings then
-		if settings.BorderFrame then
-			settings.BorderFrame:StripTextures()
-			settings.BorderFrame:SetTemplate('Transparent')
-		end
-		for _, region in pairs({ settings:GetRegions() }) do
-			if region:IsObjectType('Texture') then region:SetAlpha(0) end
-		end
+		if settings.BorderFrame then settings.BorderFrame:StripTextures() end
+		settings:StripTextures()
+		settings:SetTemplate('Transparent')
 		if settings.ScrollBar then S:HandleTrimScrollBar(settings.ScrollBar) end
+
+		local function SkinSettingsElement(child)
+			if child.TUI_Skinned then return end
+			child.TUI_Skinned = true
+			if child.CheckBox then S:HandleCheckBox(child.CheckBox) end
+			if child.SliderWithSteppers then
+				local slider = child.SliderWithSteppers.Slider
+				if slider then S:HandleSliderFrame(slider) end
+			end
+			if child.TextBox then S:HandleEditBox(child.TextBox) end
+			if child.Dropdown then S:HandleDropDownBox(child.Dropdown) end
+			-- Strip category/subcategory chrome
+			if child.BGLeft then child.BGLeft:SetAlpha(0) end
+			if child.BGRight then child.BGRight:SetAlpha(0) end
+			if child.BGMiddle then child.BGMiddle:SetAlpha(0) end
+			if child.Background then child.Background:SetAlpha(0) end
+			-- Add ElvUI backdrop + highlight to expandable headers
+			local isHeader = child.BGLeft or (child.Background and child.ExpandIcon)
+			if isHeader and not child.backdrop then
+				child:CreateBackdrop('Transparent')
+				local r, g, b = unpack(E.media.rgbvaluecolor)
+				-- Replace all highlight textures with flat color
+				if child.Highlight then child.Highlight:SetAlpha(0) end
+				if child.Mask then child.Mask:Hide() end
+				for _, region in pairs({ child:GetRegions() }) do
+					if region:IsObjectType('Texture') and region:GetDrawLayer() == 'HIGHLIGHT' then
+						region:SetAlpha(0)
+					end
+				end
+				local hl = child:CreateTexture(nil, 'HIGHLIGHT')
+				hl:SetColorTexture(r, g, b, 0.25)
+				hl:SetAllPoints(child.backdrop)
+			end
+		end
+
+		local scrollBox = settings.ScrollBox
+		if scrollBox then
+			hooksecurefunc(scrollBox, 'Update', function(self)
+				for _, child in self:EnumerateFrames() do
+					SkinSettingsElement(child)
+				end
+			end)
+			for _, child in scrollBox:EnumerateFrames() do
+				SkinSettingsElement(child)
+			end
+		end
 	end
 end
 
