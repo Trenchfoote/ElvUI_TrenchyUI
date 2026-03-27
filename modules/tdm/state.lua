@@ -124,13 +124,13 @@ TUI._meterTestMode = false
 
 -- Caches
 S.nameCache  = {}
+S.creatureNameCache = {}
 S.spellCache = {}
 S.winDBCache = {}
 S.sessionLabelCache = {}
 S.specIconCache = {}
 
 -- Localized globals
-local strsplit = strsplit
 local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
 local GetNumGroupMembers = GetNumGroupMembers
@@ -170,6 +170,24 @@ function S.ScanRoster()
     end
 end
 
+function S.CacheCreatureNames()
+    for _, sessionType in pairs(Enum.DamageMeterSessionType) do
+        for _, meterType in pairs(Enum.DamageMeterType) do
+            local session = C_DamageMeter.GetCombatSessionFromType(sessionType, meterType)
+            if session and session.combatSources then
+                for _, src in ipairs(session.combatSources) do
+                    local cid = src.sourceCreatureID
+                    if cid and not S.IsSecret(cid) and not S.creatureNameCache[cid] then
+                        if src.name and not S.IsSecret(src.name) and src.name ~= '' then
+                            S.creatureNameCache[cid] = Ambiguate(src.name, 'short')
+                        end
+                    end
+                end
+            end
+        end
+    end
+end
+
 function S.IsSecret(val)
     return val ~= nil and issecretvalue and issecretvalue(val)
 end
@@ -204,12 +222,6 @@ function S.FindUnitByName(name)
     end
 end
 
--- Strip decimals from sub-1K abbreviated strings (e.g. "209.385" -> "209")
-function S.TruncateDecimals(text)
-    if type(text) ~= 'string' or S.IsSecret(text) then return text end
-    if text:match('%a') then return text end
-    return (strsplit('.', text))
-end
 
 -- Abbreviation config: no decimals (fractionDivisor = 1 at all breakpoints)
 local ABBREV_SHORT = E.Abbreviate and E.Abbreviate.short
@@ -237,14 +249,22 @@ function S.FormatValueText(fontString, val)
     end
 end
 
-function S.FormatCombinedText(fontString, total, perSec)
-    if not total and not perSec then fontString:SetText('0'); return end
+function S.FormatCombinedText(totalFS, dpsFS, total, perSec)
+    if not total and not perSec then
+        totalFS:SetText('0')
+        if dpsFS then dpsFS:SetText('') end
+        return
+    end
     if S.IsSecret(total) or S.IsSecret(perSec) then
-        fontString:SetFormattedText('%s (%s)', AbbreviateNumbers(perSec or 0, ABBREV_SHORT), AbbreviateNumbers(total or 0, ABBREV_SHORT))
+        totalFS:SetFormattedText('(%s)', AbbreviateNumbers(total or 0, ABBREV_SHORT))
+        if dpsFS then dpsFS:SetFormattedText('%s', AbbreviateNumbers(perSec or 0, ABBREV_SHORT)) end
     else
-        local p = perSec and AbbreviateNumbers(floor(perSec + 0.5), ABBREV_SHORT) or '0'
         local t = total and AbbreviateNumbers(floor(total + 0.5), ABBREV_SHORT) or '0'
-        fontString:SetText(p .. ' (' .. t .. ')')
+        totalFS:SetText('(' .. t .. ')')
+        if dpsFS then
+            local p = perSec and AbbreviateNumbers(floor(perSec + 0.5), ABBREV_SHORT) or '0'
+            dpsFS:SetText(p)
+        end
     end
 end
 
@@ -291,6 +311,7 @@ function S.StyleBarTexts(bar, fontPath, size, flags)
     bar.leftText:FontTemplate(fontPath, size, flags)
     bar.rightText:FontTemplate(fontPath, size, flags)
     bar.pctText:FontTemplate(fontPath, size, flags)
+    if bar.dpsText then bar.dpsText:FontTemplate(fontPath, size, flags) end
 end
 
 function S.NewWindowState(index, savedModeIndex)

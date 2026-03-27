@@ -162,6 +162,7 @@ function S.RefreshWindow(win)
                         bar.dpsText:SetWordWrap(false)
                         bar.dpsText:SetShadowOffset(1, -1)
                         bar.dpsText:SetParent(bar.textFrame)
+                        bar.dpsText:SetFont(bar.rightText:GetFont())
                     end
                     bar.rightText:ClearAllPoints()
                     bar.rightText:SetPoint('RIGHT', -4, 0)
@@ -268,12 +269,39 @@ function S.RefreshWindow(win)
                 bar.leftText:SetTextColor(tR, tG, tB)
                 local modeEntry = S.MODE_ORDER[win.modeIndex]
                 if modeEntry == S.COMBINED_DAMAGE or modeEntry == S.COMBINED_HEALING then
-                    S.FormatCombinedText(bar.rightText, td.value, td.value / 20)
+                    if not bar.dpsText then
+                        bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
+                        bar.dpsText:SetJustifyH('RIGHT')
+                        bar.dpsText:SetWordWrap(false)
+                        bar.dpsText:SetShadowOffset(1, -1)
+                        bar.dpsText:SetParent(bar.textFrame)
+                        bar.dpsText:SetFont(bar.rightText:GetFont())
+                    end
+                    if not bar._mainCombined then
+                        bar._mainCombined = true
+                        bar.dpsText:ClearAllPoints()
+                        bar.dpsText:SetPoint('RIGHT', bar.rightText, 'LEFT', -4, 0)
+                        bar.dpsText:Show()
+                        bar.leftText:ClearAllPoints()
+                        if db.showClassIcon then
+                            bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
+                        else
+                            bar.leftText:SetPoint("LEFT", 4, 0)
+                        end
+                        bar.leftText:SetPoint("RIGHT", bar.dpsText, "LEFT", -4, 0)
+                    end
+                    S.FormatCombinedText(bar.rightText, bar.dpsText, td.value, td.value / 20)
                 else
+                    if bar._mainCombined then
+                        bar._mainCombined = nil
+                        if bar.dpsText then bar.dpsText:Hide() end
+                        S.ApplyBarIconLayout(bar, db)
+                    end
                     S.FormatValueText(bar.rightText, td.value)
                 end
                 local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', td.class)
                 bar.rightText:SetTextColor(vR, vG, vB)
+                if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
                 if bar._isDrill then S.ResetDrillBar(bar, db) end
                 if db.showClassIcon then
                     local coords = S.CLASS_ICON_COORDS[td.class]
@@ -369,11 +397,15 @@ function S.RefreshWindow(win)
                 elseif guid and S.nameCache[guid] then
                     plainName = S.nameCache[guid]
                     sourceUnit = S.FindUnitByGUID(guid)
-                elseif not S.IsSecret(src.name) and src.name and src.name ~= '' then
-                    plainName = Ambiguate(src.name, 'short')
+                elseif src.name then
+                    if S.IsSecret(src.name) then
+                        plainName = src.name
+                    elseif src.name ~= '' then
+                        plainName = Ambiguate(src.name, 'short')
+                    end
                 end
                 bar.frame.sourceName = plainName or '?'
-                if not sourceUnit and plainName then
+                if not sourceUnit and plainName and not S.IsSecret(plainName) then
                     sourceUnit = S.FindUnitByName(plainName)
                 end
                 bar.frame.sourceUnit = sourceUnit
@@ -385,8 +417,15 @@ function S.RefreshWindow(win)
                         sourceUnit = token
                         bar.frame.sourceUnit = token
                         if not plainName then
-                            plainName = UnitName(token)
-                            bar.frame.sourceName = plainName or '?'
+                            local tokenName = UnitName(token)
+                            if tokenName and not S.IsSecret(tokenName) then
+                                plainName = tokenName
+                                bar.frame.sourceName = plainName
+                                local cid = src.sourceCreatureID
+                                if cid and not S.IsSecret(cid) then
+                                    S.creatureNameCache[cid] = plainName
+                                end
+                            end
                         end
                         if not guid then
                             local realGUID = UnitGUID(token)
@@ -410,7 +449,7 @@ function S.RefreshWindow(win)
                 bar.frame.secretName = secretName
 
                 local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
-                if plainName then
+                if plainName and not S.IsSecret(plainName) then
                     if db.showRank then
                         local rr, rg, rb = S.ClassOrColor(db, 'rankClassColor', 'rankColor', classFilename)
                         bar.leftText:SetText(format('|cff%02x%02x%02x%d.|r %s',
@@ -418,6 +457,8 @@ function S.RefreshWindow(win)
                     else
                         bar.leftText:SetText(plainName)
                     end
+                elseif plainName then
+                    bar.leftText:SetFormattedText('%s', plainName)
                 elseif secretName then
                     if db.showRank then
                         bar.leftText:SetFormattedText('%d. %s', srcIdx, secretName)
@@ -430,13 +471,40 @@ function S.RefreshWindow(win)
                 bar.leftText:SetTextColor(tR, tG, tB)
 
                 if useCombined then
-                    S.FormatCombinedText(bar.rightText, src.totalAmount, src.amountPerSecond)
+                    if not bar.dpsText then
+                        bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
+                        bar.dpsText:SetJustifyH('RIGHT')
+                        bar.dpsText:SetWordWrap(false)
+                        bar.dpsText:SetShadowOffset(1, -1)
+                        bar.dpsText:SetParent(bar.textFrame)
+                        bar.dpsText:SetFont(bar.rightText:GetFont())
+                    end
+                    if not bar._mainCombined then
+                        bar._mainCombined = true
+                        bar.dpsText:ClearAllPoints()
+                        bar.dpsText:SetPoint('RIGHT', bar.rightText, 'LEFT', -4, 0)
+                        bar.dpsText:Show()
+                        bar.leftText:ClearAllPoints()
+                        if db.showClassIcon then
+                            bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
+                        else
+                            bar.leftText:SetPoint("LEFT", 4, 0)
+                        end
+                        bar.leftText:SetPoint("RIGHT", bar.dpsText, "LEFT", -4, 0)
+                    end
+                    S.FormatCombinedText(bar.rightText, bar.dpsText, src.totalAmount, src.amountPerSecond)
                 else
+                    if bar._mainCombined then
+                        bar._mainCombined = nil
+                        if bar.dpsText then bar.dpsText:Hide() end
+                        S.ApplyBarIconLayout(bar, db)
+                    end
                     local rawValue = usePerSec and src.amountPerSecond or src.totalAmount
                     S.FormatValueText(bar.rightText, rawValue)
                 end
                 local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', classFilename)
                 bar.rightText:SetTextColor(vR, vG, vB)
+                if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
                 if bar._isDrill then S.ResetDrillBar(bar, db) end
 
                 if db.showClassIcon then
@@ -742,6 +810,7 @@ function TUI:InitDamageMeter()
                 return
             elseif event == 'PLAYER_REGEN_ENABLED' then
                 S.ScanRoster()
+                S.CacheCreatureNames()
                 TUI:RefreshMeter()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
@@ -751,6 +820,7 @@ function TUI:InitDamageMeter()
                 return
             elseif event == 'PLAYER_ENTERING_WORLD' then
                 S.ScanRoster()
+                S.CacheCreatureNames()
                 for _, w in pairs(S.windows) do
                     S.ResetWindowState(w)
                 end
