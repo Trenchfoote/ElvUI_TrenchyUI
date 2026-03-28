@@ -16,7 +16,8 @@ function TUI:BuildSkinsConfig(root, tuiName)
         { key = "skinOPie",        addon = "OPie",        label = "OPie",         order = 4 },
         { key = "skinPlatynator",  addon = "Platynator",    label = "Platynator",   order = 5 },
         { key = "skinWarpDeplete",    addon = "WarpDeplete",    label = "WarpDeplete",      order = 6 },
-        { key = "skinWorldQuestTab", addon = "WorldQuestTab", label = "World Quest Tab", order = 7 },
+        { key = "skinWorldQuestTab",          addon = "WorldQuestTab",       label = "World Quest Tab",       order = 7 },
+        { key = "skinPremadeGroupsFilter", addon = "PremadeGroupsFilter", label = "Premade Groups Filter", order = 8 },
     }
 
     for _, def in ipairs(skinDefs) do

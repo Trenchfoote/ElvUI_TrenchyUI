@@ -4,6 +4,7 @@
 
 ### New Features
 - QoL: Shorten Enchant Names — abbreviates enchant text on the character and inspect frames with readable shorthand names for all Midnight and TWW enchants
+- Skins: Premade Groups Filter addon skin — matches ElvUI styling for the dialog, panels, dropdowns, checkboxes, editboxes, expression fields, and popup menus
 
 ### Bug Fixes
 - Damage Meter: Fixed auto-reset on instance entry not triggering consistently due to race condition with zone detection

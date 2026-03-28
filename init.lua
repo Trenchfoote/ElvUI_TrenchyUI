@@ -10,6 +10,7 @@ function TUI:InitModules()
 	if self.InitSkinOPie then self:InitSkinOPie() end
 	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
 	if self.InitSkinWorldQuestTab then self:InitSkinWorldQuestTab() end
+	if self.InitSkinPremadeGroupsFilter then self:InitSkinPremadeGroupsFilter() end
 
 	-- QoL
 	local db = self.db.profile.qol
