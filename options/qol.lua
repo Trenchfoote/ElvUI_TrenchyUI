@@ -66,6 +66,18 @@ function TUI:BuildQoLConfig(root, tuiName)
     )
     qolGen.hideObjectiveInCombat.customWidth = 250
 
+    qolGen.shortenEnchantStrings = ACH:Toggle(
+        "Shorten Enchant Names",
+        "Abbreviate enchant names on the character and inspect frames to save space.",
+        6, nil, nil, nil,
+        function() return TUI.db.profile.qol.shortenEnchantStrings end,
+        function(_, value)
+            TUI.db.profile.qol.shortenEnchantStrings = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+    qolGen.shortenEnchantStrings.customWidth = 250
+
     root.qol.args.cursorCircle = ACH:Group("Cursor Circle", nil, 1.5)
     root.qol.args.cursorCircle.inline = true
     local ccArgs = root.qol.args.cursorCircle.args

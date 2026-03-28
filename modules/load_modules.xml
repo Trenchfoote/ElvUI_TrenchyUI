@@ -18,6 +18,7 @@
 	<Script file="qol\moveableframes.lua"/>
 	<Script file="qol\minimapbuttons.lua"/>
 	<Script file="qol\cursorcircle.lua"/>
+	<Script file="qol\enchantstrings.lua"/>
 
 	<!-- Nameplates -->
 	<Script file="nameplates\classtarget.lua"/>

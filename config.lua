@@ -12,6 +12,7 @@ TUI.defaults = {
             moveableFrames  = false,
             fastLoot        = false,
             hideObjectiveInCombat = false,
+            shortenEnchantStrings = false,
             cursorCircle    = false,
             cursorCircleSize = 64,
             cursorCircleThickness = 'medium',

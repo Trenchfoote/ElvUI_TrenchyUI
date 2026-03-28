@@ -21,6 +21,7 @@ function TUI:InitModules()
 	if db.hideObjectiveInCombat then self:InitHideObjectiveInCombat() end
 	if self.InitMinimapButtonBar then self:InitMinimapButtonBar() end
 	if db.cursorCircle then self:InitCursorCircle() end
+	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
 
 	-- Nameplates (skip entirely if ElvUI nameplates are disabled)
 	local np = self.db.profile.nameplates
