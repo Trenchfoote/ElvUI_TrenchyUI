@@ -374,6 +374,7 @@ function S.RefreshWindow(win)
                 local guid = (not S.IsSecret(src.sourceGUID)) and src.sourceGUID
                     or S.ResolveGUID(src.sourceGUID, specIcon)
                 bar.frame.sourceGUID   = guid
+                bar.frame.secretGUID   = src.sourceGUID
                 bar.frame.specIconID   = specIcon
                 bar.frame.sourceCreatureID = src.sourceCreatureID
                 bar.frame.sourceData = src
@@ -992,15 +993,23 @@ function TUI:InitDamageMeter()
                     S.ResetWindowState(w)
                 end
                 if TUI.db.profile.damageMeter.autoResetOnComplete then
-                    local _, instanceType = IsInInstance()
-                    if instanceType == 'party' or instanceType == 'raid' or instanceType == 'scenario' then
-                        C_DamageMeter.ResetAllCombatSessions()
-                        wipe(S.nameCache)
-                        wipe(S.guidByName)
-                        wipe(S.specIconCache)
-                        wipe(S.sessionLabelCache)
-                    end
+                    -- Defer instance check: IsInInstance may not be ready during loading screen
+                    C_Timer.After(1, function()
+                        local _, instanceType = IsInInstance()
+                        if instanceType == 'party' or instanceType == 'raid' or instanceType == 'scenario' then
+                            C_DamageMeter.ResetAllCombatSessions()
+                            wipe(S.nameCache)
+                            wipe(S.guidByName)
+                            wipe(S.specIconCache)
+                            wipe(S.sessionLabelCache)
+                            wipe(S.creatureNameCache)
+                            S.ScanRoster()
+                            TUI:RefreshMeter()
+                        end
+                    end)
                 end
+                TUI:RefreshMeter()
+                return
             elseif event == 'DAMAGE_METER_RESET' then
                 wipe(S.sessionLabelCache)
                 for _, w in pairs(S.windows) do
