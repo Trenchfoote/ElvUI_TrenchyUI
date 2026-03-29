@@ -7,6 +7,20 @@ local pairs = pairs
 
 local skinned = false
 
+local function SkinRewardIcon(reward)
+	if not reward or reward.TUI_IconSkinned then return end
+	reward.TUI_IconSkinned = true
+	if reward.BorderMask then reward.BorderMask:Hide() end
+	local icon = reward.Icon
+	if icon then
+		icon:SetTexCoord(0.12, 0.88, 0.12, 0.88)
+		if not reward.backdrop then
+			reward:CreateBackdrop()
+			reward.backdrop:SetOutside(icon, 1, 1)
+		end
+	end
+end
+
 local function SkinQuestButton(button)
 	if button.TUI_Skinned then return end
 	button.TUI_Skinned = true
@@ -30,6 +44,14 @@ local function SkinQuestButton(button)
 				region:SetTexture(E.media.normTex)
 				region:SetVertexColor(1, 0.82, 0, 0.3)
 			end
+		end
+	end
+
+	-- Skin reward icons
+	local rewards = button.RightContent and button.RightContent.Rewards
+	if rewards then
+		for i = 1, 5 do
+			SkinRewardIcon(rewards['Reward' .. i])
 		end
 	end
 end
