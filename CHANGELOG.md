@@ -1,8 +1,6 @@
 # TrenchyUI Changelog
 
-## v1.3.8
+## v1.3.9
 
-### Improvements
-- Damage Meter: Bars now animate smoothly instead of snapping
-- Damage Meter: Auto-reset on entry no longer triggers during boss phase transitions
-- Damage Meter: Drilldown stays open when re-entering combat
+### Bug Fixes
+- Unit Frames: Fixed Soul Fragments and Tip of the Spear bars not fading with the player frame

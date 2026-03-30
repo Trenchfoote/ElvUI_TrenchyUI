@@ -212,22 +212,38 @@ function TUI:InitSoulFragments()
 	C_Timer.After(0, function()
 		self:InitFakePowerFader()
 		OnSpecChanged()
+		if sfHolder then self:RegisterFakePowerFrame(sfHolder) end
 
-		TUI:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', OnSpecChanged)
+		TUI:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', function()
+			OnSpecChanged()
+			if sfHolder then self:RegisterFakePowerFrame(sfHolder) end
+		end)
 	end)
 end
 
--- Sync fake power bar alpha with player frame fader
+-- Shared fader: mirrors player frame alpha to all fake power holders
 do
-	local hooked = false
+	local faderHooked = false
+	local faderFrames = {}
+	TUI._fakePowerFaderFrames = faderFrames
+
+	function TUI:RegisterFakePowerFrame(frame)
+		faderFrames[frame] = true
+	end
+
 	function TUI:InitFakePowerFader()
-		if hooked then return end
+		if faderHooked then return end
 		local playerFrame = _G.ElvUF_Player
 		if not playerFrame then return end
-		hooked = true
+		faderHooked = true
 
 		hooksecurefunc(playerFrame, 'SetAlpha', function(_, alpha)
-			if sfHolder then sfHolder:SetAlpha(alpha) end
+			for f in pairs(faderFrames) do f:SetAlpha(alpha) end
 		end)
+		if playerFrame.SetAlphaFromBoolean then
+			hooksecurefunc(playerFrame, 'SetAlphaFromBoolean', function(_, ...)
+				for f in pairs(faderFrames) do f:SetAlphaFromBoolean(...) end
+			end)
+		end
 	end
 end

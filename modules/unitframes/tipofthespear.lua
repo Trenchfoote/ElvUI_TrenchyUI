@@ -209,22 +209,12 @@ function TUI:InitTipOfTheSpear()
 	C_Timer.After(0, function()
 		self:InitFakePowerFader()
 		OnSpecChanged()
+		if totsHolder then self:RegisterFakePowerFrame(totsHolder) end
 
-		TUI:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', OnSpecChanged)
+		TUI:RegisterEvent('PLAYER_SPECIALIZATION_CHANGED', function()
+			OnSpecChanged()
+			if totsHolder then self:RegisterFakePowerFrame(totsHolder) end
+		end)
 	end)
 end
 
--- Sync fake power bar alpha with player frame fader
-do
-	local hooked = false
-	function TUI:InitFakePowerFader()
-		if hooked then return end
-		local playerFrame = _G.ElvUF_Player
-		if not playerFrame then return end
-		hooked = true
-
-		hooksecurefunc(playerFrame, 'SetAlpha', function(_, alpha)
-			if totsHolder then totsHolder:SetAlpha(alpha) end
-		end)
-	end
-end
