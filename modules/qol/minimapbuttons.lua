@@ -253,7 +253,10 @@ local function CollectButtons()
 		for _, name in ipairs(objects) do
 			local btn = LDB:GetMinimapButton(name)
 			if btn and btn:IsObjectType('Frame') then
-				mbbButtons[#mbbButtons + 1] = btn
+				-- Respect addon's own hide setting from LibDBIcon
+				if not (btn.db and btn.db.hide) then
+					mbbButtons[#mbbButtons + 1] = btn
+				end
 			end
 		end
 	end
