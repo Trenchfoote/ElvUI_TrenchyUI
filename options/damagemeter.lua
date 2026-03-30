@@ -120,7 +120,10 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
         "Automatically reset all meter data when entering a dungeon, raid, or scenario.",
         4, nil, nil, nil,
         function() return TUI.db.profile.damageMeter.autoResetOnComplete end,
-        function(_, value) TUI.db.profile.damageMeter.autoResetOnComplete = value end,
+        function(_, value)
+            TUI.db.profile.damageMeter.autoResetOnComplete = value
+            SetCVar('damageMeterResetOnNewInstance', value and 1 or 0)
+        end,
         dmDisabled
     )
 

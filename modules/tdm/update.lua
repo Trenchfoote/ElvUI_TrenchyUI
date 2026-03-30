@@ -7,6 +7,7 @@ local LSM = E.Libs.LSM
 local floor = math.floor
 local wipe = wipe
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+local SMOOTH = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut
 
 function S.RefreshWindow(win)
     if not win or not win.frame or not win.header then return end
@@ -205,7 +206,7 @@ function S.RefreshWindow(win)
                 bar.leftText:SetFormattedText('%s', spellName)
                 bar.leftText:SetTextColor(tR, tG, tB)
 
-                bar.statusbar:SetValue(amt)
+                bar.statusbar:SetValue(amt, SMOOTH)
 
                 -- Value in parens
                 if issecretvalue(amt) then
@@ -260,7 +261,7 @@ function S.RefreshWindow(win)
                 local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', td.class)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 bar.statusbar:SetMinMaxValues(0, maxVal)
-                bar.statusbar:SetValue(td.value)
+                bar.statusbar:SetValue(td.value, SMOOTH)
                 local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', td.class)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
                 local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', td.class)
@@ -390,10 +391,10 @@ function S.RefreshWindow(win)
                 local isDeathsMode = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeathsMode then
                     bar.statusbar:SetMinMaxValues(0, 1)
-                    bar.statusbar:SetValue(1)
+                    bar.statusbar:SetValue(1, SMOOTH)
                 else
                     bar.statusbar:SetMinMaxValues(0, session.maxAmount or 1)
-                    bar.statusbar:SetValue(src.totalAmount or 0)
+                    bar.statusbar:SetValue(src.totalAmount or 0, SMOOTH)
                 end
 
                 local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
@@ -903,7 +904,7 @@ function S.RenderDeathRecap(win, ds, db)
 
             local hp = ev.currentHP or 0
             bar.statusbar:SetMinMaxValues(0, maxHealth)
-            bar.statusbar:SetValue(S.IsSecret(hp) and 0 or hp)
+            bar.statusbar:SetValue(S.IsSecret(hp) and 0 or hp, SMOOTH)
 
             -- Left text: spell name colored by type, source in gray
             local isKillingBlow = evIdx == total
@@ -945,6 +946,7 @@ function TUI:InitDamageMeter()
     if not self.db or not self.db.profile.damageMeter.enabled then return end
 
     SetCVar('damageMeterEnabled', 0)
+    SetCVar('damageMeterResetOnNewInstance', TUI.db.profile.damageMeter.autoResetOnComplete and 1 or 0)
 
     C_Timer.After(0, function()
         local CH = E:GetModule('Chat')
@@ -972,9 +974,6 @@ function TUI:InitDamageMeter()
                 return
             elseif event == 'PLAYER_REGEN_DISABLED' then
                 S.ScanRoster()
-                for _, w in pairs(S.windows) do
-                    S.ExitDrillDown(w)
-                end
                 return
             elseif event == 'PLAYER_REGEN_ENABLED' then
                 S.ScanRoster()
@@ -989,25 +988,6 @@ function TUI:InitDamageMeter()
             elseif event == 'PLAYER_ENTERING_WORLD' then
                 S.ScanRoster()
                 S.CacheCreatureNames()
-                for _, w in pairs(S.windows) do
-                    S.ResetWindowState(w)
-                end
-                if TUI.db.profile.damageMeter.autoResetOnComplete then
-                    -- Defer instance check: IsInInstance may not be ready during loading screen
-                    C_Timer.After(1, function()
-                        local _, instanceType = IsInInstance()
-                        if instanceType == 'party' or instanceType == 'raid' or instanceType == 'scenario' then
-                            C_DamageMeter.ResetAllCombatSessions()
-                            wipe(S.nameCache)
-                            wipe(S.guidByName)
-                            wipe(S.specIconCache)
-                            wipe(S.sessionLabelCache)
-                            wipe(S.creatureNameCache)
-                            S.ScanRoster()
-                            TUI:RefreshMeter()
-                        end
-                    end)
-                end
                 TUI:RefreshMeter()
                 return
             elseif event == 'DAMAGE_METER_RESET' then

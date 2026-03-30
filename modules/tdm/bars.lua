@@ -20,7 +20,6 @@ function S.CreateBar(parent)
     bar.statusbar:SetStatusBarTexture(E.media.normTex)
     bar.statusbar:SetMinMaxValues(0, 1)
     bar.statusbar:SetValue(0)
-    bar.statusbar.smoothing = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut or nil
 
     bar.classIcon = bar.statusbar:CreateTexture(nil, "OVERLAY")
     bar.classIcon:SetTexture(S.CLASS_ICONS)
