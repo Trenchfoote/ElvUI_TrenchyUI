@@ -81,7 +81,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
     )
 
     gp.tankPower = ACH:Toggle(
-        "Include Tank Power",
+        E.NewSign .. "Include Tank Power",
         "Show resource bars for Blood DK (Runic Power) and Brewmaster Monk (Stagger) when 'Only Healer' is enabled in ElvUI's party/raid power settings.",
         2, nil, nil, nil,
         function() return TUI.db.profile.tankPower end,

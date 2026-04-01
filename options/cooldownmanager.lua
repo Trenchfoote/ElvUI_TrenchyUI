@@ -250,7 +250,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     )
 
     cdmLayout.showKeybind = ACH:Toggle(
-        E.NewSign .. "Show Keybind", "Display the spell's keybind text on the icon.",
+        "Show Keybind", "Display the spell's keybind text on the icon.",
         14, nil, nil, nil,
         function() return selVDB().showKeybind end,
         function(_, value) selVDB().showKeybind = value; cdmRefresh() end
