@@ -3,6 +3,7 @@
 ## v1.3.10
 
 ### New Features
+- Nameplates: New "Hover Highlight" option replaces the default mouseover overlay with a configurable colored border around the health bar, with class color and thickness options
 - Unit Frames: New "Include Tank Power" option extends ElvUI's "Only Healer" power bar filter to also show resource bars for Blood Death Knights (Runic Power) and Brewmaster Monks (Stagger) in group frames
 
 ### Improvements

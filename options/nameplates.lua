@@ -97,6 +97,56 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         intDisabled
     )
 
+    elv.hover = ACH:Group("Hover Highlight", nil, 2)
+    elv.hover.inline = true
+    local npHover = elv.hover.args
+
+    npHover.hoverEnabled = ACH:Toggle(
+        function() return TUI.db.profile.nameplates.hoverHighlight.enabled and "|cff00ff00Enable|r" or "Enable" end,
+        "Replace the default mouseover overlay with a colored border around the nameplate health bar.",
+        1, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.hoverHighlight.enabled end,
+        function(_, value)
+            TUI.db.profile.nameplates.hoverHighlight.enabled = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    npHover.classColor = ACH:Toggle(
+        "Class Color",
+        "Use your class color for the hover border instead of a custom color.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.hoverHighlight.classColor end,
+        function(_, value)
+            TUI.db.profile.nameplates.hoverHighlight.classColor = value
+        end,
+        function() return not TUI.db.profile.nameplates.hoverHighlight.enabled end
+    )
+
+    npHover.thickness = ACH:Range(
+        "Thickness", "Pixel thickness of the hover border.", 3,
+        { min = 1, max = 5, step = 1 }, nil,
+        function() return TUI.db.profile.nameplates.hoverHighlight.thickness end,
+        function(_, value) TUI.db.profile.nameplates.hoverHighlight.thickness = value end,
+        function() return not TUI.db.profile.nameplates.hoverHighlight.enabled end
+    )
+
+    npHover.hoverColor = ACH:Color(
+        "Border Color", "Color of the hover highlight border.", 4, true, nil,
+        function()
+            local c = TUI.db.profile.nameplates.hoverHighlight.color
+            return c.r, c.g, c.b, c.a
+        end,
+        function(_, r, g, b, a)
+            local c = TUI.db.profile.nameplates.hoverHighlight.color
+            c.r, c.g, c.b, c.a = r, g, b, a
+        end,
+        function()
+            local h = TUI.db.profile.nameplates.hoverHighlight
+            return not h.enabled or h.classColor
+        end
+    )
+
     elv.quest = ACH:Group("Quest Color", nil, 3)
     elv.quest.inline = true
     local npQuest = elv.quest.args
