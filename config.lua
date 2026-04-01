@@ -44,7 +44,6 @@ TUI.defaults = {
         },
         nameplates = {
             classColorTargetIndicator = false,
-            classificationOverThreat = false,
             interruptCastbarColors      = false,
             castbarInterruptReady       = { r = 0.2, g = 0.8, b = 0.2 },
             castbarInterruptOnCD        = { r = 0.9, g = 0.4, b = 0.1 },
@@ -73,12 +72,7 @@ TUI.defaults = {
             thickness = 2,
             length    = nil,
         },
-        fakePower = {
-            soulFragments = true,
-            soulFragmentsColor = { r = 0.82, g = 0.01, b = 0.76 },
-            tipOfTheSpear = true,
-            tipOfTheSpearColor = { r = 0.89, g = 0.49, b = 0.04 },
-        },
+        tankPower = false,
         fader = {
             steadyFlight = false,
         },

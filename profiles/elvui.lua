@@ -2855,7 +2855,6 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.addons.skinPremadeGroupsFilter = true
     E.db.TrenchyUI.pixelGlow.enabled = true
     E.db.TrenchyUI.pixelGlow.thickness = 3
-    E.db.TrenchyUI.fakePower.soulFragments = true
     SetCVar('cooldownViewerEnabled', 1)
     E.db.TrenchyUI.cooldownManager.enabled = true
     E.db.TrenchyUI.cooldownManager.hideSwipe = true
@@ -2999,7 +2998,6 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.nameplates.castbarMarkerColor.b = 0.10588236153126
     E.db.TrenchyUI.nameplates.castbarMarkerColor.r = 0
     E.db.TrenchyUI.nameplates.classColorTargetIndicator = true
-    E.db.TrenchyUI.nameplates.classificationOverThreat = true
     E.db.TrenchyUI.nameplates.disableFriendlyHighlight = true
     E.db.TrenchyUI.nameplates.hideFriendlyRealm = true
     E.db.TrenchyUI.nameplates.focusGlow.color.a = 1

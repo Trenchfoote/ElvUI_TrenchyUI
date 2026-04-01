@@ -1,6 +1,10 @@
 # TrenchyUI Changelog
 
-## v1.3.9
+## v1.3.10
 
-### Bug Fixes
-- Unit Frames: Fixed Soul Fragments and Tip of the Spear bars not fading with the player frame
+### New Features
+- Unit Frames: New "Include Tank Power" option extends ElvUI's "Only Healer" power bar filter to also show resource bars for Blood Death Knights (Runic Power) and Brewmaster Monks (Stagger) in group frames
+
+### Improvements
+- Nameplates: Classification Over Threat removed — now handled natively by ElvUI
+- Unit Frames: Soul Fragments (VDH) and Tip of the Spear (SV) custom class bars removed — now handled natively by ElvUI

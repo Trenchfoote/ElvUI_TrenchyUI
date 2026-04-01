@@ -71,55 +71,24 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
-    root.unitframes.args.fakePower = ACH:Group("Custom Class Bars", nil, 3)
-    root.unitframes.args.fakePower.inline = true
-    local fp = root.unitframes.args.fakePower.args
+    root.unitframes.args.groupPower = ACH:Group("Group Power", nil, 3)
+    root.unitframes.args.groupPower.inline = true
+    local gp = root.unitframes.args.groupPower.args
 
-    fp.soulFragments = ACH:Toggle(
-        "VDH: Soul Fragments",
-        "Show a Soul Fragments class bar for Vengeance Demon Hunters. Anchors to the ElvUI class bar mover.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.fakePower.soulFragments end,
+    gp.desc = ACH:Description(
+        "Extend ElvUI's 'Only Healer' power bar filter to also show resource bars for Blood Death Knights (Runic Power) and Brewmaster Monks (Stagger) in group frames.",
+        1, "medium"
+    )
+
+    gp.tankPower = ACH:Toggle(
+        "Include Tank Power",
+        "Show resource bars for Blood DK (Runic Power) and Brewmaster Monk (Stagger) when 'Only Healer' is enabled in ElvUI's party/raid power settings.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.tankPower end,
         function(_, value)
-            TUI.db.profile.fakePower.soulFragments = value
+            TUI.db.profile.tankPower = value
             E:StaticPopup_Show('CONFIG_RL')
         end
     )
 
-    fp.soulFragmentsColor = ACH:Color("Soul Fragments Color", nil, 2, nil, nil,
-        function()
-            local c = TUI.db.profile.fakePower.soulFragmentsColor
-            return c.r, c.g, c.b
-        end,
-        function(_, r, g, b)
-            local c = TUI.db.profile.fakePower.soulFragmentsColor
-            c.r, c.g, c.b = r, g, b
-            E:StaticPopup_Show('CONFIG_RL')
-        end,
-        function() return not TUI.db.profile.fakePower.soulFragments end
-    )
-
-    fp.tipOfTheSpear = ACH:Toggle(
-        "SV: Tip of the Spear",
-        "Show a Tip of the Spear stack bar for Survival Hunters. Anchors to the ElvUI class bar mover.",
-        3, nil, nil, nil,
-        function() return TUI.db.profile.fakePower.tipOfTheSpear end,
-        function(_, value)
-            TUI.db.profile.fakePower.tipOfTheSpear = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-
-    fp.tipOfTheSpearColor = ACH:Color("Tip of the Spear Color", nil, 4, nil, nil,
-        function()
-            local c = TUI.db.profile.fakePower.tipOfTheSpearColor
-            return c.r, c.g, c.b
-        end,
-        function(_, r, g, b)
-            local c = TUI.db.profile.fakePower.tipOfTheSpearColor
-            c.r, c.g, c.b = r, g, b
-            E:StaticPopup_Show('CONFIG_RL')
-        end,
-        function() return not TUI.db.profile.fakePower.tipOfTheSpear end
-    )
 end

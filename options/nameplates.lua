@@ -26,25 +26,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         end
     )
 
-    elv.threat = ACH:Group("Threat", nil, 1)
-    elv.threat.inline = true
-    local npThreat = elv.threat.args
-
-    npThreat.classificationOverThreat = ACH:Toggle(
-        "Classification Over Threat",
-        "When threat status is 'good' (tank securely tanking, DPS/healer no aggro), skip the flat threat color "
-        .. "and show normal health colors (Classification, Class, Selection) instead. "
-        .. "Bad/transitional threat still shows the standard warning color.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.nameplates.classificationOverThreat end,
-        function(_, value)
-            TUI.db.profile.nameplates.classificationOverThreat = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-    npThreat.classificationOverThreat.customWidth = 250
-
-    elv.interrupt = ACH:Group("Interrupt Ready", nil, 2)
+    elv.interrupt = ACH:Group("Interrupt Ready", nil, 1)
     elv.interrupt.inline = true
     local npInt = elv.interrupt.args
 

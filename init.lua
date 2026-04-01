@@ -30,7 +30,6 @@ function TUI:InitModules()
 		if np.hideFriendlyRealm then self:InitHideFriendlyRealm() end
 		-- Override target indicator color with player's class color
 		self:HookClassColorTargetIndicator()
-		if np.classificationOverThreat then self:HookNameplateThreat() end
 		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
 		-- Pending removal based on ElvUI updates
 		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
@@ -42,8 +41,7 @@ function TUI:InitModules()
 	if E:IsAddOnEnabled('Platynator') then self:InitPlatynatorTweaks() end
 
 	-- Unit Frames
-	if self.db.profile.fakePower.soulFragments and self.InitSoulFragments then self:InitSoulFragments() end
-	if self.db.profile.fakePower.tipOfTheSpear and self.InitTipOfTheSpear then self:InitTipOfTheSpear() end
+	if self.db.profile.tankPower and self.InitTankPower then self:InitTankPower() end
 	if not self:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
 

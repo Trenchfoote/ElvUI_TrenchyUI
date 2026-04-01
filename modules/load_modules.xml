@@ -23,7 +23,6 @@
 
 	<!-- Nameplates -->
 	<Script file="nameplates\classtarget.lua"/>
-	<Script file="nameplates\threat.lua"/>
 	<Script file="nameplates\interrupt.lua"/>
 	<Script file="nameplates\focusglow.lua"/>
 	<Script file="nameplates\friendlyhighlight.lua"/>
@@ -33,9 +32,8 @@
 
 	<!-- Unit Frames -->
 	<Script file="unitframes\tags.lua"/>
-	<Script file="unitframes\soulfragments.lua"/>
-	<Script file="unitframes\tipofthespear.lua"/>
 	<Script file="unitframes\pixelglow.lua"/>
+	<Script file="unitframes\tankpower.lua"/>
 	<Script file="unitframes\steadyflight.lua"/>
 
 	<!-- Datatexts -->
