@@ -54,6 +54,12 @@ TUI.defaults = {
             },
             hideFriendlyRealm = false,
             disableFriendlyHighlight = false,
+            importantCast = {
+                enabled = false,
+                classColor = false,
+                thickness = 2,
+                color   = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
+            },
             hoverHighlight = {
                 enabled = false,
                 classColor = false,

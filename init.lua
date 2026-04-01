@@ -33,6 +33,7 @@ function TUI:InitModules()
 		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
 		-- Pending removal based on ElvUI updates
 		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
+		if np.importantCast and np.importantCast.enabled then self:HookImportantCast() end
 		if np.hoverHighlight and np.hoverHighlight.enabled then self:HookHoverHighlight() end
 		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
 		if np.questColor and np.questColor.enabled then self:HookQuestColor() end

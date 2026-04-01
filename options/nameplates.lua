@@ -97,7 +97,60 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         intDisabled
     )
 
-    elv.hover = ACH:Group("Hover Highlight", nil, 2)
+    elv.importantCast = ACH:Group("Important Cast", nil, 2)
+    elv.importantCast.inline = true
+    local npImp = elv.importantCast.args
+
+    npImp.desc = ACH:Description(
+        "Highlight casts that Blizzard flags as important with a colored border around the castbar.",
+        1, "medium"
+    )
+
+    npImp.enabled = ACH:Toggle(
+        function() return TUI.db.profile.nameplates.importantCast.enabled and "|cff00ff00Enable|r" or "Enable" end,
+        nil, 2, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.importantCast.enabled end,
+        function(_, value)
+            TUI.db.profile.nameplates.importantCast.enabled = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    local impDisabled = function() return not TUI.db.profile.nameplates.importantCast.enabled end
+
+    npImp.classColor = ACH:Toggle(
+        "Class Color", "Use your class color for the border.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.importantCast.classColor end,
+        function(_, value) TUI.db.profile.nameplates.importantCast.classColor = value end,
+        impDisabled
+    )
+
+    npImp.thickness = ACH:Range(
+        "Thickness", "Pixel thickness of the border.", 4,
+        { min = 1, max = 5, step = 1 }, nil,
+        function() return TUI.db.profile.nameplates.importantCast.thickness end,
+        function(_, value) TUI.db.profile.nameplates.importantCast.thickness = value end,
+        impDisabled
+    )
+
+    npImp.color = ACH:Color(
+        "Border Color", nil, 5, true, nil,
+        function()
+            local c = TUI.db.profile.nameplates.importantCast.color
+            return c.r, c.g, c.b, c.a
+        end,
+        function(_, r, g, b, a)
+            local c = TUI.db.profile.nameplates.importantCast.color
+            c.r, c.g, c.b, c.a = r, g, b, a
+        end,
+        function()
+            local h = TUI.db.profile.nameplates.importantCast
+            return not h.enabled or h.classColor
+        end
+    )
+
+    elv.hover = ACH:Group("Hover Highlight", nil, 3)
     elv.hover.inline = true
     local npHover = elv.hover.args
 

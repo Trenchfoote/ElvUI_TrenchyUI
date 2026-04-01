@@ -4,6 +4,8 @@ local NP = E:GetModule('NamePlates')
 
 local hooksecurefunc = hooksecurefunc
 local CreateFrame = CreateFrame
+local UnitExists = UnitExists
+local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 
 local EDGE_FILE = [[Interface\BUTTONS\WHITE8X8]]
 local backdropInfo = { edgeFile = EDGE_FILE, edgeSize = 2 }
@@ -43,6 +45,19 @@ local function ApplyBorderStyle(border, nameplate)
 	border:SetBackdropBorderColor(r, g, b, a)
 end
 
+local function ShowBorder(nameplate)
+	local border = nameplate.TUI_HoverBorder
+	if border then
+		ApplyBorderStyle(border, nameplate)
+		border:Show()
+	end
+end
+
+local function HideBorder(nameplate)
+	local border = nameplate.TUI_HoverBorder
+	if border then border:Hide() end
+end
+
 function TUI:HookHoverHighlight()
 	if self._hookedHoverHL then return end
 	self._hookedHoverHL = true
@@ -54,27 +69,41 @@ function TUI:HookHoverHighlight()
 		if not hlDB or not hlDB.enabled then return end
 
 		local hl = nameplate.Highlight
-		-- Hide the default texture overlay
 		if hl.texture then hl.texture:SetAlpha(0) end
 
 		if not hl.TUI_BorderHooked then
 			hl.TUI_BorderHooked = true
 
-			local border = GetOrCreateBorderFrame(nameplate)
-			if not border then return end
+			GetOrCreateBorderFrame(nameplate)
 
 			hooksecurefunc(hl, 'Show', function()
-				local bf = nameplate.TUI_HoverBorder
-				if bf then
-					ApplyBorderStyle(bf, nameplate)
-					bf:Show()
-				end
+				ShowBorder(nameplate)
 			end)
 
 			hooksecurefunc(hl, 'Hide', function()
-				local bf = nameplate.TUI_HoverBorder
-				if bf then bf:Hide() end
+				HideBorder(nameplate)
 			end)
 		end
+
+		-- Sync border to current highlight state
+		if hl:IsShown() then
+			ShowBorder(nameplate)
+		else
+			HideBorder(nameplate)
+		end
+	end)
+
+	-- Re-check mouseover after target change (mouseover unit briefly clears on click)
+	TUI:RegisterEvent('PLAYER_TARGET_CHANGED', function()
+		C_Timer.After(0.05, function()
+			if not UnitExists('mouseover') then return end
+			local plate = C_NamePlate_GetNamePlateForUnit('mouseover')
+			if not plate or not plate.unitFrame then return end
+			local nameplate = plate.unitFrame
+			local hl = nameplate.Highlight
+			if hl and hl:IsShown() then
+				ShowBorder(nameplate)
+			end
+		end)
 	end)
 end

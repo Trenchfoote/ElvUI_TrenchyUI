@@ -24,6 +24,7 @@
 	<!-- Nameplates -->
 	<Script file="nameplates\classtarget.lua"/>
 	<Script file="nameplates\interrupt.lua"/>
+	<Script file="nameplates\importantcast.lua"/>
 	<Script file="nameplates\hoverhl.lua"/>
 	<Script file="nameplates\focusglow.lua"/>
 	<Script file="nameplates\friendlyhighlight.lua"/>
