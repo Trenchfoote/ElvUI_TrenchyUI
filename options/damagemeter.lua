@@ -13,8 +13,6 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
     for k, v in pairs(TUI.defaults.profile.damageMeter) do
         if not DM_SKIP[k] then DM_DEFAULTS[k] = v end
     end
-    TUI.DM_DEFAULTS = DM_DEFAULTS
-
     local dmDisabled = function() return not TUI.db.profile.damageMeter.enabled end
 
     TUI._selectedMeterWindow = TUI._selectedMeterWindow or 1

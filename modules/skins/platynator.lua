@@ -41,7 +41,7 @@ end
 local mainDialog
 
 local function ReskinDialog()
-	if mainDialog then SkinChildren(mainDialog) end
+	if mainDialog and mainDialog:IsShown() then SkinChildren(mainDialog) end
 end
 
 local function SkinDialog(frame)
@@ -92,7 +92,7 @@ function TUI:InitSkinPlatynator()
 
 	-- Hook frame creation to catch the dialog when it's first opened
 	hooksecurefunc('CreateFrame', function(_, name)
-		if not name then return end
+		if type(name) ~= 'string' then return end
 		if name:find('^PlatynatorCustomiseDialog') and name ~= 'PlatynatorCustomiseDialogImportDialog' then
 			C_Timer.After(0, function()
 				local frame = _G[name]

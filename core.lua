@@ -3,7 +3,7 @@ local EP = E.Libs.EP
 local LSM = E.Libs.LSM
 local addon, ns = ...
 
-local pairs, select, type = pairs, select, type
+local pairs = pairs
 
 local mediaPath = 'Interface\\AddOns\\ElvUI_TrenchyUI\\media\\'
 LSM:Register('statusbar', 'TrenchyFocus', mediaPath .. 'statusbar\\TrenchyFocus')
@@ -303,3 +303,4 @@ SlashCmdList['TUI'] = function()
 end
 
 E:RegisterModule(TUI:GetName())
+

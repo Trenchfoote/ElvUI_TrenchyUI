@@ -11,7 +11,7 @@ local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 
 local function GetOrCreateFocusOverlay(nameplate)
 	if nameplate.TUI_FocusOverlay then
-		return nameplate.TUI_FocusOverlay
+		return nameplate.TUI_FocusOverlay, nameplate.TUI_FocusOverlayTex
 	end
 
 	local holder = CreateFrame('Frame', nil, nameplate.Health)
@@ -34,7 +34,6 @@ local function UpdateFocusOverlay(nameplate)
 
 	if UnitIsUnit(nameplate.unit, 'focus') then
 		local holder, tex = GetOrCreateFocusOverlay(nameplate)
-		tex = tex or nameplate.TUI_FocusOverlayTex
 		tex:SetTexture(LSM:Fetch('statusbar', db.texture or NP.db.statusbar))
 		local c = db.color
 		tex:SetVertexColor(c.r, c.g, c.b, c.a or 0.3)

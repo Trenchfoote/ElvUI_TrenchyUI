@@ -3,7 +3,6 @@ local TUI = E:GetModule('TrenchyUI')
 
 local LSM = E.Libs.LSM
 local CreateFrame = CreateFrame
-local ipairs = ipairs
 local tonumber, GetInstanceInfo = tonumber, GetInstanceInfo
 
 local DIFF_CATEGORY = {

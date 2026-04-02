@@ -8,15 +8,72 @@ local UnitPowerType = UnitPowerType
 local UnitStagger = UnitStagger
 local UnitHealthMax = UnitHealthMax
 local InCombatLockdown = InCombatLockdown
-local CreateFrame = CreateFrame
+local issecretvalue = issecretvalue
+local C_UnitAuras = C_UnitAuras
 
 local powerTypesFull = { MANA = true, FOCUS = true, ENERGY = true }
+
+-- Stagger spell IDs → tier index
+local staggerTiers = { [124273] = 3, [124274] = 2, [124275] = 1 }
+
+-- Stagger colors sourced from Blizzard's PowerBarColor table
+local staggerColors, staggerBgColors
+
+local function BuildStaggerColors()
+	if staggerColors then return end
+	local pbc = PowerBarColor and PowerBarColor['STAGGER']
+	local g = pbc and pbc.green or { r = 0.52, g = 0.90, b = 0.52 }
+	local y = pbc and pbc.yellow or { r = 1.00, g = 0.98, b = 0.72 }
+	local r = pbc and pbc.red or { r = 1.00, g = 0.42, b = 0.42 }
+	staggerColors = { g, y, r }
+
+	local mu = UF.db.colors.powerBgMult or 0.35
+	staggerBgColors = {
+		{ r = g.r * mu, g = g.g * mu, b = g.b * mu },
+		{ r = y.r * mu, g = y.g * mu, b = y.b * mu },
+		{ r = r.r * mu, g = r.g * mu, b = r.b * mu },
+	}
+end
+
+-- Per-unit tier cache: updated every UNIT_AURA when spellId is readable
+local tierCache = {}
 
 local function UpdateStaggerBar(bar, unit)
 	local cur = UnitStagger(unit) or 0
 	local max = UnitHealthMax(unit) or 1
 	bar:SetMinMaxValues(0, max)
 	bar:SetValue(cur)
+
+	-- Determine stagger tier from debuff aura
+	local tier
+	for i = 1, 40 do
+		local data = C_UnitAuras.GetDebuffDataByIndex(unit, i)
+		if not data then break end
+		local id = data.spellId
+		if not issecretvalue(id) then
+			local t = staggerTiers[id]
+			if t then
+				tier = t
+				tierCache[unit] = t
+				break
+			end
+		end
+	end
+
+	-- Fall back to cached tier (secret spellIds in combat)
+	tier = tier or tierCache[unit] or 1
+
+	BuildStaggerColors()
+	local c = staggerColors[tier]
+	bar:SetStatusBarColor(c.r, c.g, c.b)
+
+	local custom = UF.db.colors.custompowerbackdrop and UF.db.colors.power_backdrop
+	if custom then
+		bar.bg:SetVertexColor(custom.r, custom.g, custom.b)
+	else
+		local bg = staggerBgColors[tier]
+		bar.bg:SetVertexColor(bg.r, bg.g, bg.b)
+	end
 end
 
 local function GetOrCreateStaggerBar(parent)
@@ -32,13 +89,14 @@ local function GetOrCreateStaggerBar(parent)
 	bar:SetFrameLevel(power:GetFrameLevel() + 5)
 	bar:SetStatusBarTexture(texture)
 	bar:GetStatusBarTexture():SetHorizTile(false)
-
-	local c = E:ClassColor('MONK')
-	bar:SetStatusBarColor(c.r, c.g, c.b)
-
 	bar:CreateBackdrop(nil, nil, nil, nil, true)
 
+	bar.bg = bar:CreateTexture(nil, 'BORDER')
+	bar.bg:SetAllPoints()
+	bar.bg:SetTexture(texture)
+
 	bar:Hide()
+
 	parent.TUI_StaggerBar = bar
 	return bar
 end
@@ -46,7 +104,6 @@ end
 -- Frames with active stagger bars
 local activeBars = {}
 
--- Allocate power bar layout space without showing the power bar
 local function AllocatePowerSpace(parent)
 	if parent.POWERBAR_SHOWN then return end
 	parent.POWERBAR_SHOWN = true
@@ -54,7 +111,6 @@ local function AllocatePowerSpace(parent)
 	UF:Configure_InfoPanel(parent)
 end
 
--- Release power bar layout space
 local function ReleasePowerSpace(parent)
 	if not parent.POWERBAR_SHOWN then return end
 	if parent.Power and parent.Power:IsShown() then return end

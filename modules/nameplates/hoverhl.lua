@@ -2,8 +2,6 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
 
-local hooksecurefunc = hooksecurefunc
-local CreateFrame = CreateFrame
 local UnitExists = UnitExists
 local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
 

@@ -169,8 +169,7 @@ end
 
 function TUI:InitSkinBigWigs()
 	if not BigWigsLoader then return end
-	local db = self.db and self.db.profile and self.db.profile.addons
-	if not db or not db.skinBigWigs then return end
+	if not self.db.profile.addons.skinBigWigs then return end
 
 	self:InitLFGTimerSkin()
 	self:InitBigWigsClassColorBars()

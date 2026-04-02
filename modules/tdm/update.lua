@@ -686,15 +686,15 @@ end
 
 local function UpdateTimers()
     for _, win in pairs(S.windows) do
-        if not win.header or not win.header.timer then break end
-        if win.drillSource then break end
-        local wdb = S.GetWinDB(win.index)
-        if not wdb.showTimer then
-            win.header.timer:SetText('')
-        elseif win.sessionType then
-            local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
-            if dur then
-                win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))
+        if win.header and win.header.timer and not win.drillSource then
+            local wdb = S.GetWinDB(win.index)
+            if not wdb.showTimer then
+                win.header.timer:SetText('')
+            elseif win.sessionType then
+                local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
+                if dur then
+                    win.header.timer:SetText(format('%d:%02d', floor(dur / 60), floor(dur % 60)))
+                end
             end
         end
     end

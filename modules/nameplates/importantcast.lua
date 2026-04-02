@@ -2,8 +2,6 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
 
-local hooksecurefunc = hooksecurefunc
-local CreateFrame = CreateFrame
 local issecretvalue = issecretvalue
 local IsSpellImportant = C_Spell and C_Spell.IsSpellImportant
 
