@@ -6,6 +6,7 @@ local hooksecurefunc = hooksecurefunc
 local IsFlying = IsFlying
 
 local sfOverridden = false
+local sfTicker
 
 local function IsSteadyFlightEnabled()
 	local db = TUI.db and TUI.db.profile and TUI.db.profile.fader
@@ -18,6 +19,9 @@ local function GetPlayerFaderDB()
 end
 
 function TUI:InitSteadyFlight()
+	if self._steadyFlightInitialized then return end
+	self._steadyFlightInitialized = true
+
 	C_Timer.After(0, function()
 		local playerFrame = _G.ElvUF_Player
 		if not playerFrame then return end
@@ -33,7 +37,8 @@ function TUI:InitSteadyFlight()
 		end)
 
 		-- Poll IsFlying() and suppress the DynamicFlight condition while airborne
-		C_Timer.NewTicker(0.2, function()
+		if sfTicker then return end
+		sfTicker = C_Timer.NewTicker(0.2, function()
 			if not playerFrame.Fader then return end
 
 			local faderDB = GetPlayerFaderDB()

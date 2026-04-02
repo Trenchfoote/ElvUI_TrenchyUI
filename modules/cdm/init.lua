@@ -231,6 +231,8 @@ end
 function TUI:InitCooldownManager()
 	local db = S.GetDB()
 	if not db or not db.enabled then return end
+	if self._cdmInitialized then return end
+	self._cdmInitialized = true
 
 	-- Force Blizzard CDM on; warn if viewers aren't loaded yet (requires reload)
 	if GetCVarBool('cooldownViewerEnabled') ~= true then

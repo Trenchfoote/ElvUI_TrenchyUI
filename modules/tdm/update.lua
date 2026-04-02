@@ -8,6 +8,16 @@ local floor = math.floor
 local wipe = wipe
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local SMOOTH = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut
+local refreshPending = false
+
+local function ScheduleMeterRefresh()
+    if refreshPending then return end
+    refreshPending = true
+    C_Timer.After(0, function()
+        refreshPending = false
+        TUI:RefreshMeter()
+    end)
+end
 
 function S.RefreshWindow(win)
     if not win or not win.frame or not win.header then return end
@@ -142,7 +152,7 @@ function S.RefreshWindow(win)
                         iconID = C_Spell.GetSpellTexture(spellID)
                         S.spellCache[spellID] = { name = spellName, icon = iconID }
                     end
-                elseif isSecretID then
+                elseif isSecretID and rawSpellID then
                     spellName = C_Spell.GetSpellName(rawSpellID)
                     iconID = C_Spell.GetSpellTexture(rawSpellID)
                 end
@@ -564,7 +574,7 @@ end
 function TUI:SetMeterTestMode(enabled)
     S.testMode           = enabled
     TUI._meterTestMode = enabled
-    TUI:RefreshMeter()
+    ScheduleMeterRefresh()
 end
 
 -- Fade helpers for flight visibility
@@ -944,6 +954,8 @@ end
 
 function TUI:InitDamageMeter()
     if not self.db or not self.db.profile.damageMeter.enabled then return end
+    if self._tdmInitialized then return end
+    self._tdmInitialized = true
 
     SetCVar('damageMeterEnabled', 0)
     SetCVar('damageMeterResetOnNewInstance', TUI.db.profile.damageMeter.autoResetOnComplete and 1 or 0)
@@ -978,7 +990,7 @@ function TUI:InitDamageMeter()
             elseif event == 'PLAYER_REGEN_ENABLED' then
                 S.ScanRoster()
                 S.CacheCreatureNames()
-                TUI:RefreshMeter()
+                ScheduleMeterRefresh()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
                 wipe(S.nameCache)
@@ -988,17 +1000,17 @@ function TUI:InitDamageMeter()
             elseif event == 'PLAYER_ENTERING_WORLD' then
                 S.ScanRoster()
                 S.CacheCreatureNames()
-                TUI:RefreshMeter()
+                ScheduleMeterRefresh()
                 return
             elseif event == 'DAMAGE_METER_RESET' then
                 wipe(S.sessionLabelCache)
                 for _, w in pairs(S.windows) do
                     S.ResetWindowState(w)
                 end
-                TUI:RefreshMeter()
+                ScheduleMeterRefresh()
             else
                 wipe(S.sessionLabelCache)
-                TUI:RefreshMeter()
+                ScheduleMeterRefresh()
             end
         end
 
@@ -1012,7 +1024,9 @@ function TUI:InitDamageMeter()
         TUI:RegisterEvent('GROUP_ROSTER_UPDATE', OnTDMEvent)
         TUI:RegisterEvent('PET_BATTLE_OPENING_START', OnTDMEvent)
         TUI:RegisterEvent('PET_BATTLE_CLOSE', OnTDMEvent)
-        C_Timer.NewTicker(0.5, UpdateTimers)
+        if not S.timerTicker then
+            S.timerTicker = C_Timer.NewTicker(0.5, UpdateTimers)
+        end
 
         TUI:UpdateFlightTicker()
 
@@ -1023,7 +1037,7 @@ function TUI:InitDamageMeter()
             end
         end)
 
-        TUI:RefreshMeter()
+        ScheduleMeterRefresh()
     end)
 end
 

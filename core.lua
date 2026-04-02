@@ -262,7 +262,7 @@ do -- Settings merge
 			end
 		end
 
-		if E.db.TrenchyUI._pendingBigWigsProfile and BigWigsAPI and self.ApplyBigWigsProfile then
+		if E.db.TrenchyUI._pendingBigWigsProfile and _G['BigWigsAPI'] and self.ApplyBigWigsProfile then
 			E.db.TrenchyUI._pendingBigWigsProfile = nil
 			C_Timer.After(2, function()
 				self:ApplyBigWigsProfile(function(accepted)

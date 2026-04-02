@@ -6,7 +6,7 @@ local LSM = S.LSM
 local GetInventoryItemID = GetInventoryItemID
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemTexture = GetInventoryItemTexture
-local IsPlayerSpell = IsPlayerSpell
+local IsSpellKnown = C_SpellBook and C_SpellBook.IsSpellKnown
 
 local HEALTHSTONES = { 5512, 224464 }
 local TRINKET_SLOTS = { 13, 14 }
@@ -120,7 +120,7 @@ local function DetectRacials()
 	if not candidates then return end
 
 	for _, spellID in ipairs(candidates) do
-		if IsPlayerSpell(spellID) then
+		if IsSpellKnown and IsSpellKnown(spellID) then
 			racialSpells[#racialSpells + 1] = spellID
 		end
 	end
