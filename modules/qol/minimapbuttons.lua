@@ -250,8 +250,8 @@ local function CollectButtons()
 
 	local objects = LDB:GetButtonList()
 	if objects then
-		for _, name in ipairs(objects) do
-			local btn = LDB:GetMinimapButton(name)
+		for _, obj in ipairs(objects) do
+			local btn = type(obj) == 'string' and LDB:GetMinimapButton(obj) or obj
 			if btn and btn:IsObjectType('Frame') then
 				-- Respect addon's own hide setting from LibDBIcon
 				if not (btn.db and btn.db.hide) then
@@ -259,6 +259,11 @@ local function CollectButtons()
 				end
 			end
 		end
+	end
+
+	local zygorBtn = _G['ZygorGuidesViewerMapIcon']
+	if zygorBtn and zygorBtn:IsObjectType('Frame') then
+		mbbButtons[#mbbButtons + 1] = zygorBtn
 	end
 
 	sort(mbbButtons, function(a, b)
