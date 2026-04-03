@@ -137,11 +137,11 @@ function TUI:BuildProfilesConfig(root, tuiName)
         local abArgs = E.Options.args.actionbar and E.Options.args.actionbar.args
         if abArgs then
             abArgs.clickCasting = ACH:Execute(E:TextGradient('Click Casting', 1.00,0.18,0.24, 0.80,0.10,0.20), nil, 2.5, function()
-                if not _G.ClickBindingFrame then
+                if not _G['ClickBindingFrame'] then
                     C_AddOns.LoadAddOn('Blizzard_ClickBindingUI')
                 end
-                if _G.ClickBindingFrame_Toggle then
-                    _G.ClickBindingFrame_Toggle()
+                if _G['ClickBindingFrame_Toggle'] then
+                    _G['ClickBindingFrame_Toggle']()
                 end
             end, nil, nil, 160)
         end
@@ -175,7 +175,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
             if E:IsAddOnEnabled('Platynator') and TUI.ApplyPlatynatorProfile then TUI:ApplyPlatynatorProfile() end
             if E:IsAddOnEnabled('Baganator') and TUI.ApplyBaganatorProfile then TUI:ApplyBaganatorProfile() end
 
-            if BigWigsAPI and TUI.ApplyBigWigsProfile then
+            if _G['BigWigsAPI'] and TUI.ApplyBigWigsProfile then
                 E.db.TrenchyUI._pendingBigWigsProfile = true
             end
 

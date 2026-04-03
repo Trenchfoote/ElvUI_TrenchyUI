@@ -303,4 +303,3 @@ SlashCmdList['TUI'] = function()
 end
 
 E:RegisterModule(TUI:GetName())
-
