@@ -36,6 +36,7 @@
 	<Script file="unitframes\tags.lua"/>
 	<Script file="unitframes\pixelglow.lua"/>
 	<Script file="unitframes\tankpower.lua"/>
+	<Script file="unitframes\essencecharge.lua"/>
 	<Script file="unitframes\steadyflight.lua"/>
 
 	<!-- Datatexts -->

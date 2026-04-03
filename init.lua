@@ -45,6 +45,7 @@ function TUI:InitModules()
 	-- Unit Frames
 	if self.db.profile.tankPower and self.InitTankPower then self:InitTankPower() end
 	if not self:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
+	if self.InitEvokerEssenceCharge then self:InitEvokerEssenceCharge() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
 
 	-- Cooldown Manager
