@@ -97,7 +97,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         intDisabled
     )
 
-    elv.importantCast = ACH:Group("Important Cast", nil, 2)
+    elv.importantCast = ACH:Group(E.NewSign .. "Important Cast", nil, 2)
     elv.importantCast.inline = true
     local npImp = elv.importantCast.args
 
@@ -150,7 +150,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         end
     )
 
-    elv.hover = ACH:Group("Hover Highlight", nil, 3)
+    elv.hover = ACH:Group(E.NewSign .. "Hover Highlight", nil, 3)
     elv.hover.inline = true
     local npHover = elv.hover.args
 

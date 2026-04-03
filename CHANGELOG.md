@@ -6,6 +6,11 @@
 - Nameplates: New "Hover Highlight" option replaces the default mouseover overlay with a configurable colored border around the health bar, with class color and thickness options
 - Nameplates: New "Important Cast" option highlights casts flagged as important by Blizzard with a colored border around the castbar, with class color and thickness options
 - Unit Frames: New "Include Tank Power" option extends ElvUI's "Only Healer" power bar filter to also show resource bars for Blood Death Knights (Runic Power) and Brewmaster Monks (Stagger) in group frames
+- Unit Frames: Evoker essence charge bars now show smooth fill animation while charging instead of snapping between full pips
+
+### Bug Fixes
+- QoL: Minimap button bar now correctly collects buttons from addons that return non-standard entries through LibDBIcon
+- QoL: Zygor minimap icon is now collected into the minimap button bar
 
 ### Improvements
 - Nameplates: Classification Over Threat removed — now handled natively by ElvUI
