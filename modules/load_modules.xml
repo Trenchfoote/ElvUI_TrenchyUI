@@ -32,6 +32,7 @@
 	<Script file="nameplates\platynator.lua"/>
 
 	<!-- Unit Frames -->
+	<Script file="unitframes\colormode.lua"/>
 	<Script file="unitframes\tags.lua"/>
 	<Script file="unitframes\pixelglow.lua"/>
 	<Script file="unitframes\tankpower.lua"/>

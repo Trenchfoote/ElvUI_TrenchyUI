@@ -5,6 +5,7 @@ local ACH = E.Libs.ACH
 TUI.defaults = {
     profile = {
         installedProfileVersion = nil,
+        colorMode = 'dark',
         compat = {},
         qol = {
             hideTalkingHead = false,

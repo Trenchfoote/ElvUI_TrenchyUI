@@ -96,17 +96,23 @@ do -- LFG Timer Skin
 
 		local texturePath = LSM:Fetch('statusbar', s.texture) or LSM:Fetch('statusbar', DEFAULTS_BARS.texture)
 		timerBarRef:SetStatusBarTexture(texturePath)
-		timerBarRef:SetStatusBarColor(s.barColor[1], s.barColor[2], s.barColor[3], s.barColor[4] or 1)
+
+		local mode = TUI.db and TUI.db.profile.colorMode or 'dark'
+		local cr, cg, cb = TUI:GetClassColor()
+		if mode == 'color' and cr then
+			timerBarRef:SetStatusBarColor(cr, cg, cb, 1)
+		else
+			timerBarRef:SetStatusBarColor(s.barColor[1], s.barColor[2], s.barColor[3], s.barColor[4] or 1)
+		end
 
 		local regions = { timerBarRef:GetRegions() }
-		local cr, cg, cb = TUI:GetClassColor()
 		for _, region in ipairs(regions) do
 			if region:IsObjectType('Texture') and region:GetDrawLayer() == 'BACKGROUND' then
 				region:SetTexture(texturePath)
-				if cr then
+				if mode == 'dark' and cr then
 					region:SetVertexColor(cr, cg, cb, 1)
 				else
-					region:SetVertexColor(s.barBg[1], s.barBg[2], s.barBg[3], s.barBg[4] or 1)
+					region:SetVertexColor(0.173, 0.173, 0.173, 1)
 				end
 			elseif region:IsObjectType('Texture') and region:GetDrawLayer() == 'OVERLAY' then
 				region:Hide()
@@ -150,19 +156,25 @@ do -- LFG Timer Skin
 end
 
 do -- Class-Coloured Bar Backgrounds
-	local function ApplyClassColorBackground(bar)
+	local function ApplyBarColors(bar)
 		if not bar or not bar.candyBarBackground then return end
-		local r, g, b = TUI:GetClassColor()
-		if not r then return end
-		bar.candyBarBackground:SetVertexColor(r, g, b, 1)
+		local mode = TUI.db and TUI.db.profile.colorMode or 'dark'
+		local cr, cg, cb = TUI:GetClassColor()
+		if not cr then return end
+		if mode == 'dark' then
+			bar.candyBarBackground:SetVertexColor(cr, cg, cb, 1)
+		else
+			bar:SetColor(cr, cg, cb, 1)
+			bar.candyBarBackground:SetVertexColor(0.173, 0.173, 0.173, 1)
+		end
 	end
 
 	function TUI:InitBigWigsClassColorBars()
 		BigWigsLoader.RegisterMessage({}, 'BigWigs_BarCreated', function(_, _, bar)
-			ApplyClassColorBackground(bar)
+			ApplyBarColors(bar)
 		end)
 		BigWigsLoader.RegisterMessage({}, 'BigWigs_BarEmphasized', function(_, _, bar)
-			ApplyClassColorBackground(bar)
+			ApplyBarColors(bar)
 		end)
 	end
 end
