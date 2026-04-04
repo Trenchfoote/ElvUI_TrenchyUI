@@ -7,7 +7,6 @@
 	<Script file="skins\opie.lua"/>
 	<Script file="skins\cooldownviewer.lua"/>
 	<Script file="skins\platynator.lua"/>
-	<Script file="skins\worldquesttab.lua"/>
 	<Script file="skins\premadegroupsfilter.lua"/>
 
 	<!-- QoL -->

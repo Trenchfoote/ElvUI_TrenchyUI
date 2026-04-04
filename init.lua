@@ -9,7 +9,6 @@ function TUI:InitModules()
 	if self.InitSkinBugSack then self:InitSkinBugSack() end
 	if self.InitSkinOPie then self:InitSkinOPie() end
 	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
-	if self.InitSkinWorldQuestTab then self:InitSkinWorldQuestTab() end
 	if self.InitSkinPremadeGroupsFilter then self:InitSkinPremadeGroupsFilter() end
 
 	-- QoL
