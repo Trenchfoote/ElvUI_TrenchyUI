@@ -1,17 +1,9 @@
 # TrenchyUI Changelog
 
-## v1.3.10
+## v1.3.11
 
 ### New Features
-- Nameplates: New "Hover Highlight" option replaces the default mouseover overlay with a configurable colored border around the health bar, with class color and thickness options
-- Nameplates: New "Important Cast" option highlights casts flagged as important by Blizzard with a colored border around the castbar, with class color and thickness options
-- Unit Frames: New "Include Tank Power" option extends ElvUI's "Only Healer" power bar filter to also show resource bars for Blood Death Knights (Runic Power) and Brewmaster Monks (Stagger) in group frames
-- Unit Frames: Evoker essence charge bars now show smooth fill animation while charging instead of snapping between full pips
-
-### Bug Fixes
-- QoL: Minimap button bar now correctly collects buttons from addons that return non-standard entries through LibDBIcon
-- QoL: Zygor minimap icon is now collected into the minimap button bar
+- General: New "/trenchyatnight" and "/trenchyincolor" slash commands to toggle between dark and class color modes across unit frames, damage meter, BigWigs bars, and WarpDeplete bars — no reload required
 
 ### Improvements
-- Nameplates: Classification Over Threat removed — now handled natively by ElvUI
-- Unit Frames: Soul Fragments (VDH) and Tip of the Spear (SV) custom class bars removed — now handled natively by ElvUI
+- Skins: World Quest Tab skin removed — the addon now handles its own styling natively
