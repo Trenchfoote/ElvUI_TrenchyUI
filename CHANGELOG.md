@@ -1,9 +1,8 @@
 # TrenchyUI Changelog
 
-## v1.3.11
+## v1.4
 
 ### New Features
-- General: New "/trenchyatnight" and "/trenchyincolor" slash commands to toggle between dark and class color modes across unit frames, damage meter, BigWigs bars, and WarpDeplete bars — no reload required
+- Profiles: "Trenchy after Dark" and "Trenchy in Color" buttons in the Profiles tab to switch color modes without slash commands
 
 ### Improvements
-- Skins: World Quest Tab skin removed — the addon now handles its own styling natively
