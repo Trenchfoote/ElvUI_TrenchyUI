@@ -308,5 +308,22 @@ function TUI:InitMinimapButtonBar()
 		E:CreateMover(mbbBar, 'TrenchyUIMinimapButtonBarMover', 'TUI Minimap Buttons', nil, nil, LayoutBar, 'ALL,TRENCHYUI', nil, 'TrenchyUI,qol')
 		TUI:UpdateMinimapButtonBar()
 		C_Timer.After(5, function() TUI:UpdateMinimapButtonBar() end)
+
+		-- Re-collect when LibDBIcon creates or shows/hides a button
+		local LDB = LibStub and LibStub('LibDBIcon-1.0', true)
+		if LDB then
+			LDB.RegisterCallback(TUI, 'LibDBIcon_IconCreated', function()
+				C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end)
+			end)
+
+			local origShow = LDB.Show
+			if origShow then
+				hooksecurefunc(LDB, 'Show', function() C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end) end)
+			end
+			local origHide = LDB.Hide
+			if origHide then
+				hooksecurefunc(LDB, 'Hide', function() C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end) end)
+			end
+		end
 	end)
 end
