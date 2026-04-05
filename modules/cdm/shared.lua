@@ -401,7 +401,7 @@ function S.SetPreviewText(itemFrame, show, vdb)
 	local bar = itemFrame.Bar
 	if bar then
 		local nameText = bar.Name and bar.Name:IsShown() and bar.Name:GetText()
-		local hasRealName = nameText and (issecretvalue(nameText) or nameText ~= '')
+		local hasRealName = nameText and (E:IsSecretValue(nameText) or nameText ~= '')
 		if show and vdb then
 			if vdb.nameText and not hasRealName then
 				if not bar.tuiPreviewName then

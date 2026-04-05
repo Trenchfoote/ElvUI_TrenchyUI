@@ -175,7 +175,7 @@ function S.BuildSessionMenu(win)
                 local sid = sess.sessionId or sess.combatSessionId or sess.id or sess.sessionID
                 local label = sess.name or 'Encounter'
                 local dur = sess.durationSeconds or sess.duration
-                if dur and not S.IsSecret(dur) then
+                if dur and E:NotSecretValue(dur) then
                     label = label .. format(' [%d:%02d]', floor(dur / 60), floor(dur % 60))
                 end
                 menu[#menu + 1] = {

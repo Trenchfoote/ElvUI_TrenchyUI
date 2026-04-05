@@ -8,7 +8,6 @@ local UnitPowerType = UnitPowerType
 local UnitStagger = UnitStagger
 local UnitHealthMax = UnitHealthMax
 local InCombatLockdown = InCombatLockdown
-local issecretvalue = issecretvalue
 local C_UnitAuras = C_UnitAuras
 
 local powerTypesFull = { MANA = true, FOCUS = true, ENERGY = true }
@@ -50,7 +49,7 @@ local function UpdateStaggerBar(bar, unit)
 		local data = C_UnitAuras.GetDebuffDataByIndex(unit, i)
 		if not data then break end
 		local id = data.spellId
-		if not issecretvalue(id) then
+		if E:NotSecretValue(id) then
 			local t = staggerTiers[id]
 			if t then
 				tier = t

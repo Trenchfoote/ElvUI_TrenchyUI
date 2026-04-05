@@ -2,7 +2,6 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
 
-local issecretvalue = issecretvalue
 local IsSpellImportant = C_Spell and C_Spell.IsSpellImportant
 
 local EDGE_FILE = [[Interface\BUTTONS\WHITE8X8]]
@@ -60,7 +59,7 @@ local function CheckImportant(castbar)
 
 	-- IsSpellImportant may return a ConditionalSecret boolean; pass to SetAlphaFromBoolean if secret
 	local isImportant = IsSpellImportant(spellID)
-	if issecretvalue(isImportant) then
+	if E:IsSecretValue(isImportant) then
 		-- Secret boolean — show the border and let alpha handle visibility
 		local border = GetOrCreateBorder(castbar)
 		ApplyBorderStyle(border, castbar)

@@ -155,11 +155,11 @@ function S.ResizeStandalone(win)
 end
 
 function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUID, sourceCreatureID, sourceUnit, sourceData, specIconID, deathRecapID)
-    local safeName = (name and not S.IsSecret(name)) and name or nil
+    local safeName = (name and E:NotSecretValue(name)) and name or nil
 
     if not guid and sourceUnit then
         local unitGUID = UnitGUID(sourceUnit)
-        if unitGUID and not S.IsSecret(unitGUID) then
+        if unitGUID and E:NotSecretValue(unitGUID) then
             guid = unitGUID
         end
     end
@@ -174,21 +174,21 @@ function S.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretGUI
         local src = session and session.combatSources and session.combatSources[sourceIndex]
         if src then
             sourceData = sourceData or src
-            if not guid and not S.IsSecret(src.sourceGUID) then
+            if not guid and E:NotSecretValue(src.sourceGUID) then
                 guid = src.sourceGUID
             end
             if not secretGUID and src.sourceGUID then
                 secretGUID = src.sourceGUID
             end
-            if not sourceCreatureID and not S.IsSecret(src.sourceCreatureID) then
+            if not sourceCreatureID and E:NotSecretValue(src.sourceCreatureID) then
                 sourceCreatureID = src.sourceCreatureID
             end
-            if (not safeName or safeName == '?') and not S.IsSecret(src.name) and src.name and src.name ~= '' then
+            if (not safeName or safeName == '?') and E:NotSecretValue(src.name) and src.name and src.name ~= '' then
                 safeName = Ambiguate(src.name, 'short')
             end
             if (not safeName or safeName == '?') and src.sourceGUID then
                 local secretName = select(6, GetPlayerInfoByGUID(src.sourceGUID))
-                if secretName and not S.IsSecret(secretName) then
+                if secretName and E:NotSecretValue(secretName) then
                     safeName = secretName
                 end
             end
@@ -264,7 +264,7 @@ function S.SetupBarInteraction(bar, win)
         if not unit and self.sourceGUID then
             unit = S.FindUnitByGUID(self.sourceGUID)
         end
-        if not unit and self.sourceName and not issecretvalue(self.sourceName) and self.sourceName ~= '?' then
+        if not unit and self.sourceName and not E:IsSecretValue(self.sourceName) and self.sourceName ~= '?' then
             unit = S.FindUnitByName(self.sourceName)
         end
         if not unit and self.sourceGUID then
@@ -279,8 +279,8 @@ function S.SetupBarInteraction(bar, win)
             GameTooltip:SetUnit(unit)
         else
             local name = self.sourceName
-            if (not name or (not issecretvalue(name) and name == '?')) and self.secretName then name = self.secretName end
-            if name and not issecretvalue(name) then
+            if (not name or (not E:IsSecretValue(name) and name == '?')) and self.secretName then name = self.secretName end
+            if name and not E:IsSecretValue(name) then
                 local cls = self.sourceClass or (self.testIndex and S.GetTestData(win)[self.testIndex] and S.GetTestData(win)[self.testIndex].class)
                 local cr, cg, cb = 1, 1, 1
                 if cls then
@@ -323,14 +323,14 @@ function S.SetupBarInteraction(bar, win)
                 return
             end
             local sourceName = self.sourceName
-            if (not sourceName or (not issecretvalue(sourceName) and sourceName == '?')) and self.secretName then
+            if (not sourceName or (not E:IsSecretValue(sourceName) and sourceName == '?')) and self.secretName then
                 sourceName = self.secretName
             end
             local deathRecapID
             local modeEntry = S.MODE_ORDER[win.modeIndex]
             if Enum.DamageMeterType.Deaths and modeEntry == Enum.DamageMeterType.Deaths then
                 local srcData = self.sourceData
-                if srcData and srcData.deathRecapID and not S.IsSecret(srcData.deathRecapID) and srcData.deathRecapID ~= 0 then
+                if srcData and srcData.deathRecapID and E:NotSecretValue(srcData.deathRecapID) and srcData.deathRecapID ~= 0 then
                     deathRecapID = srcData.deathRecapID
                 end
                 if not deathRecapID then return end

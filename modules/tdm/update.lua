@@ -32,7 +32,7 @@ function S.RefreshWindow(win)
         local drillName = ds.name
         if (not drillName or drillName == '?') and (ds.secretGUID or ds.guid) then
             local resolved = select(6, GetPlayerInfoByGUID(ds.secretGUID or ds.guid))
-            if resolved and not S.IsSecret(resolved) and resolved ~= '' then
+            if resolved and E:NotSecretValue(resolved) and resolved ~= '' then
                 drillName = Ambiguate(resolved, 'short')
                 ds.name = drillName
             end
@@ -73,19 +73,19 @@ function S.RefreshWindow(win)
                 local session = S.GetSession(win, meterType)
                 local src = session and session.combatSources and session.combatSources[ds.sourceIndex]
                 if src then
-                    if (not ds.name or ds.name == '?') and not S.IsSecret(src.name) and src.name and src.name ~= '' then
+                    if (not ds.name or ds.name == '?') and E:NotSecretValue(src.name) and src.name and src.name ~= '' then
                         ds.name = Ambiguate(src.name, 'short')
                     end
-                    if (not ds.class) and src.classFilename and not S.IsSecret(src.classFilename) then
+                    if (not ds.class) and src.classFilename and E:NotSecretValue(src.classFilename) then
                         ds.class = src.classFilename
                     end
-                    if (not ds.guid) and src.sourceGUID and not S.IsSecret(src.sourceGUID) then
+                    if (not ds.guid) and src.sourceGUID and E:NotSecretValue(src.sourceGUID) then
                         ds.guid = src.sourceGUID
                     end
                     if not ds.secretGUID and src.sourceGUID then
                         ds.secretGUID = src.sourceGUID
                     end
-                    if (not ds.sourceCreatureID) and src.sourceCreatureID and not S.IsSecret(src.sourceCreatureID) then
+                    if (not ds.sourceCreatureID) and src.sourceCreatureID and E:NotSecretValue(src.sourceCreatureID) then
                         ds.sourceCreatureID = src.sourceCreatureID
                     end
                 end
@@ -136,7 +136,7 @@ function S.RefreshWindow(win)
             else
                 bar.frame:Show()
                 local rawSpellID = s.spellID or (type(s[1]) == "number" and s[1]) or nil
-                local isSecretID = rawSpellID and issecretvalue(rawSpellID)
+                local isSecretID = rawSpellID and E:IsSecretValue(rawSpellID)
                 local spellID = (rawSpellID and not isSecretID) and rawSpellID or nil
                 local spellName = (type(s[1]) == "string" and s[1]) or nil
                 local amt = s.totalAmount or s[2] or 0
@@ -219,7 +219,7 @@ function S.RefreshWindow(win)
                 bar.statusbar:SetValue(amt, SMOOTH)
 
                 -- Value in parens
-                if issecretvalue(amt) then
+                if E:IsSecretValue(amt) then
                     bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, S.ABBREV_SHORT))
                 else
                     bar.rightText:SetText('(' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
@@ -238,7 +238,7 @@ function S.RefreshWindow(win)
                 end
 
                 -- Percentage
-                if not issecretvalue(amt) and not S.IsSecret(totalAmt) and totalAmt > 0 then
+                if E:NotSecretValue(amt) and E:NotSecretValue(totalAmt) and totalAmt > 0 then
                     bar.pctText:SetText(format('%.1f%%', (amt / totalAmt) * 100))
                 else
                     bar.pctText:SetText('')
@@ -382,7 +382,7 @@ function S.RefreshWindow(win)
                 bar.frame:Show()
 
                 local specIcon = src.specIconID
-                local guid = (not S.IsSecret(src.sourceGUID)) and src.sourceGUID
+                local guid = (E:NotSecretValue(src.sourceGUID)) and src.sourceGUID
                     or S.ResolveGUID(src.sourceGUID, specIcon)
                 bar.frame.sourceGUID   = guid
                 bar.frame.secretGUID   = src.sourceGUID
@@ -421,14 +421,14 @@ function S.RefreshWindow(win)
                     plainName = S.nameCache[guid]
                     sourceUnit = S.FindUnitByGUID(guid)
                 elseif src.name then
-                    if S.IsSecret(src.name) then
+                    if E:IsSecretValue(src.name) then
                         plainName = src.name
                     elseif src.name ~= '' then
                         plainName = Ambiguate(src.name, 'short')
                     end
                 end
                 bar.frame.sourceName = plainName or '?'
-                if not sourceUnit and plainName and not S.IsSecret(plainName) then
+                if not sourceUnit and plainName and E:NotSecretValue(plainName) then
                     sourceUnit = S.FindUnitByName(plainName)
                 end
                 bar.frame.sourceUnit = sourceUnit
@@ -436,28 +436,28 @@ function S.RefreshWindow(win)
                 -- Unit token fallback: resolves secret GUIDs to real unit/name/GUID
                 if not sourceUnit and src.sourceGUID then
                     local token = UnitTokenFromGUID(src.sourceGUID)
-                    if token and not S.IsSecret(token) then
+                    if token and E:NotSecretValue(token) then
                         sourceUnit = token
                         bar.frame.sourceUnit = token
                         if not plainName then
                             local tokenName = UnitName(token)
-                            if tokenName and not S.IsSecret(tokenName) then
+                            if tokenName and E:NotSecretValue(tokenName) then
                                 plainName = tokenName
                                 bar.frame.sourceName = plainName
                                 local cid = src.sourceCreatureID
-                                if cid and not S.IsSecret(cid) then
+                                if cid and E:NotSecretValue(cid) then
                                     S.creatureNameCache[cid] = plainName
                                 end
                             end
                         end
                         if not guid then
                             local realGUID = UnitGUID(token)
-                            if realGUID and not S.IsSecret(realGUID) then
+                            if realGUID and E:NotSecretValue(realGUID) then
                                 guid = realGUID
                                 bar.frame.sourceGUID = guid
                             end
                         end
-                        if not classFilename or S.IsSecret(classFilename) then
+                        if not classFilename or E:IsSecretValue(classFilename) then
                             local _, cls = UnitClass(token)
                             if cls then
                                 classFilename = cls
@@ -472,7 +472,7 @@ function S.RefreshWindow(win)
                 bar.frame.secretName = secretName
 
                 local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
-                if plainName and not S.IsSecret(plainName) then
+                if plainName and E:NotSecretValue(plainName) then
                     if db.showRank then
                         local rr, rg, rb = S.ClassOrColor(db, 'rankClassColor', 'rankColor', classFilename)
                         bar.leftText:SetText(format('|cff%02x%02x%02x%d.|r %s',
@@ -498,7 +498,7 @@ function S.RefreshWindow(win)
                 local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeaths then
                     local deathTime = src.deathTimeSeconds
-                    if deathTime and not S.IsSecret(deathTime) and deathTime > 0 then
+                    if deathTime and E:NotSecretValue(deathTime) and deathTime > 0 then
                         bar.rightText:SetText(format('%d:%02d', floor(deathTime / 60), floor(deathTime % 60)))
                     else
                         bar.rightText:SetText('')
@@ -853,7 +853,7 @@ function S.RenderDeathRecap(win, ds, db)
             local spellID = ev.spellId
             local spellName = ev.spellName
             local iconID
-            if spellID and not S.IsSecret(spellID) then
+            if spellID and E:NotSecretValue(spellID) then
                 iconID = C_Spell.GetSpellTexture(spellID)
                 if not spellName then spellName = C_Spell.GetSpellName(spellID) end
                 bar.frame.drillSpellID = spellID
@@ -861,7 +861,7 @@ function S.RenderDeathRecap(win, ds, db)
                 bar.frame.drillSpellID = nil
             end
 
-            if not spellName or (not S.IsSecret(spellName) and spellName == '') then
+            if not spellName or (E:NotSecretValue(spellName) and spellName == '') then
                 local evType = ev.event
                 if evType == 'SWING_DAMAGE' then
                     spellName = ACTION_SWING
@@ -914,11 +914,11 @@ function S.RenderDeathRecap(win, ds, db)
 
             local hp = ev.currentHP or 0
             bar.statusbar:SetMinMaxValues(0, maxHealth)
-            bar.statusbar:SetValue(S.IsSecret(hp) and 0 or hp, SMOOTH)
+            bar.statusbar:SetValue(E:IsSecretValue(hp) and 0 or hp, SMOOTH)
 
             -- Left text: spell name colored by type, source in gray
             local isKillingBlow = evIdx == total
-            local nameStr = not S.IsSecret(spellName) and spellName or '?'
+            local nameStr = E:NotSecretValue(spellName) and spellName or '?'
             if isKillingBlow then
                 nameStr = '|cffff3333' .. nameStr .. '|r'
             elseif ev.avoidable then
@@ -928,13 +928,13 @@ function S.RenderDeathRecap(win, ds, db)
             bar.leftText:SetTextColor(1, 1, 1)
 
             -- Right: HP% in rightText, (-damage) in dpsText
-            if S.IsSecret(hp) or maxHealth <= 0 then
+            if E:IsSecretValue(hp) or maxHealth <= 0 then
                 bar.rightText:SetText('')
                 bar.dpsText:SetText('')
             else
                 bar.rightText:SetText(floor(hp / maxHealth * 100 + 0.5) .. '%')
                 local amt = ev.amount
-                if amt and not S.IsSecret(amt) and amt > 0 then
+                if amt and E:NotSecretValue(amt) and amt > 0 then
                     bar.dpsText:SetText('(-' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
                 else
                     bar.dpsText:SetText('')

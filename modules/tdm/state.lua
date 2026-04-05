@@ -142,7 +142,7 @@ S.guidByName = {}
 function S.ScanRoster()
     wipe(S.guidByName)
     local pg = UnitGUID('player')
-    if pg and not S.IsSecret(pg) then
+    if pg and E:NotSecretValue(pg) then
         local name = UnitName('player')
         S.nameCache[pg] = name
         if name then S.guidByName[name] = pg end
@@ -151,7 +151,7 @@ function S.ScanRoster()
         for i = 1, GetNumGroupMembers() do
             local unit = 'raid' .. i
             local guid = UnitGUID(unit)
-            if guid and not S.IsSecret(guid) then
+            if guid and E:NotSecretValue(guid) then
                 local name = UnitName(unit)
                 S.nameCache[guid] = name
                 if name then S.guidByName[name] = guid end
@@ -161,7 +161,7 @@ function S.ScanRoster()
         for i = 1, GetNumGroupMembers() - 1 do
             local unit = 'party' .. i
             local guid = UnitGUID(unit)
-            if guid and not S.IsSecret(guid) then
+            if guid and E:NotSecretValue(guid) then
                 local name = UnitName(unit)
                 S.nameCache[guid] = name
                 if name then S.guidByName[name] = guid end
@@ -177,8 +177,8 @@ function S.CacheCreatureNames()
             if session and session.combatSources then
                 for _, src in ipairs(session.combatSources) do
                     local cid = src.sourceCreatureID
-                    if cid and not S.IsSecret(cid) and not S.creatureNameCache[cid] then
-                        if src.name and not S.IsSecret(src.name) and src.name ~= '' then
+                    if cid and E:NotSecretValue(cid) and not S.creatureNameCache[cid] then
+                        if src.name and E:NotSecretValue(src.name) and src.name ~= '' then
                             S.creatureNameCache[cid] = Ambiguate(src.name, 'short')
                         end
                     end
@@ -188,9 +188,6 @@ function S.CacheCreatureNames()
     end
 end
 
-function S.IsSecret(val)
-    return val ~= nil and issecretvalue and issecretvalue(val)
-end
 
 function S.FindUnitByGUID(guid)
     if UnitGUID('player') == guid then return 'player' end
@@ -205,12 +202,12 @@ function S.FindUnitByGUID(guid)
 end
 
 function S.FindGUIDByName(name)
-    if not name or S.IsSecret(name) then return end
+    if not name or E:IsSecretValue(name) then return end
     return S.guidByName[name]
 end
 
 function S.FindUnitByName(name)
-    if not name or S.IsSecret(name) then return end
+    if not name or E:IsSecretValue(name) then return end
     if UnitName('player') == name then return 'player' end
     for i = 1, 40 do
         local unit = 'raid' .. i
@@ -242,7 +239,7 @@ S.ABBREV_SHORT = ABBREV_SHORT
 
 function S.FormatValueText(fontString, val)
     if not val then fontString:SetText('0'); return end
-    if S.IsSecret(val) then
+    if E:IsSecretValue(val) then
         fontString:SetFormattedText('%s', AbbreviateNumbers(val, ABBREV_SHORT))
     else
         fontString:SetText(AbbreviateNumbers(floor(val + 0.5), ABBREV_SHORT))
@@ -255,7 +252,7 @@ function S.FormatCombinedText(totalFS, dpsFS, total, perSec)
         if dpsFS then dpsFS:SetText('') end
         return
     end
-    if S.IsSecret(total) or S.IsSecret(perSec) then
+    if E:IsSecretValue(total) or E:IsSecretValue(perSec) then
         totalFS:SetFormattedText('(%s)', AbbreviateNumbers(total or 0, ABBREV_SHORT))
         if dpsFS then dpsFS:SetFormattedText('%s', AbbreviateNumbers(perSec or 0, ABBREV_SHORT)) end
     else
@@ -343,10 +340,10 @@ function S.UpdateSpecIconCache(sources)
     local seen = {}
     for _, src in ipairs(sources) do
         local icon = src.specIconID
-        if icon and not S.IsSecret(icon) and icon > 0 then
+        if icon and E:NotSecretValue(icon) and icon > 0 then
             if seen[icon] then
                 S.specIconCache[icon] = nil
-            elseif not S.IsSecret(src.sourceGUID) then
+            elseif E:NotSecretValue(src.sourceGUID) then
                 S.specIconCache[icon] = src.sourceGUID
             end
             seen[icon] = true
@@ -355,16 +352,16 @@ function S.UpdateSpecIconCache(sources)
 end
 
 function S.ResolveGUID(guid, specIconID)
-    if guid and not S.IsSecret(guid) then return guid end
-    if specIconID and not S.IsSecret(specIconID) and S.specIconCache[specIconID] then
+    if guid and E:NotSecretValue(guid) then return guid end
+    if specIconID and E:NotSecretValue(specIconID) and S.specIconCache[specIconID] then
         return S.specIconCache[specIconID]
     end
     return nil
 end
 
 function S.GetSessionSource(win, meterType, guid, sourceCreatureID)
-    if guid and S.IsSecret(guid) then guid = nil end
-    if sourceCreatureID and S.IsSecret(sourceCreatureID) then sourceCreatureID = nil end
+    if guid and E:IsSecretValue(guid) then guid = nil end
+    if sourceCreatureID and E:IsSecretValue(sourceCreatureID) then sourceCreatureID = nil end
     if win.sessionId and C_DamageMeter.GetCombatSessionSourceFromID then
         return C_DamageMeter.GetCombatSessionSourceFromID(win.sessionId, meterType, guid, sourceCreatureID)
     end
