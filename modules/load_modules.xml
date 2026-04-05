@@ -1,4 +1,7 @@
 <Ui>
+	<!-- Borders -->
+	<Script file="borders.lua"/>
+
 	<!-- Skins -->
 	<Script file="skins\warpdeplete.lua"/>
 	<Script file="skins\bigwigs.lua"/>

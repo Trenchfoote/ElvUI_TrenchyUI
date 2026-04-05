@@ -2,6 +2,9 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 
 function TUI:InitModules()
+	-- Borders
+	if self.db.profile.borderMode and self.InitBorderMode then self:InitBorderMode() end
+
 	-- Skins
 	if self.InitSkinWarpDeplete then self:InitSkinWarpDeplete() end
 	if self.InitSkinBigWigs then self:InitSkinBigWigs() end

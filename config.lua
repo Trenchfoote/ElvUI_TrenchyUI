@@ -6,6 +6,7 @@ TUI.defaults = {
     profile = {
         installedProfileVersion = nil,
         colorMode = 'dark',
+        borderMode = false,
         compat = {},
         qol = {
             hideTalkingHead = false,
