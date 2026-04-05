@@ -21,10 +21,17 @@ function S.CreateBar(parent)
     bar.statusbar:SetMinMaxValues(0, 1)
     bar.statusbar:SetValue(0)
 
+    bar.classIconBG = bar.statusbar:CreateTexture(nil, "ARTWORK")
+    bar.classIconBG:SetTexture(E.media.blankTex)
+    bar.classIconBG:SetVertexColor(0, 0, 0, 0.5)
+    bar.classIconBG:SetSize(16, 16)
+    bar.classIconBG:SetPoint("LEFT", 1, 0)
+    bar.classIconBG:Hide()
+
     bar.classIcon = bar.statusbar:CreateTexture(nil, "OVERLAY")
     bar.classIcon:SetTexture(S.CLASS_ICONS)
     bar.classIcon:SetSize(16, 16)
-    bar.classIcon:SetPoint("LEFT", 1, 0)
+    bar.classIcon:SetPoint("CENTER", bar.classIconBG, "CENTER", 0, 0)
     bar.classIcon:Hide()
 
     bar.pctText = bar.statusbar:CreateFontString(nil, "OVERLAY")
@@ -67,9 +74,12 @@ end
 function S.ApplyBarIconLayout(bar, db)
     local iconSize = max(8, (db.barHeight or 18) - 2)
     bar.classIcon:SetSize(iconSize, iconSize)
+    bar.classIconBG:SetSize(iconSize, iconSize)
+    local showBG = db.showClassIcon and TUI.db.profile.colorMode == 'color'
+    if showBG then bar.classIconBG:Show() else bar.classIconBG:Hide() end
     bar.leftText:ClearAllPoints()
     if db.showClassIcon then
-        bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
+        bar.leftText:SetPoint("LEFT", bar.classIconBG, "RIGHT", 2, 0)
     else
         bar.leftText:SetPoint("LEFT", 4, 0)
     end

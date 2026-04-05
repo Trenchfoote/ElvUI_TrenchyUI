@@ -23,7 +23,7 @@ local CLASS_COLOR_TEXTS = {
 	{ 'target', 'T-TName' },
 }
 
-local function ApplyColorMode(mode)
+function TUI:ApplyColorMode(mode)
 	local isDark = mode == 'dark'
 	local colors = E.db.unitframe.colors
 	local tdb = TUI.db.profile
@@ -71,6 +71,21 @@ local function ApplyColorMode(mode)
 		tdb.damageMeter.textClassColor = isDark
 	end
 
+	-- TDM class icon backgrounds
+	local tdm = TUI._tdm
+	if tdm and tdm.windows and tdb.damageMeter and tdb.damageMeter.showClassIcon then
+		local showBG = not isDark
+		for _, win in pairs(tdm.windows) do
+			if win.bars then
+				for _, bar in pairs(win.bars) do
+					if bar.classIconBG then
+						if showBG then bar.classIconBG:Show() else bar.classIconBG:Hide() end
+					end
+				end
+			end
+		end
+	end
+
 	-- Refresh UFs and TDM
 	UF:Update_AllFrames()
 	if TUI.RefreshMeter then TUI:RefreshMeter() end
@@ -85,10 +100,10 @@ end
 
 SLASH_TRENCHYATNIGHT1 = '/trenchyatnight'
 SlashCmdList['TRENCHYATNIGHT'] = function()
-	ApplyColorMode('dark')
+	TUI:ApplyColorMode('dark')
 end
 
 SLASH_TRENCHYINCOLOR1 = '/trenchyincolor'
 SlashCmdList['TRENCHYINCOLOR'] = function()
-	ApplyColorMode('color')
+	TUI:ApplyColorMode('color')
 end

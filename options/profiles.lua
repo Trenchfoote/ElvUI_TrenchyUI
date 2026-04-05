@@ -80,6 +80,28 @@ function TUI:BuildProfilesConfig(root, tuiName)
         E:StaticPopup_Show('CONFIG_RL')
     end, nil, nil, nil, nil, nil, addonDisabled('Baganator'))
 
+    prof.colorMode = ACH:Group("Color Mode", nil, 4)
+    prof.colorMode.inline = true
+    local cm = prof.colorMode.args
+
+    cm.dark = ACH:Execute(
+        "Trenchy at Night",
+        "Dark mode with class color backgrounds.\n(/trenchyatnight)",
+        1,
+        function() TUI:ApplyColorMode('dark') end,
+        nil, nil, nil,
+        function() return TUI.db.profile.colorMode == 'dark' end
+    )
+
+    cm.color = ACH:Execute(
+        "Trenchy in Color",
+        "Class color health and dark backgrounds.\n(/trenchyincolor)",
+        2,
+        function() TUI:ApplyColorMode('color') end,
+        nil, nil, nil,
+        function() return TUI.db.profile.colorMode == 'color' end
+    )
+
     -- Inject TUI datatext options into ElvUI's Customization tab
     do
         local dtSettings = E.Options.args.datatexts.args.settings.args
