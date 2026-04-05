@@ -84,9 +84,12 @@ function TUI:BuildProfilesConfig(root, tuiName)
     prof.colorMode.inline = true
     local cm = prof.colorMode.args
 
+    local darkLabel = E:TextGradient('Trenchy', 1.00,0.18,0.24, 0.80,0.10,0.20) .. ' after ' .. E:TextGradient('Dark', 0.50,0.15,0.70, 0.30,0.08,0.45)
+    local colorLabel = E:TextGradient('Trenchy', 1.00,0.18,0.24, 0.80,0.10,0.20) .. ' in ' .. E:TextGradient('Color', 1.00,0.30,0.30, 0.30,0.80,1.00)
+
     cm.dark = ACH:Execute(
-        "Trenchy at Night",
-        "Dark mode with class color backgrounds.\n(/trenchyatnight)",
+        darkLabel,
+        "Dark mode with class color backgrounds.\n(/trenchyafterdark)",
         1,
         function() TUI:ApplyColorMode('dark') end,
         nil, nil, nil,
@@ -94,7 +97,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
     )
 
     cm.color = ACH:Execute(
-        "Trenchy in Color",
+        colorLabel,
         "Class color health and dark backgrounds.\n(/trenchyincolor)",
         2,
         function() TUI:ApplyColorMode('color') end,

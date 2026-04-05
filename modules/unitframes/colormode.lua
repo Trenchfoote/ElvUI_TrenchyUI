@@ -98,8 +98,8 @@ function TUI:ApplyColorMode(mode)
 	E:Print('|cffff2f3dTrenchyUI|r: Switched to ' .. modeText .. ' mode.')
 end
 
-SLASH_TRENCHYATNIGHT1 = '/trenchyatnight'
-SlashCmdList['TRENCHYATNIGHT'] = function()
+SLASH_TRENCHYAFTERDARK1 = '/trenchyafterdark'
+SlashCmdList['TRENCHYAFTERDARK'] = function()
 	TUI:ApplyColorMode('dark')
 end
 
