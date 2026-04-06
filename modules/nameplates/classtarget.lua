@@ -2,11 +2,9 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NP = E:GetModule('NamePlates')
 
-local UnitIsUnit = UnitIsUnit
-
 local function PostUpdate_ClassColorTarget(element, unit)
 	if not TUI.db.profile.nameplates.classColorTargetIndicator then return end
-	if not unit or not UnitIsUnit(unit, 'target') then return end
+	if not unit or not E:UnitIsUnit(unit, 'target') then return end
 
 	local c = E:ClassColor(E.myclass)
 	if not c then return end

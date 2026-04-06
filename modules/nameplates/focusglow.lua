@@ -4,7 +4,6 @@ local NP = E:GetModule('NamePlates')
 
 local LSM = E.Libs.LSM
 local CreateFrame = CreateFrame
-local UnitIsUnit = UnitIsUnit
 local ipairs = ipairs
 local C_NamePlate_GetNamePlates = C_NamePlate.GetNamePlates
 local C_NamePlate_GetNamePlateForUnit = C_NamePlate.GetNamePlateForUnit
@@ -32,7 +31,7 @@ local function UpdateFocusOverlay(nameplate)
 	local db = TUI.db.profile.nameplates.focusGlow
 	if not nameplate.unit or not nameplate.Health then return end
 
-	if UnitIsUnit(nameplate.unit, 'focus') then
+	if E:UnitIsUnit(nameplate.unit, 'focus') then
 		local holder, tex = GetOrCreateFocusOverlay(nameplate)
 		tex:SetTexture(LSM:Fetch('statusbar', db.texture or NP.db.statusbar))
 		local c = db.color
