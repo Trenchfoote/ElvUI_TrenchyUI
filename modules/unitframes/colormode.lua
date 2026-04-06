@@ -71,6 +71,7 @@ function TUI:ApplyColorMode(mode)
 		local cc = E:ClassColor(E.myclass)
 		if cc then
 			local cust = cb.customColor
+			cust.colorBackdrop.a = 1
 			if isDark then
 				cust.color.r, cust.color.g, cust.color.b = CASTBAR_DARK.r, CASTBAR_DARK.g, CASTBAR_DARK.b
 				cust.colorBackdrop.r, cust.colorBackdrop.g, cust.colorBackdrop.b = cc.r, cc.g, cc.b
