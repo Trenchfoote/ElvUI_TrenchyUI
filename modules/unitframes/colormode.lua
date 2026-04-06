@@ -3,6 +3,7 @@ local TUI = E:GetModule('TrenchyUI')
 local UF = E:GetModule('UnitFrames')
 
 local DARK_GREY = { r = 0.17254902422428, g = 0.17254902422428, b = 0.17254902422428 }
+local CASTBAR_DARK = { r = 0.14117647707462, g = 0.14117647707462, b = 0.14117647707462 }
 
 local OVERRIDE_UNITS = {
 	'arena', 'assist', 'boss', 'focus', 'party', 'pet', 'player',
@@ -60,6 +61,24 @@ function TUI:ApplyColorMode(mode)
 				else
 					ct[name].text_format = text:gsub('%[classcolor%]', '')
 				end
+			end
+		end
+	end
+
+	-- Player castbar colors
+	local cb = E.db.unitframe.units.player and E.db.unitframe.units.player.castbar
+	if cb and cb.customColor then
+		local cc = E:ClassColor(E.myclass)
+		if cc then
+			local cust = cb.customColor
+			if isDark then
+				cust.color.r, cust.color.g, cust.color.b = CASTBAR_DARK.r, CASTBAR_DARK.g, CASTBAR_DARK.b
+				cust.colorBackdrop.r, cust.colorBackdrop.g, cust.colorBackdrop.b = cc.r, cc.g, cc.b
+				cb.textColor.r, cb.textColor.g, cb.textColor.b = cc.r, cc.g, cc.b
+			else
+				cust.color.r, cust.color.g, cust.color.b = cc.r, cc.g, cc.b
+				cust.colorBackdrop.r, cust.colorBackdrop.g, cust.colorBackdrop.b = CASTBAR_DARK.r, CASTBAR_DARK.g, CASTBAR_DARK.b
+				cb.textColor.r, cb.textColor.g, cb.textColor.b = 1, 1, 1
 			end
 		end
 	end
