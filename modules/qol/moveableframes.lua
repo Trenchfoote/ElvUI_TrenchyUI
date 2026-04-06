@@ -120,4 +120,15 @@ function TUI:InitMoveableFrames()
 	hooksecurefunc('ShowUIPanel', function(frame)
 		if frame and not hookedFrames[frame] then MakeMoveable(frame) end
 	end)
+
+	-- Keystone frame bypasses ShowUIPanel — hook it when the addon loads
+	local function HookKeystoneFrame()
+		local f = _G.ChallengesKeystoneFrame
+		if f then MakeMoveable(f) end
+	end
+	if C_AddOns.IsAddOnLoaded('Blizzard_ChallengesUI') then
+		HookKeystoneFrame()
+	else
+		EventUtil.ContinueOnAddOnLoaded('Blizzard_ChallengesUI', HookKeystoneFrame)
+	end
 end
