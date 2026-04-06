@@ -416,18 +416,17 @@ end
 
 -- Config hooks
 local cdmTabActive = false
-local configCloseHooked = false
+local hookedConfigFrames = {}
 
 local function TryHookConfigClose()
-	if configCloseHooked then return end
-
 	local ACD = E.Libs.AceConfigDialog
 	if not ACD or not ACD.OpenFrames then return end
 
 	local configFrame = ACD.OpenFrames.ElvUI
 	if not configFrame or not configFrame.frame then return end
+	if hookedConfigFrames[configFrame.frame] then return end
 
-	configCloseHooked = true
+	hookedConfigFrames[configFrame.frame] = true
 	configFrame.frame:HookScript('OnHide', function()
 		cdmTabActive = false
 		S.HideBlizzardCDMSettings()
@@ -442,9 +441,7 @@ C_Timer.After(0, function()
 		local function HandleGroupChange(appName, pathContainsCDM)
 			if appName ~= 'ElvUI' then return end
 
-			if not configCloseHooked then
-				TryHookConfigClose()
-			end
+			TryHookConfigClose()
 
 			if pathContainsCDM and not cdmTabActive then
 				cdmTabActive = true
@@ -501,8 +498,6 @@ C_Timer.After(0, function()
 		end
 
 		-- Also try to hook config close from here as a fallback
-		if not configCloseHooked then
-			C_Timer.After(0.1, TryHookConfigClose)
-		end
+		C_Timer.After(0.1, TryHookConfigClose)
 	end)
 end)
