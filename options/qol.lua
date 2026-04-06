@@ -66,17 +66,17 @@ function TUI:BuildQoLConfig(root, tuiName)
     )
     qolGen.hideObjectiveInCombat.customWidth = 250
 
-    qolGen.borderMode = ACH:Toggle(
-        "Custom Borders",
-        "Replace ElvUI's 1px borders with a custom border from LS: Borders. Requires the ls_Borders addon.",
-        7, nil, nil, nil,
-        function() return TUI.db.profile.borderMode end,
-        function(_, value)
-            TUI.db.profile.borderMode = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end,
-        function() return not E:IsAddOnEnabled('ls_Borders') end
-    )
+    -- qolGen.borderMode = ACH:Toggle(
+    --     "Custom Borders",
+    --     "Replace ElvUI's 1px borders with a custom border from LS: Borders. Requires the ls_Borders addon.",
+    --     7, nil, nil, nil,
+    --     function() return TUI.db.profile.borderMode end,
+    --     function(_, value)
+    --         TUI.db.profile.borderMode = value
+    --         E:StaticPopup_Show('CONFIG_RL')
+    --     end,
+    --     function() return not E:IsAddOnEnabled('ls_Borders') end
+    -- )
 
     qolGen.shortenEnchantStrings = ACH:Toggle(
         "Shorten Enchant Names",
