@@ -71,6 +71,32 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
+    root.unitframes.args.raidRole = ACH:Group("Raid Role Indicator", nil, 2.5)
+    root.unitframes.args.raidRole.inline = true
+    local rr = root.unitframes.args.raidRole.args
+
+    rr.hideMainTank = ACH:Toggle(
+        "Hide Main Tank",
+        "Hide the Main Tank raid role icon on unit frames.",
+        1, nil, nil, nil,
+        function() return TUI.db.profile.raidRole.hideMainTank end,
+        function(_, value)
+            TUI.db.profile.raidRole.hideMainTank = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    rr.hideMainAssist = ACH:Toggle(
+        "Hide Main Assist",
+        "Hide the Main Assist raid role icon on unit frames.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.raidRole.hideMainAssist end,
+        function(_, value)
+            TUI.db.profile.raidRole.hideMainAssist = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
     root.unitframes.args.groupPower = ACH:Group("Group Power", nil, 3)
     root.unitframes.args.groupPower.inline = true
     local gp = root.unitframes.args.groupPower.args

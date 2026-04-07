@@ -57,6 +57,7 @@ function TUI:InitModules()
 	if not self:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
 	if self.InitEvokerEssenceCharge then self:InitEvokerEssenceCharge() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
+	if self.InitRaidRoleFilter then self:InitRaidRoleFilter() end
 
 	-- Cooldown Manager
 	if not self:IsCompatBlocked('cooldownManager') and self.InitCooldownManager then self:InitCooldownManager() end

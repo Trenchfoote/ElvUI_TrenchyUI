@@ -87,6 +87,10 @@ TUI.defaults = {
             length    = nil,
         },
         tankPower = false,
+        raidRole = {
+            hideMainTank = false,
+            hideMainAssist = false,
+        },
         fader = {
             steadyFlight = false,
         },
