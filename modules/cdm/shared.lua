@@ -43,8 +43,7 @@ function S.CreateContainer(viewerKey)
 	frame:SetFrameStrata('MEDIUM')
 	frame:SetFrameLevel(5)
 
-	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr, true)
-	S.moverToViewer[configStr] = viewerKey
+	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
 
 	S.containers[viewerKey] = frame
 	return frame
@@ -57,15 +56,11 @@ function S.AnchorToMover(viewerKey, growUp)
 	local mover = _G[info.mover .. 'Mover']
 	if not mover then return end
 
-	if not InCombatLockdown() then
-		mover:SetSize(container:GetSize())
-	end
-
 	container:ClearAllPoints()
 	if growUp then
-		container:SetPoint('BOTTOM', mover, 'BOTTOM')
+		container:SetPoint('BOTTOMLEFT', mover, 'BOTTOMLEFT')
 	else
-		container:SetPoint('TOP', mover, 'TOP')
+		container:SetPoint('TOPLEFT', mover, 'TOPLEFT')
 	end
 end
 
@@ -490,7 +485,7 @@ local LAYOUT_MAP = {
 	utility   = function(c) return S.LayoutUtility(c) end,
 	buffIcon  = function(c) return S.LayoutBuffIcon(c) end,
 	buffBar   = function(c) return S.LayoutBuffBar('buffBar', c) end,
-	custom    = function(c) return S.LayoutCustomViewer and S.LayoutCustomViewer() end,
+	custom    = function() return S.LayoutCustomViewer and S.LayoutCustomViewer() end,
 }
 
 function S.LayoutContainer(viewerKey, isCapture)

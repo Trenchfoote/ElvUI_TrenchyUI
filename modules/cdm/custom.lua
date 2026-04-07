@@ -393,8 +393,7 @@ local function CreateCustomContainer()
 	frame:SetFrameLevel(5)
 
 	local configStr = 'TrenchyUI,cooldownManager,custom'
-	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr, true)
-	S.moverToViewer[configStr] = 'custom'
+	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
 	S.containers['custom'] = frame
 end
 

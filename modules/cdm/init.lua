@@ -487,17 +487,8 @@ C_Timer.After(0, function()
 		end)
 	end
 
-	-- Mover right-click hook
-	hooksecurefunc(E, 'ToggleOptions', function(_, msg)
-		local viewerKey = msg and S.moverToViewer[msg]
-		if viewerKey then
-			local db = S.GetDB()
-			if db then db.selectedViewer = viewerKey end
-			E.Libs.AceConfigRegistry:NotifyChange('ElvUI')
-			S.ShowBlizzardCDMSettings()
-		end
-
-		-- Also try to hook config close from here as a fallback
+	-- Config close hook fallback from mover right-click
+	hooksecurefunc(E, 'ToggleOptions', function()
 		C_Timer.After(0.1, TryHookConfigClose)
 	end)
 end)
