@@ -458,16 +458,8 @@ function S.CreateMeterFrame(win, isEmbedded)
         S.ResizeStandalone(win)
 
         local moverLabel = i == 1 and "TDM" or ("TDM " .. i)
-        E:CreateMover(window, winName, moverLabel, nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,damageMeter')
+        E:CreateMover(window, winName, moverLabel, nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,damageMeter,window' .. i)
 
-        local holder = E:GetMoverHolder(winName)
-        if holder and holder.mover then
-            holder.mover:HookScript('OnMouseDown', function(_, button)
-                if button == 'RightButton' and not IsControlKeyDown() and not IsShiftKeyDown() then
-                    TUI._selectedMeterWindow = i
-                end
-            end)
-        end
     end
 end
 
