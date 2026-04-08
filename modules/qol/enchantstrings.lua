@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 local M = E:GetModule('Misc')
 
 local hooksecurefunc = hooksecurefunc
@@ -131,7 +131,7 @@ local ENCHANT_MAP = {
 	["Whisper of Armored Speed"]     = "Armored Speed",
 }
 
-function TUI:InitEnchantStrings()
+function QOL:InitEnchantStrings()
 	if not E.db.general.itemLevel.showEnchants then return end
 
 	local matchPattern = _G.ENCHANTED_TOOLTIP_LINE and _G.ENCHANTED_TOOLTIP_LINE:gsub('%%s', '(.+)')
@@ -157,3 +157,19 @@ function TUI:InitEnchantStrings()
 		slot.enchantText:SetText(display)
 	end)
 end
+
+function QOL:Initialize()
+	local TUI = E:GetModule('TrenchyUI')
+	local db = TUI.db.profile.qol
+	if db.hideTalkingHead then self:InitHideTalkingHead() end
+	if db.autoFillDelete then self:InitAutoFillDelete() end
+	if db.difficultyText then self:InitDifficultyText() end
+	if db.fastLoot then self:InitFastLoot() end
+	if db.moveableFrames and not TUI:IsCompatBlocked('moveableFrames') then self:InitMoveableFrames() end
+	if db.hideObjectiveInCombat then self:InitHideObjectiveInCombat() end
+	if self.InitMinimapButtonBar then self:InitMinimapButtonBar() end
+	if db.cursorCircle then self:InitCursorCircle() end
+	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
+end
+
+E:RegisterModule(QOL:GetName())

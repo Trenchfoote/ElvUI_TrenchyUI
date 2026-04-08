@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
 local CreateFrame = CreateFrame
 local GetCursorPosition = GetCursorPosition
@@ -18,9 +19,9 @@ local function ApplyCircleColor()
 	end
 end
 
-function TUI:InitCursorCircle()
+function QOL:InitCursorCircle()
 	if circleFrame then return end
-	local db = self.db.profile.qol
+	local db = TUI.db.profile.qol
 
 	circleFrame = CreateFrame('Frame', nil, UIParent)
 	circleFrame:SetSize(db.cursorCircleSize or 64, db.cursorCircleSize or 64)
@@ -49,16 +50,16 @@ function TUI:InitCursorCircle()
 	end
 end
 
-function TUI:UpdateCursorCircle()
+function QOL:UpdateCursorCircle()
 	if not circleFrame then return end
-	local db = self.db.profile.qol
+	local db = TUI.db.profile.qol
 	local size = db.cursorCircleSize or 64
 	circleFrame:SetSize(size, size)
 	circleTexture:SetTexture(TEXTURE_PATH .. (db.cursorCircleThickness or 'medium'))
 	ApplyCircleColor()
 end
 
-function TUI:ToggleCursorCircle(enable)
+function QOL:ToggleCursorCircle(enable)
 	if enable then
 		if not circleFrame then
 			self:InitCursorCircle()

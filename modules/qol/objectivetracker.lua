@@ -1,20 +1,20 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
-function TUI:InitHideObjectiveInCombat()
+function QOL:InitHideObjectiveInCombat()
 	local tracker = ObjectiveTrackerFrame
 	if not tracker then return end
 
 	local BL = E:GetModule('Blizzard')
 	local wasCollapsed = false
 
-	TUI:RegisterEvent('PLAYER_REGEN_DISABLED', function()
+	QOL:RegisterEvent('PLAYER_REGEN_DISABLED', function()
 		wasCollapsed = BL:ObjectiveTracker_IsCollapsed(tracker)
 		if not wasCollapsed then
 			BL:ObjectiveTracker_Collapse(tracker)
 		end
 	end)
-	TUI:RegisterEvent('PLAYER_REGEN_ENABLED', function()
+	QOL:RegisterEvent('PLAYER_REGEN_ENABLED', function()
 		if not wasCollapsed then
 			BL:ObjectiveTracker_Expand(tracker)
 		end

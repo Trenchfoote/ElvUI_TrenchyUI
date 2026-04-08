@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
 local CreateFrame = CreateFrame
 local ipairs, pairs, sort = ipairs, pairs, sort
@@ -271,7 +272,7 @@ local function CollectButtons()
 	end)
 end
 
-function TUI:UpdateMinimapButtonBar()
+function QOL:UpdateMinimapButtonBar()
 	if not mbbBar then return end
 	CollectButtons()
 	LayoutBar()
@@ -279,7 +280,7 @@ function TUI:UpdateMinimapButtonBar()
 	UpdateVisibility()
 end
 
-function TUI:InitMinimapButtonBar()
+function QOL:InitMinimapButtonBar()
 	local db = GetMBBDB()
 	if not db.enabled then return end
 
@@ -294,35 +295,35 @@ function TUI:InitMinimapButtonBar()
 		mbbBar:SetScript('OnLeave', UpdateVisibility)
 		mbbBar:HookScript('OnShow', UpdateVisibility)
 
-		TUI:RegisterEvent('PLAYER_REGEN_DISABLED', function()
+		QOL:RegisterEvent('PLAYER_REGEN_DISABLED', function()
 			mbbInCombat = true
 			UpdateVisibility()
 		end)
-		TUI:RegisterEvent('PLAYER_REGEN_ENABLED', function()
+		QOL:RegisterEvent('PLAYER_REGEN_ENABLED', function()
 			mbbInCombat = false
 			UpdateVisibility()
 		end)
-		TUI:RegisterEvent('PET_BATTLE_OPENING_START', UpdateVisibility)
-		TUI:RegisterEvent('PET_BATTLE_CLOSE', UpdateVisibility)
+		QOL:RegisterEvent('PET_BATTLE_OPENING_START', UpdateVisibility)
+		QOL:RegisterEvent('PET_BATTLE_CLOSE', UpdateVisibility)
 
 		E:CreateMover(mbbBar, 'TrenchyUIMinimapButtonBarMover', 'TUI Minimap Buttons', nil, nil, LayoutBar, 'ALL,TRENCHYUI', nil, 'TrenchyUI,qol')
-		TUI:UpdateMinimapButtonBar()
-		C_Timer.After(5, function() TUI:UpdateMinimapButtonBar() end)
+		QOL:UpdateMinimapButtonBar()
+		C_Timer.After(5, function() QOL:UpdateMinimapButtonBar() end)
 
 		-- Re-collect when LibDBIcon creates or shows/hides a button
 		local LDB = LibStub and LibStub('LibDBIcon-1.0', true)
 		if LDB then
-			LDB.RegisterCallback(TUI, 'LibDBIcon_IconCreated', function()
-				C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end)
+			LDB.RegisterCallback(QOL, 'LibDBIcon_IconCreated', function()
+				C_Timer.After(0.1, function() QOL:UpdateMinimapButtonBar() end)
 			end)
 
 			local origShow = LDB.Show
 			if origShow then
-				hooksecurefunc(LDB, 'Show', function() C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end) end)
+				hooksecurefunc(LDB, 'Show', function() C_Timer.After(0.1, function() QOL:UpdateMinimapButtonBar() end) end)
 			end
 			local origHide = LDB.Hide
 			if origHide then
-				hooksecurefunc(LDB, 'Hide', function() C_Timer.After(0.1, function() TUI:UpdateMinimapButtonBar() end) end)
+				hooksecurefunc(LDB, 'Hide', function() C_Timer.After(0.1, function() QOL:UpdateMinimapButtonBar() end) end)
 			end
 		end
 	end)

@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local QOL = E:NewModule('TUI_QoL', 'AceEvent-3.0', 'AceHook-3.0')
 
 local tremove = tremove
 
@@ -22,11 +22,11 @@ local function KillTalkingHead()
 		end
 	end
 
-	if not TUI:IsHooked(thf, 'Show') then
-		TUI:SecureHook(thf, 'Show', function(self) self:Hide() end)
+	if not QOL:IsHooked(thf, 'Show') then
+		QOL:SecureHook(thf, 'Show', function(self) self:Hide() end)
 	end
 end
 
-function TUI:InitHideTalkingHead()
+function QOL:InitHideTalkingHead()
 	KillTalkingHead()
 end

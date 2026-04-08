@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
 local hooksecurefunc = hooksecurefunc
 
@@ -8,7 +8,7 @@ local DELETE_DIALOGS = {
 	['DELETE_GOOD_QUEST_ITEM'] = true,
 }
 
-function TUI:InitAutoFillDelete()
+function QOL:InitAutoFillDelete()
 	hooksecurefunc('StaticPopup_Show', function(which)
 		if not DELETE_DIALOGS[which] then return end
 

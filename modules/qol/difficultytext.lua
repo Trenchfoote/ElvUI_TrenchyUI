@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
 local LSM = E.Libs.LSM
 local CreateFrame = CreateFrame
@@ -74,9 +75,9 @@ local function CreateDifficultyText()
 	diffLevelString:SetJustifyH('CENTER')
 end
 
-function TUI:UpdateDifficultyFont()
+function QOL:UpdateDifficultyFont()
 	if not diffFontString then return end
-	local db = self.db.profile.qol
+	local db = TUI.db.profile.qol
 	local fontPath = LSM:Fetch('font', db.difficultyFont or 'Expressway')
 	local fontSize = db.difficultyFontSize or 14
 	local fontOutline = db.difficultyFontOutline or 'OUTLINE'
@@ -151,7 +152,7 @@ local function HideBlizzardDifficultyFlag()
 	end
 end
 
-function TUI:InitDifficultyText()
+function QOL:InitDifficultyText()
 	HideBlizzardDifficultyFlag()
 	CreateDifficultyText()
 	UpdateDifficultyText()
@@ -161,13 +162,13 @@ function TUI:InitDifficultyText()
 		UpdateDifficultyText()
 	end
 
-	TUI:RegisterEvent('PLAYER_DIFFICULTY_CHANGED', OnDifficultyEvent)
-	TUI:RegisterEvent('ZONE_CHANGED', OnDifficultyEvent)
-	TUI:RegisterEvent('ZONE_CHANGED_INDOORS', OnDifficultyEvent)
-	TUI:RegisterEvent('ZONE_CHANGED_NEW_AREA', OnDifficultyEvent)
-	TUI:RegisterEvent('PLAYER_ENTERING_WORLD', OnDifficultyEvent)
-	TUI:RegisterEvent('CHALLENGE_MODE_START', OnDifficultyEvent)
-	TUI:RegisterEvent('CHALLENGE_MODE_COMPLETED', OnDifficultyEvent)
-	TUI:RegisterEvent('CHALLENGE_MODE_RESET', OnDifficultyEvent)
-	TUI:RegisterEvent('UPDATE_INSTANCE_INFO', OnDifficultyEvent)
+	QOL:RegisterEvent('PLAYER_DIFFICULTY_CHANGED', OnDifficultyEvent)
+	QOL:RegisterEvent('ZONE_CHANGED', OnDifficultyEvent)
+	QOL:RegisterEvent('ZONE_CHANGED_INDOORS', OnDifficultyEvent)
+	QOL:RegisterEvent('ZONE_CHANGED_NEW_AREA', OnDifficultyEvent)
+	QOL:RegisterEvent('PLAYER_ENTERING_WORLD', OnDifficultyEvent)
+	QOL:RegisterEvent('CHALLENGE_MODE_START', OnDifficultyEvent)
+	QOL:RegisterEvent('CHALLENGE_MODE_COMPLETED', OnDifficultyEvent)
+	QOL:RegisterEvent('CHALLENGE_MODE_RESET', OnDifficultyEvent)
+	QOL:RegisterEvent('UPDATE_INSTANCE_INFO', OnDifficultyEvent)
 end

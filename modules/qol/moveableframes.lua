@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local QOL = E:GetModule('TUI_QoL')
 
 local CreateFrame = CreateFrame
 local hooksecurefunc = hooksecurefunc
@@ -111,7 +111,7 @@ local function HookElvUIBags()
 	if B.BankFrame then B.BankFrame:SetScript('OnDragStart', FreeDrag); hookedFrames[B.BankFrame] = true end
 end
 
-function TUI:InitMoveableFrames()
+function QOL:InitMoveableFrames()
 	C_Timer.After(1, function()
 		HookUIPanels()
 		HookElvUIBags()
