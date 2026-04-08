@@ -1,7 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
-local S = TUI._tdm
-if not S then return end
+local TDM = E:GetModule('TUI_TDM')
 
 local LSM = E.Libs.LSM
 local Skins = E:GetModule('Skins')
@@ -17,46 +16,46 @@ local function OpenMenuAnchored(menuItems, header)
 	end
 end
 
-function S.SetupScrollWheel(win)
+function TDM.SetupScrollWheel(win)
     win.frame:EnableMouseWheel(true)
     win.frame:SetScript("OnMouseWheel", function(_, delta)
         local total
         if win.drillSource then
-            total = S.GetDrillSpellCount(win)
-        elseif S.testMode then
-            total = #S.GetTestData(win)
+            total = TDM.GetDrillSpellCount(win)
+        elseif TDM.testMode then
+            total = #TDM.GetTestData(win)
         else
-            local meterType = S.ResolveMeterType(S.MODE_ORDER[win.modeIndex])
-            local session   = S.GetSession(win, meterType)
+            local meterType = TDM.ResolveMeterType(TDM.MODE_ORDER[win.modeIndex])
+            local session   = TDM.GetSession(win, meterType)
             total = (session and session.combatSources and #session.combatSources) or 0
         end
-        local numVis = S.ComputeNumVisible(win)
+        local numVis = TDM.ComputeNumVisible(win)
         local maxOff = max(0, total - numVis)
         win.scrollOffset = max(0, min(maxOff, win.scrollOffset - delta))
-        S.RefreshWindow(win)
+        TDM.RefreshWindow(win)
     end)
 end
 
-function S.FadeHeaderIn(win)
-    local db = S.GetWinDB(win.index)
+function TDM.FadeHeaderIn(win)
+    local db = TDM.GetWinDB(win.index)
     if not db.headerMouseover then return end
     if win.header then E:UIFrameFadeIn(win.header, 0.2, win.header:GetAlpha(), 1) end
     if win.headerBorder then E:UIFrameFadeIn(win.headerBorder, 0.2, win.headerBorder:GetAlpha(), 1) end
 end
 
-function S.FadeHeaderOut(win)
-    local db = S.GetWinDB(win.index)
+function TDM.FadeHeaderOut(win)
+    local db = TDM.GetWinDB(win.index)
     if not db.headerMouseover then return end
     if win.header then E:UIFrameFadeOut(win.header, 0.2, win.header:GetAlpha(), 0) end
     if win.headerBorder then E:UIFrameFadeOut(win.headerBorder, 0.2, win.headerBorder:GetAlpha(), 0) end
 end
 
-function S.SetupHeaderMouseover(win)
+function TDM.SetupHeaderMouseover(win)
     if win._headerMouseoverHooked then return end
     win._headerMouseoverHooked = true
 
-    local function OnEnter() S.FadeHeaderIn(win) end
-    local function OnLeave() S.FadeHeaderOut(win) end
+    local function OnEnter() TDM.FadeHeaderIn(win) end
+    local function OnLeave() TDM.FadeHeaderOut(win) end
 
     if win.header then
         win.header:HookScript("OnEnter", OnEnter)
@@ -70,12 +69,12 @@ function S.SetupHeaderMouseover(win)
     end
 end
 
-function S.ApplyHeaderStyle(win, db)
+function TDM.ApplyHeaderStyle(win, db)
     local header = win.header
     if not header then return end
 
     local fontPath = LSM:Fetch("font", db.headerFont)
-    local flags    = S.FontFlags(db.headerFontOutline)
+    local flags    = TDM.FontFlags(db.headerFontOutline)
 
     local hc = db.headerBGColor
     if db.showHeaderBackdrop then
@@ -103,14 +102,14 @@ function S.ApplyHeaderStyle(win, db)
     end
 end
 
-function S.MakeModeEntry(win, mtype)
+function TDM.MakeModeEntry(win, mtype)
     local idx
-    for i, mt in ipairs(S.MODE_ORDER) do
+    for i, mt in ipairs(TDM.MODE_ORDER) do
         if mt == mtype then idx = i; break end
     end
     if not idx then return nil end
 
-    local label = S.MODE_LABELS[mtype] or "?"
+    local label = TDM.MODE_LABELS[mtype] or "?"
     return {
         text         = (idx == win.modeIndex) and ("|cffffd100" .. label .. "|r") or label,
         notCheckable = true,
@@ -125,36 +124,36 @@ function S.MakeModeEntry(win, mtype)
                 db.extraWindows[win.index] = db.extraWindows[win.index] or {}
                 db.extraWindows[win.index].modeIndex = idx
             end
-            S.RefreshWindow(win)
+            TDM.RefreshWindow(win)
         end,
     }
 end
 
-function S.BuildModeMenu(win)
+function TDM.BuildModeMenu(win)
     local dmg = {
-        S.MakeModeEntry(win, Enum.DamageMeterType.DamageDone),
-        S.MakeModeEntry(win, Enum.DamageMeterType.Dps),
-        S.MakeModeEntry(win, S.COMBINED_DAMAGE),
-        S.MakeModeEntry(win, Enum.DamageMeterType.DamageTaken),
-        S.MakeModeEntry(win, Enum.DamageMeterType.AvoidableDamageTaken),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.DamageDone),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.Dps),
+        TDM.MakeModeEntry(win, TDM.COMBINED_DAMAGE),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.DamageTaken),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.AvoidableDamageTaken),
     }
     if Enum.DamageMeterType.EnemyDamageTaken then
-        dmg[#dmg + 1] = S.MakeModeEntry(win, Enum.DamageMeterType.EnemyDamageTaken)
+        dmg[#dmg + 1] = TDM.MakeModeEntry(win, Enum.DamageMeterType.EnemyDamageTaken)
     end
 
     local heal = {
-        S.MakeModeEntry(win, Enum.DamageMeterType.HealingDone),
-        S.MakeModeEntry(win, Enum.DamageMeterType.Hps),
-        S.MakeModeEntry(win, S.COMBINED_HEALING),
-        S.MakeModeEntry(win, Enum.DamageMeterType.Absorbs),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.HealingDone),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.Hps),
+        TDM.MakeModeEntry(win, TDM.COMBINED_HEALING),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.Absorbs),
     }
 
     local actions = {
-        S.MakeModeEntry(win, Enum.DamageMeterType.Interrupts),
-        S.MakeModeEntry(win, Enum.DamageMeterType.Dispels),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.Interrupts),
+        TDM.MakeModeEntry(win, Enum.DamageMeterType.Dispels),
     }
     if Enum.DamageMeterType.Deaths then
-        actions[#actions + 1] = S.MakeModeEntry(win, Enum.DamageMeterType.Deaths)
+        actions[#actions + 1] = TDM.MakeModeEntry(win, Enum.DamageMeterType.Deaths)
     end
 
     return {
@@ -164,7 +163,7 @@ function S.BuildModeMenu(win)
     }
 end
 
-function S.BuildSessionMenu(win)
+function TDM.BuildSessionMenu(win)
     local menu = {}
 
     -- Encounter sessions first (oldest at top, newest at bottom)
@@ -186,7 +185,7 @@ function S.BuildSessionMenu(win)
                         win.sessionType  = nil
                         win.scrollOffset = 0
                         win.drillSource  = nil
-                        S.RefreshWindow(win)
+                        TDM.RefreshWindow(win)
                     end,
                 }
             end
@@ -204,7 +203,7 @@ function S.BuildSessionMenu(win)
             win.sessionType  = Enum.DamageMeterSessionType.Current
             win.scrollOffset = 0
             win.drillSource  = nil
-            S.RefreshWindow(win)
+            TDM.RefreshWindow(win)
         end,
     }
 
@@ -217,14 +216,14 @@ function S.BuildSessionMenu(win)
             win.sessionType  = Enum.DamageMeterSessionType.Overall
             win.scrollOffset = 0
             win.drillSource  = nil
-            S.RefreshWindow(win)
+            TDM.RefreshWindow(win)
         end,
     }
 
     return menu
 end
 
-function S.ToggleSession(win)
+function TDM.ToggleSession(win)
     win.sessionId = nil
     if win.sessionType == Enum.DamageMeterSessionType.Current then
         win.sessionType = Enum.DamageMeterSessionType.Overall
@@ -233,10 +232,10 @@ function S.ToggleSession(win)
     end
     win.scrollOffset = 0
     win.drillSource  = nil
-    S.RefreshWindow(win)
+    TDM.RefreshWindow(win)
 end
 
-function S.SetupHeaderContent(win, db)
+function TDM.SetupHeaderContent(win, db)
     local header = win.header
 
     header.bg = header:CreateTexture(nil, "BACKGROUND")
@@ -272,7 +271,7 @@ function S.SetupHeaderContent(win, db)
     header.timer = header:CreateFontString(nil, "OVERLAY")
     header.timer:SetShadowOffset(1, -1)
 
-    S.ApplyHeaderStyle(win, db)
+    TDM.ApplyHeaderStyle(win, db)
 
     -- Mode click area (left portion)
     header.modeArea = CreateFrame("Frame", nil, header)
@@ -282,12 +281,12 @@ function S.SetupHeaderContent(win, db)
     header.modeArea:SetScript("OnMouseUp", function(_, button)
         if button == "LeftButton" then
             if win.drillSource then
-                S.ExitDrillDown(win)
+                TDM.ExitDrillDown(win)
             else
-                OpenMenuAnchored(S.BuildModeMenu(win), header)
+                OpenMenuAnchored(TDM.BuildModeMenu(win), header)
             end
         elseif button == "RightButton" then
-            S.ToggleSession(win)
+            TDM.ToggleSession(win)
         end
     end)
     header.modeArea:SetScript("OnEnter", function(self)
@@ -309,9 +308,9 @@ function S.SetupHeaderContent(win, db)
     header.sessArea:EnableMouse(true)
     header.sessArea:SetScript("OnMouseUp", function(_, button)
         if button == "LeftButton" then
-            OpenMenuAnchored(S.BuildSessionMenu(win), header)
+            OpenMenuAnchored(TDM.BuildSessionMenu(win), header)
         elseif button == "RightButton" then
-            S.ToggleSession(win)
+            TDM.ToggleSession(win)
         end
     end)
     header.sessArea:SetScript("OnEnter", function(self)
@@ -323,7 +322,7 @@ function S.SetupHeaderContent(win, db)
     header.sessArea:SetScript("OnLeave", GameTooltip_Hide)
 end
 
-function S.SetupWindowContent(win, db, parent)
+function TDM.SetupWindowContent(win, db, parent)
     local i       = win.index
     local winName = i == 1 and "TrenchyUIMeter" or ("TrenchyUIMeter" .. i)
     local hdrName = i == 1 and "TrenchyUIMeterHeader" or ("TrenchyUIMeterHeader" .. i)
@@ -338,7 +337,7 @@ function S.SetupWindowContent(win, db, parent)
     if win.embedded then
         headerBorder:SetPoint("BOTTOMRIGHT", headerAnchor, "BOTTOMRIGHT")
     else
-        headerBorder:SetHeight(S.HEADER_HEIGHT + 1)
+        headerBorder:SetHeight(TDM.HEADER_HEIGHT + 1)
     end
     win.headerBorder = headerBorder
 
@@ -349,7 +348,7 @@ function S.SetupWindowContent(win, db, parent)
     if win.embedded then
         win.header:SetPoint("BOTTOMRIGHT", headerAnchor, "BOTTOMRIGHT")
     else
-        win.header:SetHeight(S.HEADER_HEIGHT)
+        win.header:SetHeight(TDM.HEADER_HEIGHT)
     end
     win.header:SetFrameLevel(headerAnchor:GetFrameLevel() + 1)
 
@@ -361,7 +360,7 @@ function S.SetupWindowContent(win, db, parent)
     end
     win.header:EnableMouse(true)
 
-    S.SetupHeaderContent(win, db)
+    TDM.SetupHeaderContent(win, db)
 
     -- Bar area frame
     local frameName = win.embedded and winName or nil
@@ -369,7 +368,7 @@ function S.SetupWindowContent(win, db, parent)
     win.frame:SetFrameStrata("MEDIUM")
     win.frame:SetClipsChildren(true)
     if not win.embedded then
-        win.frame:SetPoint("TOPLEFT",     win.window, "TOPLEFT",     0, -S.HEADER_HEIGHT)
+        win.frame:SetPoint("TOPLEFT",     win.window, "TOPLEFT",     0, -TDM.HEADER_HEIGHT)
         win.frame:SetPoint("BOTTOMRIGHT", win.window, "BOTTOMRIGHT", 0,  0)
     end
 
@@ -387,13 +386,13 @@ function S.SetupWindowContent(win, db, parent)
 
     -- Bars
     local fontPath = LSM:Fetch("font", db.barFont)
-    local flags    = S.FontFlags(db.barFontOutline)
+    local flags    = TDM.FontFlags(db.barFontOutline)
 
-    for j = 1, S.MAX_BARS do
-        local bar = S.CreateBar(win.frame)
-        S.StyleBarTexts(bar, fontPath, db.barFontSize, flags)
-        S.ApplyBarIconLayout(bar, db)
-        S.ApplyBarBorder(bar, db)
+    for j = 1, TDM.MAX_BARS do
+        local bar = TDM.CreateBar(win.frame)
+        TDM.StyleBarTexts(bar, fontPath, db.barFontSize, flags)
+        TDM.ApplyBarIconLayout(bar, db)
+        TDM.ApplyBarBorder(bar, db)
 
         local sp = max(0, db.barSpacing or 1)
         local borderAdj = (db.barBorderEnabled and sp == 0) and 1 or 0
@@ -405,30 +404,30 @@ function S.SetupWindowContent(win, db, parent)
             bar.frame:SetPoint("TOPRIGHT", win.bars[j-1].frame, "BOTTOMRIGHT", 0, -sp + borderAdj)
         end
         win.bars[j] = bar
-        S.SetupBarInteraction(bar, win)
+        TDM.SetupBarInteraction(bar, win)
     end
 
-    S.SetupScrollWheel(win)
+    TDM.SetupScrollWheel(win)
 
     -- Header mouseover: set up hooks and apply initial alpha
-    S.SetupHeaderMouseover(win)
+    TDM.SetupHeaderMouseover(win)
     if db.headerMouseover then
         win.header:SetAlpha(0)
         if win.headerBorder then win.headerBorder:SetAlpha(0) end
     end
 end
 
-function S.CreateMeterFrame(win, isEmbedded)
+function TDM.CreateMeterFrame(win, isEmbedded)
     local CH = E:GetModule('Chat')
-    local db = S.GetWinDB(win.index)
+    local db = TDM.GetWinDB(win.index)
     win.embedded = isEmbedded
 
     if isEmbedded then
         local panel = _G.RightChatPanel
         if not panel or not _G.RightChatTab then return end
 
-        S.SetupWindowContent(win, db, panel)
-        S.ResizeToPanel(win)
+        TDM.SetupWindowContent(win, db, panel)
+        TDM.ResizeToPanel(win)
 
         if CH.RightChatWindow then CH.RightChatWindow:Hide() end
     else
@@ -454,8 +453,8 @@ function S.CreateMeterFrame(win, isEmbedded)
         window:SetFrameLevel(300)
         win.window = window
 
-        S.SetupWindowContent(win, db, window)
-        S.ResizeStandalone(win)
+        TDM.SetupWindowContent(win, db, window)
+        TDM.ResizeStandalone(win)
 
         local moverLabel = i == 1 and "TDM" or ("TDM " .. i)
         E:CreateMover(window, winName, moverLabel, nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,damageMeter,window' .. i)
@@ -463,10 +462,10 @@ function S.CreateMeterFrame(win, isEmbedded)
     end
 end
 
-function S.RespaceBarAnchors(win, db)
+function TDM.RespaceBarAnchors(win, db)
     local sp = max(0, db.barSpacing or 1)
     local borderAdj = (db.barBorderEnabled and sp == 0) and 1 or 0
-    for i = 1, S.MAX_BARS do
+    for i = 1, TDM.MAX_BARS do
         local bar = win.bars[i]
         if not bar then break end
         bar.frame:ClearAllPoints()

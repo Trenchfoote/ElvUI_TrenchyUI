@@ -1,7 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._tdm
-if not S then return end
+local TDM = E:GetModule('TUI_TDM')
 
 -- Test data: damage / DPS
 local TEST_DAMAGE = {
@@ -140,11 +138,11 @@ local TEST_DEATHS = {
     { name = "Druid",       value = 0, class = "DRUID", spells = {} },
 }
 
-function S.GetTestData(win)
-    local modeEntry = S.MODE_ORDER[win.modeIndex]
+function TDM.GetTestData(win)
+    local modeEntry = TDM.MODE_ORDER[win.modeIndex]
     if modeEntry == Enum.DamageMeterType.HealingDone
     or modeEntry == Enum.DamageMeterType.Hps
-    or modeEntry == S.COMBINED_HEALING
+    or modeEntry == TDM.COMBINED_HEALING
     or modeEntry == Enum.DamageMeterType.Absorbs then
         return TEST_HEALING
     elseif modeEntry == Enum.DamageMeterType.Interrupts then

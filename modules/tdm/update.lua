@@ -1,7 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
-local S = TUI._tdm
-if not S then return end
+local TDM = E:GetModule('TUI_TDM')
 
 local LSM = E.Libs.LSM
 local floor = math.floor
@@ -15,20 +14,20 @@ local function ScheduleMeterRefresh()
     refreshPending = true
     C_Timer.After(0, function()
         refreshPending = false
-        TUI:RefreshMeter()
+        TDM:RefreshMeter()
     end)
 end
 
-function S.RefreshWindow(win)
+function TDM.RefreshWindow(win)
     if not win or not win.frame or not win.header then return end
 
-    local db = S.GetWinDB(win.index)
+    local db = TDM.GetWinDB(win.index)
 
     if win.drillSource then
         local ds = win.drillSource
-        local modeEntry = S.MODE_ORDER[win.modeIndex]
-        local modeLabel = S.MODE_SHORT[modeEntry] or S.MODE_LABELS[modeEntry] or "?"
-        local sessLabel = S.GetSessionLabel(win)
+        local modeEntry = TDM.MODE_ORDER[win.modeIndex]
+        local modeLabel = TDM.MODE_SHORT[modeEntry] or TDM.MODE_LABELS[modeEntry] or "?"
+        local sessLabel = TDM.GetSessionLabel(win)
         local drillName = ds.name
         if (not drillName or drillName == '?') and (ds.secretGUID or ds.guid) then
             local resolved = select(6, GetPlayerInfoByGUID(ds.secretGUID or ds.guid))
@@ -43,17 +42,17 @@ function S.RefreshWindow(win)
         local nameHex = cr and format("%02x%02x%02x", cr * 255, cg * 255, cb * 255) or "ffffff"
         win.header.modeText:SetText(format("|cff%s%s|r \226\128\148 %s", nameHex, drillName, modeLabel))
         win.header.sessText:SetText(" (" .. sessLabel .. ")")
-        S.ApplySessionHighlight(win, db)
+        TDM.ApplySessionHighlight(win, db)
         win.header.timer:Hide()
 
         if ds.deathRecapID then
-            S.RenderDeathRecap(win, ds, db)
+            TDM.RenderDeathRecap(win, ds, db)
             return
         end
 
         local spells, sourceMaxAmount, sourceTotalAmount
-        if S.testMode then
-            local tdata = S.GetTestData(win)
+        if TDM.testMode then
+            local tdata = TDM.GetTestData(win)
             for _, td in ipairs(tdata) do
                 if td.name == ds.name then
                     spells = td.spells
@@ -65,12 +64,12 @@ function S.RefreshWindow(win)
                 end
             end
         else
-            local meterType = S.ResolveMeterType(modeEntry)
+            local meterType = TDM.ResolveMeterType(modeEntry)
             local sourceData = ds.sourceData
 
             -- Use sourceIndex to resolve metadata (name, class, guid) from the summary list
             if ds.sourceIndex then
-                local session = S.GetSession(win, meterType)
+                local session = TDM.GetSession(win, meterType)
                 local src = session and session.combatSources and session.combatSources[ds.sourceIndex]
                 if src then
                     if (not ds.name or ds.name == '?') and E:NotSecretValue(src.name) and src.name and src.name ~= '' then
@@ -92,9 +91,9 @@ function S.RefreshWindow(win)
             end
 
             -- GetSessionSource returns full source data including combatSpells
-            local lookupGUID = ds.guid or S.ResolveGUID(ds.secretGUID, ds.specIconID)
+            local lookupGUID = ds.guid or TDM.ResolveGUID(ds.secretGUID, ds.specIconID)
             if lookupGUID or ds.sourceCreatureID then
-                local fullSource = S.GetSessionSource(win, meterType, lookupGUID, ds.sourceCreatureID)
+                local fullSource = TDM.GetSessionSource(win, meterType, lookupGUID, ds.sourceCreatureID)
                 if fullSource then
                     sourceData = fullSource
                     ds.sourceData = fullSource
@@ -106,25 +105,25 @@ function S.RefreshWindow(win)
         end
 
         if not spells or #spells == 0 then
-            for i = 1, S.MAX_BARS do
+            for i = 1, TDM.MAX_BARS do
                 if win.bars[i] then win.bars[i].frame:Hide() end
             end
             return
         end
 
-        local numVisible = S.ComputeNumVisible(win)
+        local numVisible = TDM.ComputeNumVisible(win)
         local total = #spells
         win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
 
         local topVal = sourceMaxAmount or 1
         local totalAmt = sourceTotalAmount or 1
 
-        local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
-        local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
-        local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', ds.class)
-        local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
+        local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
+        local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
+        local tR, tG, tB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', ds.class)
+        local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
 
-        for i = 1, S.MAX_BARS do
+        for i = 1, TDM.MAX_BARS do
             local bar = win.bars[i]
             if not bar then break end
             local spIdx = win.scrollOffset + i
@@ -143,14 +142,14 @@ function S.RefreshWindow(win)
 
                 local iconID
                 if spellID then
-                    local cached = S.spellCache[spellID]
+                    local cached = TDM.spellCache[spellID]
                     if cached then
                         spellName = cached.name or spellName
                         iconID = cached.icon
                     else
                         spellName = C_Spell.GetSpellName(spellID) or spellName
                         iconID = C_Spell.GetSpellTexture(spellID)
-                        S.spellCache[spellID] = { name = spellName, icon = iconID }
+                        TDM.spellCache[spellID] = { name = spellName, icon = iconID }
                     end
                 elseif isSecretID and rawSpellID then
                     spellName = C_Spell.GetSpellName(rawSpellID)
@@ -220,9 +219,9 @@ function S.RefreshWindow(win)
 
                 -- Value in parens
                 if E:IsSecretValue(amt) then
-                    bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, S.ABBREV_SHORT))
+                    bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, TDM.ABBREV_SHORT))
                 else
-                    bar.rightText:SetText('(' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
+                    bar.rightText:SetText('(' .. AbbreviateNumbers(floor(amt + 0.5), TDM.ABBREV_SHORT) .. ')')
                 end
 
                 -- DPS
@@ -231,7 +230,7 @@ function S.RefreshWindow(win)
                     bar.dpsText:SetFont(bar.rightText:GetFont())
                     bar.dpsText:SetTextColor(vR, vG, vB)
                     if dps then
-                        S.FormatValueText(bar.dpsText, dps)
+                        TDM.FormatValueText(bar.dpsText, dps)
                     else
                         bar.dpsText:SetText('')
                     end
@@ -250,16 +249,16 @@ function S.RefreshWindow(win)
         return
     end
 
-    if S.testMode then
+    if TDM.testMode then
         win.header.modeText:SetText("|cffff6600[Test Mode]|r")
         win.header.sessText:SetText("")
         win.header.timer:Hide()
-        local tdata      = S.GetTestData(win)
-        local numVisible = S.ComputeNumVisible(win)
+        local tdata      = TDM.GetTestData(win)
+        local numVisible = TDM.ComputeNumVisible(win)
         local maxVal     = tdata[1] and tdata[1].value or 1
         local total      = #tdata
         win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
-        for i = 1, S.MAX_BARS do
+        for i = 1, TDM.MAX_BARS do
             local bar = win.bars[i]
             if not bar then break end
             local srcIdx = win.scrollOffset + i
@@ -268,24 +267,24 @@ function S.RefreshWindow(win)
                 bar.frame:Hide()
             else
                 bar.frame:Show()
-                local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', td.class)
+                local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', td.class)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 bar.statusbar:SetMinMaxValues(0, maxVal)
                 bar.statusbar:SetValue(td.value, SMOOTH)
-                local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', td.class)
+                local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', td.class)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
-                local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', td.class)
+                local tR, tG, tB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', td.class)
                 if db.showRank then
-                    local rr, rg, rb = S.ClassOrColor(db, 'rankClassColor', 'rankColor', td.class)
+                    local rr, rg, rb = TDM.ClassOrColor(db, 'rankClassColor', 'rankColor', td.class)
                     bar.leftText:SetText(format("|cff%02x%02x%02x%d.|r %s",
                         rr * 255, rg * 255, rb * 255, srcIdx, td.name))
                 else
                     bar.leftText:SetText(td.name)
                 end
                 bar.leftText:SetTextColor(tR, tG, tB)
-                if bar._isDrill then S.ResetDrillBar(bar, db) end
-                local modeEntry = S.MODE_ORDER[win.modeIndex]
-                if modeEntry == S.COMBINED_DAMAGE or modeEntry == S.COMBINED_HEALING then
+                if bar._isDrill then TDM.ResetDrillBar(bar, db) end
+                local modeEntry = TDM.MODE_ORDER[win.modeIndex]
+                if modeEntry == TDM.COMBINED_DAMAGE or modeEntry == TDM.COMBINED_HEALING then
                     if not bar.dpsText then
                         bar.dpsText = bar.statusbar:CreateFontString(nil, 'OVERLAY')
                         bar.dpsText:SetJustifyH('RIGHT')
@@ -307,20 +306,20 @@ function S.RefreshWindow(win)
                         end
                         bar.leftText:SetPoint("RIGHT", bar.dpsText, "LEFT", -4, 0)
                     end
-                    S.FormatCombinedText(bar.rightText, bar.dpsText, td.value, td.value / 20)
+                    TDM.FormatCombinedText(bar.rightText, bar.dpsText, td.value, td.value / 20)
                 else
                     if bar._mainCombined then
                         bar._mainCombined = nil
                         if bar.dpsText then bar.dpsText:Hide() end
-                        S.ApplyBarIconLayout(bar, db)
+                        TDM.ApplyBarIconLayout(bar, db)
                     end
-                    S.FormatValueText(bar.rightText, td.value)
+                    TDM.FormatValueText(bar.rightText, td.value)
                 end
-                local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', td.class)
+                local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', td.class)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
                 if db.showClassIcon then
-                    local coords = S.CLASS_ICON_COORDS[td.class]
+                    local coords = TDM.CLASS_ICON_COORDS[td.class]
                     if coords then
                         bar.classIcon:SetTexCoord(unpack(coords))
                         bar.classIcon:Show()
@@ -340,14 +339,14 @@ function S.RefreshWindow(win)
         return
     end
 
-    local modeEntry = S.MODE_ORDER[win.modeIndex]
-    local meterType = S.ResolveMeterType(modeEntry)
-    local modeLabel = S.MODE_SHORT[modeEntry] or S.MODE_LABELS[modeEntry] or "?"
-    local sessLabel = S.GetSessionLabel(win)
+    local modeEntry = TDM.MODE_ORDER[win.modeIndex]
+    local meterType = TDM.ResolveMeterType(modeEntry)
+    local modeLabel = TDM.MODE_SHORT[modeEntry] or TDM.MODE_LABELS[modeEntry] or "?"
+    local sessLabel = TDM.GetSessionLabel(win)
 
     win.header.modeText:SetText(modeLabel)
     win.header.sessText:SetText(" \226\128\148 " .. sessLabel)
-    S.ApplySessionHighlight(win, db)
+    TDM.ApplySessionHighlight(win, db)
 
     if db.showTimer and win.sessionType then
         local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
@@ -360,16 +359,16 @@ function S.RefreshWindow(win)
         win.header.timer:SetText('')
     end
 
-    local session    = S.GetSession(win, meterType)
+    local session    = TDM.GetSession(win, meterType)
     local sources    = session and session.combatSources
-    S.UpdateSpecIconCache(sources)
+    TDM.UpdateSpecIconCache(sources)
     local usePerSec  = (modeEntry == Enum.DamageMeterType.Dps or modeEntry == Enum.DamageMeterType.Hps)
-    local useCombined = (modeEntry == S.COMBINED_DAMAGE or modeEntry == S.COMBINED_HEALING)
-    local numVisible = S.ComputeNumVisible(win)
+    local useCombined = (modeEntry == TDM.COMBINED_DAMAGE or modeEntry == TDM.COMBINED_HEALING)
+    local numVisible = TDM.ComputeNumVisible(win)
     local total      = sources and #sources or 0
     win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
 
-    for i = 1, S.MAX_BARS do
+    for i = 1, TDM.MAX_BARS do
         local bar = win.bars[i]
         if not bar then break end
 
@@ -383,7 +382,7 @@ function S.RefreshWindow(win)
 
                 local specIcon = src.specIconID
                 local guid = (E:NotSecretValue(src.sourceGUID)) and src.sourceGUID
-                    or S.ResolveGUID(src.sourceGUID, specIcon)
+                    or TDM.ResolveGUID(src.sourceGUID, specIcon)
                 bar.frame.sourceGUID   = guid
                 bar.frame.secretGUID   = src.sourceGUID
                 bar.frame.specIconID   = specIcon
@@ -396,7 +395,7 @@ function S.RefreshWindow(win)
                 local classFilename = src.classFilename
                 bar.frame.sourceClass = classFilename
 
-                local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', classFilename)
+                local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', classFilename)
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 local isDeathsMode = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeathsMode then
@@ -407,7 +406,7 @@ function S.RefreshWindow(win)
                     bar.statusbar:SetValue(src.totalAmount or 0, SMOOTH)
                 end
 
-                local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
+                local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
 
                 -- Name resolution: roster cache > GetPlayerInfoByGUID > C_DamageMeter
@@ -415,11 +414,11 @@ function S.RefreshWindow(win)
                 local plainName, sourceUnit
                 if isLocal then
                     local pg = UnitGUID('player')
-                    plainName = (pg and S.nameCache[pg]) or UnitName('player') or '?'
+                    plainName = (pg and TDM.nameCache[pg]) or UnitName('player') or '?'
                     sourceUnit = 'player'
-                elseif guid and S.nameCache[guid] then
-                    plainName = S.nameCache[guid]
-                    sourceUnit = S.FindUnitByGUID(guid)
+                elseif guid and TDM.nameCache[guid] then
+                    plainName = TDM.nameCache[guid]
+                    sourceUnit = TDM.FindUnitByGUID(guid)
                 elseif src.name then
                     if E:IsSecretValue(src.name) then
                         plainName = src.name
@@ -429,7 +428,7 @@ function S.RefreshWindow(win)
                 end
                 bar.frame.sourceName = plainName or '?'
                 if not sourceUnit and plainName and E:NotSecretValue(plainName) then
-                    sourceUnit = S.FindUnitByName(plainName)
+                    sourceUnit = TDM.FindUnitByName(plainName)
                 end
                 bar.frame.sourceUnit = sourceUnit
 
@@ -446,7 +445,7 @@ function S.RefreshWindow(win)
                                 bar.frame.sourceName = plainName
                                 local cid = src.sourceCreatureID
                                 if cid and E:NotSecretValue(cid) then
-                                    S.creatureNameCache[cid] = plainName
+                                    TDM.creatureNameCache[cid] = plainName
                                 end
                             end
                         end
@@ -471,10 +470,10 @@ function S.RefreshWindow(win)
                 local secretName = (not plainName) and src.sourceGUID and select(6, GetPlayerInfoByGUID(src.sourceGUID))
                 bar.frame.secretName = secretName
 
-                local tR, tG, tB = S.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
+                local tR, tG, tB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', classFilename)
                 if plainName and E:NotSecretValue(plainName) then
                     if db.showRank then
-                        local rr, rg, rb = S.ClassOrColor(db, 'rankClassColor', 'rankColor', classFilename)
+                        local rr, rg, rb = TDM.ClassOrColor(db, 'rankClassColor', 'rankColor', classFilename)
                         bar.leftText:SetText(format('|cff%02x%02x%02x%d.|r %s',
                             rr * 255, rg * 255, rb * 255, srcIdx, plainName))
                     else
@@ -493,7 +492,7 @@ function S.RefreshWindow(win)
                 end
                 bar.leftText:SetTextColor(tR, tG, tB)
 
-                if bar._isDrill then S.ResetDrillBar(bar, db) end
+                if bar._isDrill then TDM.ResetDrillBar(bar, db) end
 
                 local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeaths then
@@ -506,7 +505,7 @@ function S.RefreshWindow(win)
                     if bar._mainCombined then
                         bar._mainCombined = nil
                         if bar.dpsText then bar.dpsText:Hide() end
-                        S.ApplyBarIconLayout(bar, db)
+                        TDM.ApplyBarIconLayout(bar, db)
                     end
                 elseif useCombined then
                     if not bar.dpsText then
@@ -530,22 +529,22 @@ function S.RefreshWindow(win)
                         end
                         bar.leftText:SetPoint("RIGHT", bar.dpsText, "LEFT", -4, 0)
                     end
-                    S.FormatCombinedText(bar.rightText, bar.dpsText, src.totalAmount, src.amountPerSecond)
+                    TDM.FormatCombinedText(bar.rightText, bar.dpsText, src.totalAmount, src.amountPerSecond)
                 else
                     if bar._mainCombined then
                         bar._mainCombined = nil
                         if bar.dpsText then bar.dpsText:Hide() end
-                        S.ApplyBarIconLayout(bar, db)
+                        TDM.ApplyBarIconLayout(bar, db)
                     end
                     local rawValue = usePerSec and src.amountPerSecond or src.totalAmount
-                    S.FormatValueText(bar.rightText, rawValue)
+                    TDM.FormatValueText(bar.rightText, rawValue)
                 end
-                local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', classFilename)
+                local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', classFilename)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
 
                 if db.showClassIcon then
-                    local coords = classFilename and S.CLASS_ICON_COORDS[classFilename]
+                    local coords = classFilename and TDM.CLASS_ICON_COORDS[classFilename]
                     if coords then
                         bar.classIcon:SetTexCoord(unpack(coords))
                         bar.classIcon:Show()
@@ -565,15 +564,14 @@ function S.RefreshWindow(win)
     end
 end
 
-function TUI:RefreshMeter()
-    for _, win in pairs(S.windows) do
-        S.RefreshWindow(win)
+function TDM:RefreshMeter()
+    for _, win in pairs(TDM.windows) do
+        TDM.RefreshWindow(win)
     end
 end
 
-function TUI:SetMeterTestMode(enabled)
-    S.testMode           = enabled
-    TUI._meterTestMode = enabled
+function TDM:SetMeterTestMode(enabled)
+    TDM.testMode = enabled
     ScheduleMeterRefresh()
 end
 
@@ -586,10 +584,10 @@ local function GetPlayerFaderSettings()
 end
 
 local function FadeMeterOut(smooth)
-    for _, win in pairs(S.windows) do
+    for _, win in pairs(TDM.windows) do
         if win.embedded then
             if win.frame then E:UIFrameFadeOut(win.frame, smooth, win.frame:GetAlpha(), 0) end
-            local wdb = S.GetWinDB(win.index)
+            local wdb = TDM.GetWinDB(win.index)
             if not (wdb and wdb.headerMouseover) then
                 if win.header then E:UIFrameFadeOut(win.header, smooth, win.header:GetAlpha(), 0) end
                 if win.headerBorder then E:UIFrameFadeOut(win.headerBorder, smooth, win.headerBorder:GetAlpha(), 0) end
@@ -598,14 +596,14 @@ local function FadeMeterOut(smooth)
             E:UIFrameFadeOut(win.window, smooth, win.window:GetAlpha(), 0)
         end
     end
-    S.meterFadedOut = true
+    TDM.meterFadedOut = true
 end
 
 local function FadeMeterIn(smooth)
-    for _, win in pairs(S.windows) do
+    for _, win in pairs(TDM.windows) do
         if win.embedded then
             if win.frame then E:UIFrameFadeIn(win.frame, smooth, win.frame:GetAlpha(), 1) end
-            local wdb = S.GetWinDB(win.index)
+            local wdb = TDM.GetWinDB(win.index)
             if wdb and wdb.headerMouseover then
                 if win.header then win.header:SetAlpha(0) end
                 if win.headerBorder then win.headerBorder:SetAlpha(0) end
@@ -617,24 +615,24 @@ local function FadeMeterIn(smooth)
             E:UIFrameFadeIn(win.window, smooth, win.window:GetAlpha(), 1)
         end
     end
-    S.meterFadedOut = false
+    TDM.meterFadedOut = false
 end
 
 local function CancelFlightFade()
-    if S.flightFadeTimer then
-        E:CancelTimer(S.flightFadeTimer)
-        S.flightFadeTimer = nil
+    if TDM.flightFadeTimer then
+        E:CancelTimer(TDM.flightFadeTimer)
+        TDM.flightFadeTimer = nil
     end
 end
 
-function TUI:UpdateMeterVisibility()
+function TDM:UpdateMeterVisibility()
     local db = TUI.db.profile.damageMeter
     local petBattle = db.hideInPetBattle and C_PetBattles and C_PetBattles.IsInBattle()
     local inFlight = not petBattle and db.hideInFlight and IsFlying()
     local shouldHide = petBattle or inFlight
 
-    if shouldHide == S.meterHidden then return end
-    S.meterHidden = shouldHide
+    if shouldHide == TDM.meterHidden then return end
+    TDM.meterHidden = shouldHide
     CancelFlightFade()
 
     if shouldHide then
@@ -642,7 +640,7 @@ function TUI:UpdateMeterVisibility()
             local smooth, delay = GetPlayerFaderSettings()
             if smooth and smooth > 0 then
                 if delay and delay > 0 then
-                    S.flightFadeTimer = E:ScheduleTimer(FadeMeterOut, delay, smooth)
+                    TDM.flightFadeTimer = E:ScheduleTimer(FadeMeterOut, delay, smooth)
                 else
                     FadeMeterOut(smooth)
                 end
@@ -650,7 +648,7 @@ function TUI:UpdateMeterVisibility()
             end
         end
         -- Instant hide (pet battle or no fader settings)
-        for _, win in pairs(S.windows) do
+        for _, win in pairs(TDM.windows) do
             if win.embedded then
                 if win.frame then win.frame:Hide() end
                 if win.header then win.header:Hide() end
@@ -660,13 +658,13 @@ function TUI:UpdateMeterVisibility()
             end
         end
     else
-        if S.meterFadedOut then
+        if TDM.meterFadedOut then
             local smooth = GetPlayerFaderSettings()
             FadeMeterIn((smooth and smooth > 0) and smooth or 0)
             return
         end
         -- Instant show
-        for _, win in pairs(S.windows) do
+        for _, win in pairs(TDM.windows) do
             if win.embedded then
                 if win.frame then win.frame:Show() end
                 if win.header then win.header:Show() end
@@ -674,7 +672,7 @@ function TUI:UpdateMeterVisibility()
             elseif win.window then
                 win.window:Show()
             end
-            local wdb = S.GetWinDB(win.index)
+            local wdb = TDM.GetWinDB(win.index)
             if wdb and wdb.headerMouseover then
                 if win.header then win.header:SetAlpha(0) end
                 if win.headerBorder then win.headerBorder:SetAlpha(0) end
@@ -683,21 +681,21 @@ function TUI:UpdateMeterVisibility()
     end
 end
 
-function TUI:UpdateFlightTicker()
+function TDM:UpdateFlightTicker()
     local db = TUI.db.profile.damageMeter
-    if db.hideInFlight and not S.flightTicker then
-        S.flightTicker = C_Timer.NewTicker(0.25, function() TUI:UpdateMeterVisibility() end)
-    elseif not db.hideInFlight and S.flightTicker then
-        S.flightTicker:Cancel()
-        S.flightTicker = nil
-        TUI:UpdateMeterVisibility()
+    if db.hideInFlight and not TDM.flightTicker then
+        TDM.flightTicker = C_Timer.NewTicker(0.25, function() TDM:UpdateMeterVisibility() end)
+    elseif not db.hideInFlight and TDM.flightTicker then
+        TDM.flightTicker:Cancel()
+        TDM.flightTicker = nil
+        TDM:UpdateMeterVisibility()
     end
 end
 
 local function UpdateTimers()
-    for _, win in pairs(S.windows) do
+    for _, win in pairs(TDM.windows) do
         if win.header and win.header.timer and not win.drillSource then
-            local wdb = S.GetWinDB(win.index)
+            local wdb = TDM.GetWinDB(win.index)
             if not wdb.showTimer then
                 win.header.timer:SetText('')
             elseif win.sessionType then
@@ -710,52 +708,52 @@ local function UpdateTimers()
     end
 end
 
-function TUI:ResizeMeterWindow(index)
-    S.ResizeStandalone(S.windows[index])
+function TDM:ResizeMeterWindow(index)
+    TDM.ResizeStandalone(TDM.windows[index])
 end
 
-function TUI:CreateExtraWindow(index)
-    if S.windows[index] then return end
+function TDM:CreateExtraWindow(index)
+    if TDM.windows[index] then return end
     local db = TUI.db.profile.damageMeter
     local ewdb = db.extraWindows[index] or {}
-    local win = S.NewWindowState(index, ewdb.modeIndex)
-    S.windows[index] = win
-    S.CreateMeterFrame(win, false)
-    S.RefreshWindow(win)
+    local win = TDM.NewWindowState(index, ewdb.modeIndex)
+    TDM.windows[index] = win
+    TDM.CreateMeterFrame(win, false)
+    TDM.RefreshWindow(win)
 end
 
-function TUI:DestroyExtraWindow(index)
-    local win = S.windows[index]
+function TDM:DestroyExtraWindow(index)
+    local win = TDM.windows[index]
     if not win then return end
     local winName = "TrenchyUIMeter" .. index
     if win.window then
         E:DisableMover(winName)
         win.window:Hide()
     end
-    S.windows[index] = nil
+    TDM.windows[index] = nil
 end
 
-function TUI:UpdateMeterLayout()
-    if not next(S.windows) then return end
+function TDM:UpdateMeterLayout()
+    if not next(TDM.windows) then return end
 
-    for _, win in pairs(S.windows) do
-        local db       = S.GetWinDB(win.index)
+    for _, win in pairs(TDM.windows) do
+        local db       = TDM.GetWinDB(win.index)
         local fontPath = LSM:Fetch("font", db.barFont)
-        local flags    = S.FontFlags(db.barFontOutline)
+        local flags    = TDM.FontFlags(db.barFontOutline)
 
         local fgTex = (db.barTexture and db.barTexture ~= '') and LSM:Fetch("statusbar", db.barTexture) or E.media.normTex
         local bgTex = (db.barBGTexture and db.barBGTexture ~= '') and LSM:Fetch("statusbar", db.barBGTexture) or E.media.normTex
 
-        S.ApplyHeaderStyle(win, db)
-        S.RespaceBarAnchors(win, db)
-        for i = 1, S.MAX_BARS do
+        TDM.ApplyHeaderStyle(win, db)
+        TDM.RespaceBarAnchors(win, db)
+        for i = 1, TDM.MAX_BARS do
             local bar = win.bars[i]
             if bar then
-                S.StyleBarTexts(bar, fontPath, db.barFontSize, flags)
+                TDM.StyleBarTexts(bar, fontPath, db.barFontSize, flags)
                 bar.statusbar:SetStatusBarTexture(fgTex)
                 bar.background:SetTexture(bgTex)
-                S.ApplyBarIconLayout(bar, db)
-                S.ApplyBarBorder(bar, db)
+                TDM.ApplyBarIconLayout(bar, db)
+                TDM.ApplyBarBorder(bar, db)
             end
         end
 
@@ -790,7 +788,7 @@ function TUI:UpdateMeterLayout()
 
         -- Header mouseover: hide header unless moused over
         if win.header then
-            S.SetupHeaderMouseover(win)
+            TDM.SetupHeaderMouseover(win)
             if db.headerMouseover then
                 win.header:SetAlpha(0)
                 if win.headerBorder then win.headerBorder:SetAlpha(0) end
@@ -801,20 +799,20 @@ function TUI:UpdateMeterLayout()
         end
 
         if win.embedded then
-            S.ResizeToPanel(win)
+            TDM.ResizeToPanel(win)
         else
-            S.ResizeStandalone(win)
+            TDM.ResizeStandalone(win)
         end
     end
 
-    self:RefreshMeter()
+    TDM:RefreshMeter()
 end
 
 -- Death recap drilldown
-function S.RenderDeathRecap(win, ds, db)
+function TDM.RenderDeathRecap(win, ds, db)
     local events = C_DeathRecap and C_DeathRecap.GetRecapEvents and C_DeathRecap.GetRecapEvents(ds.deathRecapID)
     if not events or #events == 0 then
-        for i = 1, S.MAX_BARS do
+        for i = 1, TDM.MAX_BARS do
             if win.bars[i] then win.bars[i].frame:Hide() end
         end
         return
@@ -828,16 +826,16 @@ function S.RenderDeathRecap(win, ds, db)
         reversed[#reversed + 1] = events[idx]
     end
 
-    local numVisible = S.ComputeNumVisible(win)
+    local numVisible = TDM.ComputeNumVisible(win)
     local total = #reversed
     win.scrollOffset = max(0, min(win.scrollOffset, max(0, total - numVisible)))
 
-    local vR, vG, vB = S.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
+    local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
     local fontPath = LSM:Fetch('font', db.barFont)
-    local flags = S.FontFlags(db.barFontOutline)
+    local flags = TDM.FontFlags(db.barFontOutline)
     local fontSize = db.barFontSize
 
-    for i = 1, S.MAX_BARS do
+    for i = 1, TDM.MAX_BARS do
         local bar = win.bars[i]
         if not bar then break end
         local evIdx = win.scrollOffset + i
@@ -848,7 +846,7 @@ function S.RenderDeathRecap(win, ds, db)
             bar.frame.drillSpellID = nil
         else
             bar.frame:Show()
-            S.StyleBarTexts(bar, fontPath, fontSize, flags)
+            TDM.StyleBarTexts(bar, fontPath, fontSize, flags)
 
             local spellID = ev.spellId
             local spellName = ev.spellName
@@ -907,8 +905,8 @@ function S.RenderDeathRecap(win, ds, db)
             end
 
             -- Bar colors: use standard db colors
-            local fgR, fgG, fgB = S.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
-            local bgR, bgG, bgB, bgA = S.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
+            local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
+            local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
             bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
             bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
 
@@ -935,7 +933,7 @@ function S.RenderDeathRecap(win, ds, db)
                 bar.rightText:SetText(floor(hp / maxHealth * 100 + 0.5) .. '%')
                 local amt = ev.amount
                 if amt and E:NotSecretValue(amt) and amt > 0 then
-                    bar.dpsText:SetText('(-' .. AbbreviateNumbers(floor(amt + 0.5), S.ABBREV_SHORT) .. ')')
+                    bar.dpsText:SetText('(-' .. AbbreviateNumbers(floor(amt + 0.5), TDM.ABBREV_SHORT) .. ')')
                 else
                     bar.dpsText:SetText('')
                 end
@@ -952,10 +950,11 @@ function S.RenderDeathRecap(win, ds, db)
     end
 end
 
-function TUI:InitDamageMeter()
-    if not self.db or not self.db.profile.damageMeter.enabled then return end
-    if self._tdmInitialized then return end
-    self._tdmInitialized = true
+function TDM:Initialize()
+    if TUI:IsCompatBlocked('damageMeter') then return end
+    if not TUI.db or not TUI.db.profile.damageMeter.enabled then return end
+    if TDM._initialized then return end
+    TDM._initialized = true
 
     SetCVar('damageMeterEnabled', 0)
     SetCVar('damageMeterResetOnNewInstance', TUI.db.profile.damageMeter.autoResetOnComplete and 1 or 0)
@@ -964,17 +963,17 @@ function TUI:InitDamageMeter()
         local CH = E:GetModule('Chat')
         local db = TUI.db.profile.damageMeter
 
-        local win1 = S.NewWindowState(1, db.modeIndex)
-        S.windows[1] = win1
-        S.CreateMeterFrame(win1, db.embedded)
+        local win1 = TDM.NewWindowState(1, db.modeIndex)
+        TDM.windows[1] = win1
+        TDM.CreateMeterFrame(win1, db.embedded)
 
         local we = db.windowEnabled
         for i = 2, 4 do
             if we and we[i] then
                 local ewdb = db.extraWindows[i] or {}
-                local win  = S.NewWindowState(i, ewdb.modeIndex)
-                S.windows[i] = win
-                S.CreateMeterFrame(win, false)
+                local win  = TDM.NewWindowState(i, ewdb.modeIndex)
+                TDM.windows[i] = win
+                TDM.CreateMeterFrame(win, false)
             end
         end
 
@@ -982,57 +981,57 @@ function TUI:InitDamageMeter()
 
         local function OnTDMEvent(event)
             if event == 'PET_BATTLE_OPENING_START' or event == 'PET_BATTLE_CLOSE' then
-                TUI:UpdateMeterVisibility()
+                TDM:UpdateMeterVisibility()
                 return
             elseif event == 'PLAYER_REGEN_DISABLED' then
-                S.ScanRoster()
+                TDM.ScanRoster()
                 return
             elseif event == 'PLAYER_REGEN_ENABLED' then
-                S.ScanRoster()
-                S.CacheCreatureNames()
+                TDM.ScanRoster()
+                TDM.CacheCreatureNames()
                 ScheduleMeterRefresh()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
-                wipe(S.nameCache)
-                wipe(S.specIconCache)
-                S.ScanRoster()
+                wipe(TDM.nameCache)
+                wipe(TDM.specIconCache)
+                TDM.ScanRoster()
                 return
             elseif event == 'PLAYER_ENTERING_WORLD' then
-                S.ScanRoster()
-                S.CacheCreatureNames()
+                TDM.ScanRoster()
+                TDM.CacheCreatureNames()
                 ScheduleMeterRefresh()
                 return
             elseif event == 'DAMAGE_METER_RESET' then
-                wipe(S.sessionLabelCache)
-                for _, w in pairs(S.windows) do
-                    S.ResetWindowState(w)
+                wipe(TDM.sessionLabelCache)
+                for _, w in pairs(TDM.windows) do
+                    TDM.ResetWindowState(w)
                 end
                 ScheduleMeterRefresh()
             else
-                wipe(S.sessionLabelCache)
+                wipe(TDM.sessionLabelCache)
                 ScheduleMeterRefresh()
             end
         end
 
-        S.ScanRoster()
-        TUI:RegisterEvent('DAMAGE_METER_COMBAT_SESSION_UPDATED', OnTDMEvent)
-        TUI:RegisterEvent('DAMAGE_METER_CURRENT_SESSION_UPDATED', OnTDMEvent)
-        TUI:RegisterEvent('DAMAGE_METER_RESET', OnTDMEvent)
-        TUI:RegisterEvent('PLAYER_ENTERING_WORLD', OnTDMEvent)
-        TUI:RegisterEvent('PLAYER_REGEN_DISABLED', OnTDMEvent)
-        TUI:RegisterEvent('PLAYER_REGEN_ENABLED', OnTDMEvent)
-        TUI:RegisterEvent('GROUP_ROSTER_UPDATE', OnTDMEvent)
-        TUI:RegisterEvent('PET_BATTLE_OPENING_START', OnTDMEvent)
-        TUI:RegisterEvent('PET_BATTLE_CLOSE', OnTDMEvent)
-        if not S.timerTicker then
-            S.timerTicker = C_Timer.NewTicker(0.5, UpdateTimers)
+        TDM.ScanRoster()
+        TDM:RegisterEvent('DAMAGE_METER_COMBAT_SESSION_UPDATED', OnTDMEvent)
+        TDM:RegisterEvent('DAMAGE_METER_CURRENT_SESSION_UPDATED', OnTDMEvent)
+        TDM:RegisterEvent('DAMAGE_METER_RESET', OnTDMEvent)
+        TDM:RegisterEvent('PLAYER_ENTERING_WORLD', OnTDMEvent)
+        TDM:RegisterEvent('PLAYER_REGEN_DISABLED', OnTDMEvent)
+        TDM:RegisterEvent('PLAYER_REGEN_ENABLED', OnTDMEvent)
+        TDM:RegisterEvent('GROUP_ROSTER_UPDATE', OnTDMEvent)
+        TDM:RegisterEvent('PET_BATTLE_OPENING_START', OnTDMEvent)
+        TDM:RegisterEvent('PET_BATTLE_CLOSE', OnTDMEvent)
+        if not TDM.timerTicker then
+            TDM.timerTicker = C_Timer.NewTicker(0.5, UpdateTimers)
         end
 
-        TUI:UpdateFlightTicker()
+        TDM:UpdateFlightTicker()
 
         hooksecurefunc(CH, "PositionChats", function()
             if db.embedded then
-                S.ResizeToPanel(win1)
+                TDM.ResizeToPanel(win1)
                 if CH.RightChatWindow then CH.RightChatWindow:Hide() end
             end
         end)
@@ -1049,3 +1048,5 @@ SlashCmdList['TUITDM'] = function()
         E.Libs.AceConfigDialog:SelectGroup('ElvUI', 'TrenchyUI', 'damageMeter')
     end)
 end
+
+E:RegisterModule(TDM:GetName())
