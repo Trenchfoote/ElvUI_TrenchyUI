@@ -3,6 +3,7 @@ local TUI = E:GetModule('TrenchyUI')
 local ACH = E.Libs.ACH
 
 function TUI:BuildProfilesConfig(root, tuiName)
+    local UFC = E:GetModule('TUI_UnitFrames', true)
     root.profiles = ACH:Group("Profiles", nil, 6)
     local prof = root.profiles.args
 
@@ -91,7 +92,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
         darkLabel,
         "Dark mode with class color backgrounds.\n(/trenchyafterdark)",
         1,
-        function() TUI:ApplyColorMode('dark') end,
+        function() UFC:ApplyColorMode('dark') end,
         nil, nil, nil,
         function() return TUI.db.profile.colorMode == 'dark' end
     )
@@ -100,7 +101,7 @@ function TUI:BuildProfilesConfig(root, tuiName)
         colorLabel,
         "Class color health and dark backgrounds.\n(/trenchyincolor)",
         2,
-        function() TUI:ApplyColorMode('color') end,
+        function() UFC:ApplyColorMode('color') end,
         nil, nil, nil,
         function() return TUI.db.profile.colorMode == 'color' end
     )

@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local hooksecurefunc = hooksecurefunc
@@ -214,9 +215,9 @@ local function SkinPGF()
 	end
 end
 
-function TUI:InitSkinPremadeGroupsFilter()
+function SKN:InitSkinPremadeGroupsFilter()
 	if not E:IsAddOnEnabled('PremadeGroupsFilter') then return end
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinPremadeGroupsFilter then return end
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinPremadeGroupsFilter then return end
 
 	local dialog = _G.PremadeGroupsFilterDialog
 	if dialog then
@@ -231,3 +232,15 @@ function TUI:InitSkinPremadeGroupsFilter()
 		end)
 	end
 end
+
+function SKN:Initialize()
+	if self.InitSkinWarpDeplete then self:InitSkinWarpDeplete() end
+	if self.InitSkinBigWigs then self:InitSkinBigWigs() end
+	if self.InitSkinAuctionator then self:InitSkinAuctionator() end
+	if self.InitSkinBugSack then self:InitSkinBugSack() end
+	if self.InitSkinOPie then self:InitSkinOPie() end
+	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
+	if self.InitSkinPremadeGroupsFilter then self:InitSkinPremadeGroupsFilter() end
+end
+
+E:RegisterModule(SKN:GetName())

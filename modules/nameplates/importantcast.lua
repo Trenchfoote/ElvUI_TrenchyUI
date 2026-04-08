@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 
 local IsSpellImportant = C_Spell and C_Spell.IsSpellImportant
@@ -72,7 +73,7 @@ local function CheckImportant(castbar)
 	end
 end
 
-function TUI:HookImportantCast()
+function NPS:HookImportantCast()
 	if self._hookedImportantCast then return end
 	self._hookedImportantCast = true
 

@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 
 local LCG = E.Libs.CustomGlow
@@ -13,7 +14,7 @@ local function GetPixelGlowDB()
 	return db.enabled, db.lines, db.speed, db.thickness
 end
 
-function TUI:InitPixelGlow()
+function UFC:InitPixelGlow()
 	local enabled = GetPixelGlowDB()
 	if not enabled then return end
 	if not LCG or not LCG.PixelGlow_Start then return end

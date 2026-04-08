@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local UFC = E:NewModule('TUI_UnitFrames', 'AceEvent-3.0', 'AceHook-3.0')
 local UF = E:GetModule('UnitFrames')
 
 local DARK_GREY = { r = 0.17254902422428, g = 0.17254902422428, b = 0.17254902422428 }
@@ -24,7 +25,7 @@ local CLASS_COLOR_TEXTS = {
 	{ 'target', 'T-TName' },
 }
 
-function TUI:ApplyColorMode(mode)
+function UFC:ApplyColorMode(mode)
 	local isDark = mode == 'dark'
 	local colors = E.db.unitframe.colors
 	local tdb = TUI.db.profile
@@ -93,10 +94,10 @@ function TUI:ApplyColorMode(mode)
 	end
 
 	-- TDM class icon backgrounds
-	local tdm = TUI._tdm
-	if tdm and tdm.windows and tdb.damageMeter and tdb.damageMeter.showClassIcon then
+	local TDM = E:GetModule('TUI_TDM', true)
+	if TDM and TDM.windows and tdb.damageMeter and tdb.damageMeter.showClassIcon then
 		local showBG = not isDark
-		for _, win in pairs(tdm.windows) do
+		for _, win in pairs(TDM.windows) do
 			if win.bars then
 				for _, bar in pairs(win.bars) do
 					if bar.classIconBG then
@@ -109,7 +110,7 @@ function TUI:ApplyColorMode(mode)
 
 	-- Refresh UFs and TDM
 	UF:Update_AllFrames()
-	if TUI.RefreshMeter then TUI:RefreshMeter() end
+	if TDM then TDM:RefreshMeter() end
 
 	-- Refresh WarpDeplete bars
 	local wd = _G['WarpDeplete']
@@ -121,10 +122,10 @@ end
 
 SLASH_TRENCHYAFTERDARK1 = '/trenchyafterdark'
 SlashCmdList['TRENCHYAFTERDARK'] = function()
-	TUI:ApplyColorMode('dark')
+	UFC:ApplyColorMode('dark')
 end
 
 SLASH_TRENCHYINCOLOR1 = '/trenchyincolor'
 SlashCmdList['TRENCHYINCOLOR'] = function()
-	TUI:ApplyColorMode('color')
+	UFC:ApplyColorMode('color')
 end

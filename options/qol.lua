@@ -3,6 +3,7 @@ local TUI = E:GetModule('TrenchyUI')
 local ACH = E.Libs.ACH
 
 function TUI:BuildQoLConfig(root, tuiName)
+    local QOL = E:GetModule('TUI_QoL', true)
     root.qol = ACH:Group("QoL", nil, 1)
 
     root.qol.args.general = ACH:Group("General", nil, 1)
@@ -101,7 +102,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.cursorCircle end,
         function(_, value)
             TUI.db.profile.qol.cursorCircle = value
-            if TUI.ToggleCursorCircle then TUI:ToggleCursorCircle(value) end
+            if QOL and QOL.ToggleCursorCircle then QOL:ToggleCursorCircle(value) end
         end
     )
 
@@ -113,7 +114,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.cursorCircleSize end,
         function(_, value)
             TUI.db.profile.qol.cursorCircleSize = value
-            if TUI.UpdateCursorCircle then TUI:UpdateCursorCircle() end
+            if QOL and QOL.UpdateCursorCircle then QOL:UpdateCursorCircle() end
         end,
         ccDisabled
     )
@@ -124,7 +125,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.cursorCircleThickness end,
         function(_, value)
             TUI.db.profile.qol.cursorCircleThickness = value
-            if TUI.UpdateCursorCircle then TUI:UpdateCursorCircle() end
+            if QOL and QOL.UpdateCursorCircle then QOL:UpdateCursorCircle() end
         end,
         ccDisabled
     )
@@ -136,7 +137,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.cursorCircleClassColor end,
         function(_, value)
             TUI.db.profile.qol.cursorCircleClassColor = value
-            if TUI.UpdateCursorCircle then TUI:UpdateCursorCircle() end
+            if QOL and QOL.UpdateCursorCircle then QOL:UpdateCursorCircle() end
         end,
         ccDisabled
     )
@@ -150,7 +151,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function(_, r, g, b, a)
             local c = TUI.db.profile.qol.cursorCircleColor
             c.r, c.g, c.b, c.a = r, g, b, a
-            if TUI.UpdateCursorCircle then TUI:UpdateCursorCircle() end
+            if QOL and QOL.UpdateCursorCircle then QOL:UpdateCursorCircle() end
         end,
         function() return ccDisabled() or TUI.db.profile.qol.cursorCircleClassColor end
     )
@@ -177,7 +178,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.difficultyFont end,
         function(_, value)
             TUI.db.profile.qol.difficultyFont = value
-            TUI:UpdateDifficultyFont()
+            if QOL then QOL:UpdateDifficultyFont() end
         end,
         diffDisabled
     )
@@ -188,7 +189,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.difficultyFontSize end,
         function(_, value)
             TUI.db.profile.qol.difficultyFontSize = value
-            TUI:UpdateDifficultyFont()
+            if QOL then QOL:UpdateDifficultyFont() end
         end,
         diffDisabled
     )
@@ -198,7 +199,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.difficultyFontOutline end,
         function(_, value)
             TUI.db.profile.qol.difficultyFontOutline = value
-            TUI:UpdateDifficultyFont()
+            if QOL then QOL:UpdateDifficultyFont() end
         end,
         diffDisabled
     )
@@ -238,7 +239,7 @@ function TUI:BuildQoLConfig(root, tuiName)
     root.qol.args.minimapButtonBar.inline = true
     local mbb = root.qol.args.minimapButtonBar.args
 
-    local mbbUpdate = function() if TUI.UpdateMinimapButtonBar then TUI:UpdateMinimapButtonBar() end end
+    local mbbUpdate = function() if QOL and QOL.UpdateMinimapButtonBar then QOL:UpdateMinimapButtonBar() end end
     local mbbDB = function() return TUI.db.profile.minimapButtonBar end
     local mbbDisabled = function() return not mbbDB().enabled end
 

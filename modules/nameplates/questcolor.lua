@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 
 local IsInInstance = IsInInstance
@@ -11,7 +12,7 @@ local function ApplyQuestColor(nameplate)
 	NP:SetStatusBarColor(nameplate.Health, c.r, c.g, c.b)
 end
 
-function TUI:HookQuestColor()
+function NPS:HookQuestColor()
 	if self._hookedQuestColor then return end
 	self._hookedQuestColor = true
 

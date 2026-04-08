@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 
 local LSM = E.Libs.LSM
@@ -50,18 +51,18 @@ local function UpdateAllFocusOverlays()
 	end
 end
 
-function TUI:InitFocusGlow()
+function NPS:InitFocusGlow()
 	if self._initFocusGlow then return end
 	self._initFocusGlow = true
 
-	TUI:RegisterEvent('PLAYER_FOCUS_CHANGED', UpdateAllFocusOverlays)
-	TUI:RegisterEvent('NAME_PLATE_UNIT_ADDED', function(_, unit)
+	NPS:RegisterEvent('PLAYER_FOCUS_CHANGED', UpdateAllFocusOverlays)
+	NPS:RegisterEvent('NAME_PLATE_UNIT_ADDED', function(_, unit)
 		local nameplate = C_NamePlate_GetNamePlateForUnit(unit)
 		if nameplate and nameplate.unitFrame then
 			UpdateFocusOverlay(nameplate.unitFrame)
 		end
 	end)
-	TUI:RegisterEvent('NAME_PLATE_UNIT_REMOVED', function(_, unit)
+	NPS:RegisterEvent('NAME_PLATE_UNIT_REMOVED', function(_, unit)
 		local nameplate = C_NamePlate_GetNamePlateForUnit(unit)
 		if nameplate and nameplate.unitFrame and nameplate.unitFrame.TUI_FocusOverlay then
 			nameplate.unitFrame.TUI_FocusOverlay:Hide()

@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local pairs, ipairs, unpack = pairs, ipairs, unpack
@@ -202,9 +203,9 @@ local function SkinHost()
 	end
 end
 
-function TUI:InitSkinOPie()
+function SKN:InitSkinOPie()
 	if not E:IsAddOnEnabled('OPie') then return end
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinOPie then return end
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinOPie then return end
 	if not _G.TenSettingsFrame then return end
 
 	local hostSkinned = false

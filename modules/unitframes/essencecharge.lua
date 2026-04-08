@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 
 local min = min
@@ -86,7 +86,7 @@ local function EssenceChargeOnUpdate(bars, elapsed)
 	end
 end
 
-function TUI:InitEvokerEssenceCharge()
+function UFC:InitEvokerEssenceCharge()
 	if self._hookedEvokerEssenceCharge then return end
 	self._hookedEvokerEssenceCharge = true
 

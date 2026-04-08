@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 
 local UnitExists = UnitExists
@@ -56,7 +57,7 @@ local function HideBorder(nameplate)
 	if border then border:Hide() end
 end
 
-function TUI:HookHoverHighlight()
+function NPS:HookHoverHighlight()
 	if self._hookedHoverHL then return end
 	self._hookedHoverHL = true
 
@@ -92,7 +93,7 @@ function TUI:HookHoverHighlight()
 	end)
 
 	-- Re-check mouseover after target change (mouseover unit briefly clears on click)
-	TUI:RegisterEvent('PLAYER_TARGET_CHANGED', function()
+	NPS:RegisterEvent('PLAYER_TARGET_CHANGED', function()
 		C_Timer.After(0.05, function()
 			if not UnitExists('mouseover') then return end
 			local plate = C_NamePlate_GetNamePlateForUnit('mouseover')

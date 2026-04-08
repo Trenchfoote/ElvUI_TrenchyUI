@@ -1,4 +1,5 @@
 local E = unpack(ElvUI)
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local ipairs, next = ipairs, next

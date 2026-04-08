@@ -1,6 +1,7 @@
 -- Platynator nameplate tweaks
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 
 local UnitIsPlayer = UnitIsPlayer
 local UnitClassBase = UnitClassBase
@@ -81,13 +82,31 @@ local function ProcessWithRetry(nameplate, attempt)
 	end
 end
 
+function NPS:Initialize()
+	local np = TUI.db.profile.nameplates
+	if np and E.private.nameplates.enable then
+		if np.hideFriendlyRealm then self:InitHideFriendlyRealm() end
+		self:HookClassColorTargetIndicator()
+		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
+		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
+		if np.importantCast and np.importantCast.enabled then self:HookImportantCast() end
+		if np.hoverHighlight and np.hoverHighlight.enabled then self:HookHoverHighlight() end
+		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
+		if np.questColor and np.questColor.enabled then self:HookQuestColor() end
+	end
+	-- Platynator tweaks are independent of ElvUI nameplates
+	if E:IsAddOnEnabled('Platynator') then self:InitPlatynatorTweaks() end
+end
+
+E:RegisterModule(NPS:GetName())
+
 local eventFrame = CreateFrame('Frame')
 
-function TUI:InitPlatynatorTweaks()
+function NPS:InitPlatynatorTweaks()
 	if self._hookedPlatynator then return end
 	self._hookedPlatynator = true
 
-	local db = self.db.profile.platynator
+	local db = TUI.db.profile.platynator
 	if not db then return end
 
 	eventFrame:RegisterEvent('NAME_PLATE_UNIT_ADDED')

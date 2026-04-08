@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local hooksecurefunc = hooksecurefunc
@@ -378,8 +379,8 @@ local function SkinAll()
 	end
 end
 
-function TUI:InitSkinAuctionator()
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinAuctionator then return end
+function SKN:InitSkinAuctionator()
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinAuctionator then return end
 	if not E:IsAddOnEnabled('Auctionator') then return end
 	if not AuctionatorAHFrameMixin then return end
 

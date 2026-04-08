@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local pairs, ipairs = pairs, ipairs
@@ -53,9 +54,9 @@ local function SkinBugSack()
 	end
 end
 
-function TUI:InitSkinBugSack()
+function SKN:InitSkinBugSack()
 	if not C_AddOns_IsAddOnLoaded('BugSack') then return end
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinBugSack then return end
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinBugSack then return end
 	local bs = _G.BugSack
 	if not bs then return end
 

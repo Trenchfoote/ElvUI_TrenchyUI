@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 
 local hooksecurefunc = hooksecurefunc
@@ -18,7 +19,7 @@ local function GetPlayerFaderDB()
 		and E.db.unitframe.units.player and E.db.unitframe.units.player.fader
 end
 
-function TUI:InitSteadyFlight()
+function UFC:InitSteadyFlight()
 	if self._steadyFlightInitialized then return end
 	self._steadyFlightInitialized = true
 

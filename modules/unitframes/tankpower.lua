@@ -1,5 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 local LSM = E.Libs.LSM
 
@@ -126,7 +126,7 @@ local function HideStaggerBar(parent)
 	ReleasePowerSpace(parent)
 end
 
-function TUI:InitTankPower()
+function UFC:InitTankPower()
 	if self._hookedTankPower then return end
 	self._hookedTankPower = true
 

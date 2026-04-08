@@ -1,8 +1,8 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 
-function TUI:HookDisableFriendlyHighlight()
+function NPS:HookDisableFriendlyHighlight()
 	if self._hookedFriendlyHighlight then return end
 	self._hookedFriendlyHighlight = true
 

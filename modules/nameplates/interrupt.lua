@@ -1,6 +1,7 @@
 -- Adapted from mMediaTag with permission from Blinkii, 2026-03-14
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
 local UF = E:GetModule('UnitFrames')
 
@@ -161,7 +162,7 @@ local function PostCastStart(castbar, unit)
 	end
 end
 
-function TUI:HookCastbarInterrupt()
+function NPS:HookCastbarInterrupt()
 	if self._hookedCastbarInterrupt then return end
 	self._hookedCastbarInterrupt = true
 
@@ -172,9 +173,9 @@ function TUI:HookCastbarInterrupt()
 		marker = db.castbarMarkerColor,
 	}
 
-	TUI:RegisterEvent('PLAYER_ENTERING_WORLD', UpdateInterruptSpell)
-	TUI:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', UpdateInterruptSpell)
-	TUI:RegisterEvent('PLAYER_TALENT_UPDATE', UpdateInterruptSpell)
+	NPS:RegisterEvent('PLAYER_ENTERING_WORLD', UpdateInterruptSpell)
+	NPS:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', UpdateInterruptSpell)
+	NPS:RegisterEvent('PLAYER_TALENT_UPDATE', UpdateInterruptSpell)
 
 	hooksecurefunc(NP, 'Castbar_PostCastStart', PostCastStart)
 	hooksecurefunc(UF, 'PostCastStart', PostCastStart)

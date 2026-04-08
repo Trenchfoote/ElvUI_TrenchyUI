@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local LSM = E.Libs.LSM or LibStub('LibSharedMedia-3.0')
 
 local CreateFrame = CreateFrame
@@ -40,7 +41,7 @@ do -- BigWigs settings helpers
 		end
 	end
 
-	function TUI:GetBarSettings()
+	function SKN:GetBarSettings()
 		local settings = {}
 		EnsurePluginsLoaded()
 
@@ -86,7 +87,7 @@ do -- LFG Timer Skin
 	local function ApplyLFGSkin()
 		if not timerBarRef then return end
 
-		local s = TUI:GetBarSettings()
+		local s = SKN:GetBarSettings()
 		local popupWidth = LFGDungeonReadyPopup and LFGDungeonReadyPopup:GetWidth()
 		if not popupWidth or popupWidth < 50 then popupWidth = 303 end
 
@@ -141,7 +142,7 @@ do -- LFG Timer Skin
 		timerBarRef.borderFrame:Show()
 	end
 
-	function TUI:InitLFGTimerSkin()
+	function SKN:InitLFGTimerSkin()
 		BigWigsLoader.RegisterMessage({}, 'BigWigs_FrameCreated', function(_, frame, name)
 			if name == 'QueueTimer' then
 				timerBarRef = frame
@@ -169,7 +170,7 @@ do -- Class-Coloured Bar Backgrounds
 		end
 	end
 
-	function TUI:InitBigWigsClassColorBars()
+	function SKN:InitBigWigsClassColorBars()
 		BigWigsLoader.RegisterMessage({}, 'BigWigs_BarCreated', function(_, _, bar)
 			ApplyBarColors(bar)
 		end)
@@ -179,9 +180,9 @@ do -- Class-Coloured Bar Backgrounds
 	end
 end
 
-function TUI:InitSkinBigWigs()
+function SKN:InitSkinBigWigs()
 	if not BigWigsLoader then return end
-	if not self.db.profile.addons.skinBigWigs then return end
+	if not TUI.db.profile.addons.skinBigWigs then return end
 
 	self:InitLFGTimerSkin()
 	self:InitBigWigsClassColorBars()

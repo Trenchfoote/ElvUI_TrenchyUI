@@ -1,6 +1,7 @@
 -- Platynator config dialog skin
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:GetModule('TUI_Skins')
 local S = E:GetModule('Skins')
 
 local pairs, ipairs = pairs, ipairs
@@ -86,9 +87,9 @@ local function SkinImportDialog()
 	end
 end
 
-function TUI:InitSkinPlatynator()
+function SKN:InitSkinPlatynator()
 	if not E:IsAddOnEnabled('Platynator') then return end
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinPlatynator then return end
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinPlatynator then return end
 
 	-- Hook frame creation to catch the dialog when it's first opened
 	hooksecurefunc('CreateFrame', function(_, name)

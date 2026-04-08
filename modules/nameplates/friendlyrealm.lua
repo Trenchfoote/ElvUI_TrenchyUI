@@ -1,7 +1,7 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
+local NPS = E:GetModule('TUI_Nameplates')
 
-function TUI:InitHideFriendlyRealm()
+function NPS:InitHideFriendlyRealm()
 	if not NamePlateFriendlyFrameOptions or not TextureLoadingGroupMixin then return end
 	if not NamePlateFriendlyFrameOptions.updateNameUsesGetUnitName then return end
 

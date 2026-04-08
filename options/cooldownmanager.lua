@@ -4,7 +4,8 @@ local ACH = E.Libs.ACH
 
 local function cdmDB() return TUI.db.profile.cooldownManager end
 local function cdmDisabled() return not cdmDB().enabled end
-local function cdmRefresh() if TUI.RefreshCDM then TUI:RefreshCDM() end end
+local CDM = E:GetModule('TUI_CDM', true)
+local function cdmRefresh() if CDM then CDM:RefreshCDM() end end
 
 local POSITIONS = {
     CENTER = 'Center', TOP = 'Top', BOTTOM = 'Bottom', LEFT = 'Left', RIGHT = 'Right',
@@ -84,13 +85,13 @@ local function BuildIconViewerTab(viewerKey, label, order)
     lay.visibleSetting = ACH:Select("Visibility", "When to show this viewer.", 8,
         { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
         function() return vdb().visibleSetting end,
-        function(_, v) vdb().visibleSetting = v; if TUI.UpdateCDMVisibility then TUI:UpdateCDMVisibility() end end)
+        function(_, v) vdb().visibleSetting = v; if CDM then CDM:UpdateCDMVisibility() end end)
     lay.showTooltips = ACH:Toggle("Show Tooltips", nil, 9, nil, nil, nil,
         function() return vdb().showTooltips end,
         function(_, v)
             vdb().showTooltips = v
-            if TUI.SetEditModeSetting and Enum.EditModeCooldownViewerSetting then
-                TUI:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.ShowTooltips, v and 1 or 0)
+            if CDM and Enum.EditModeCooldownViewerSetting then
+                CDM:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.ShowTooltips, v and 1 or 0)
             end
             E:StaticPopup_Show('CONFIG_RL')
         end)
@@ -107,8 +108,8 @@ local function BuildIconViewerTab(viewerKey, label, order)
             function() return vdb().hideWhenInactive end,
             function(_, v)
                 vdb().hideWhenInactive = v
-                if TUI.SetEditModeSetting and Enum.EditModeCooldownViewerSetting then
-                    TUI:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.HideWhenInactive, v and 1 or 0)
+                if CDM and Enum.EditModeCooldownViewerSetting then
+                    CDM:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.HideWhenInactive, v and 1 or 0)
                 end
                 E:StaticPopup_Show('CONFIG_RL')
             end)
@@ -211,7 +212,7 @@ local function BuildBarViewerTab(viewerKey, label, order)
     lay.visibleSetting = ACH:Select("Visibility", nil, 10,
         { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
         function() return vdb().visibleSetting end,
-        function(_, v) vdb().visibleSetting = v; if TUI.UpdateCDMVisibility then TUI:UpdateCDMVisibility() end end)
+        function(_, v) vdb().visibleSetting = v; if CDM then CDM:UpdateCDMVisibility() end end)
     lay.hideWhenInactive = ACH:Toggle("Hide When Inactive", nil, 11, nil, nil, nil,
         function() return vdb().hideWhenInactive end,
         function(_, v) vdb().hideWhenInactive = v; E:StaticPopup_Show('CONFIG_RL') end)
@@ -219,8 +220,8 @@ local function BuildBarViewerTab(viewerKey, label, order)
         function() return vdb().showTooltips end,
         function(_, v)
             vdb().showTooltips = v
-            if TUI.SetEditModeSetting and Enum.EditModeCooldownViewerSetting then
-                TUI:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.ShowTooltips, v and 1 or 0)
+            if CDM and Enum.EditModeCooldownViewerSetting then
+                CDM:SetEditModeSetting(viewerKey, Enum.EditModeCooldownViewerSetting.ShowTooltips, v and 1 or 0)
             end
             E:StaticPopup_Show('CONFIG_RL')
         end)
@@ -284,15 +285,13 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function(_, v) cdmDB().enabled = v; E:StaticPopup_Show('CONFIG_RL') end)
     gen.previewText = ACH:Toggle(
         function()
-            local S = TUI._cdm
-            return S and S.previewActive and "|cff00ff00Preview Text|r" or "Preview Text"
+            return CDM and CDM.previewActive and "|cff00ff00Preview Text|r" or "Preview Text"
         end,
         "Show sample text on icons to preview font settings.", 3, nil, nil, nil,
-        function() local S = TUI._cdm; return S and S.previewActive end,
+        function() return CDM and CDM.previewActive end,
         function()
-            local S = TUI._cdm
-            if not S then return end
-            if S.previewActive then S.HidePreview() else S.ShowPreview() end
+            if not CDM then return end
+            if CDM.previewActive then CDM.HidePreview() else CDM.ShowPreview() end
         end, cdmDisabled)
     gen.hideSwipe = ACH:Toggle("Hide GCD Swipe", nil, 4, nil, nil, nil,
         function() return cdmDB().hideSwipe end,
@@ -372,7 +371,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     cLay.visibleSetting = ACH:Select("Visibility", nil, 8,
         { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
         function() return customVDB().visibleSetting end,
-        function(_, v) customVDB().visibleSetting = v; if TUI.UpdateCDMVisibility then TUI:UpdateCDMVisibility() end end, ctDis)
+        function(_, v) customVDB().visibleSetting = v; if CDM then CDM:UpdateCDMVisibility() end end, ctDis)
     cLay.showTooltips = ACH:Toggle("Show Tooltips", nil, 9, nil, nil, nil,
         function() return customVDB().showTooltips end,
         function(_, v) customVDB().showTooltips = v end, ctDis)

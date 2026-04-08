@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local NPS = E:NewModule('TUI_Nameplates', 'AceEvent-3.0', 'AceHook-3.0')
 local NP = E:GetModule('NamePlates')
 
 local function PostUpdate_ClassColorTarget(element, unit)
@@ -26,7 +27,7 @@ local function PostUpdate_ClassColorTarget(element, unit)
 	end
 end
 
-function TUI:HookClassColorTargetIndicator()
+function NPS:HookClassColorTargetIndicator()
 	if self._hookedClassColorTarget then return end
 	self._hookedClassColorTarget = true
 

@@ -1,5 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
+local SKN = E:NewModule('TUI_Skins', 'AceEvent-3.0')
 
 local ipairs = ipairs
 
@@ -40,10 +41,10 @@ local function ApplyBarColors()
 	end
 end
 
-function TUI:InitSkinWarpDeplete()
+function SKN:InitSkinWarpDeplete()
 	local warpDeplete = _G['WarpDeplete']
 	if not warpDeplete or not warpDeplete.RenderLayout then return end
-	if not self.db or not self.db.profile.addons or not self.db.profile.addons.skinWarpDeplete then return end
+	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinWarpDeplete then return end
 
 	hooksecurefunc(warpDeplete, 'RenderLayout', ApplyBarColors)
 end

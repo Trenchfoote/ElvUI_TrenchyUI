@@ -4,6 +4,8 @@ local ACH = E.Libs.ACH
 
 function TUI:BuildDamageMeterConfig(root, tuiName)
     if not (C_DamageMeter and Enum.DamageMeterType) then return end
+    local TDM = E:GetModule('TUI_TDM', true)
+    if not TDM then return end
 
     root.damageMeter = ACH:Group("TDM", nil, 2, 'tab')
 
@@ -48,8 +50,8 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
         c.r, c.g, c.b, c.a = r, g, b, a
     end
 
-    local winUpdate = function() TUI:UpdateMeterLayout() end
-    local winRefresh = function() TUI:RefreshMeter() end
+    local winUpdate = function() TDM:UpdateMeterLayout() end
+    local winRefresh = function() TDM:RefreshMeter() end
 
     -- General
     root.damageMeter.args.general = ACH:Group("General", nil, 1)
@@ -106,10 +108,10 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
 
     gen.hideInFlight = ACH:Toggle("Hide in Flight", nil, 6, nil, nil, nil,
         function() return TUI.db.profile.damageMeter.hideInFlight end,
-        function(_, v) TUI.db.profile.damageMeter.hideInFlight = v; TUI:UpdateFlightTicker() end, dmDisabled)
+        function(_, v) TUI.db.profile.damageMeter.hideInFlight = v; TDM:UpdateFlightTicker() end, dmDisabled)
 
     gen.testMode = ACH:Execute("TDM Test", "Toggle placeholder bars.", 7,
-        function() TUI:SetMeterTestMode(not TUI._meterTestMode) end,
+        function() TDM:SetMeterTestMode(not TDM.testMode) end,
         nil, nil, nil, nil, nil, dmDisabled)
 
     -- Per-window tab builder
@@ -139,9 +141,9 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
                                 ew[key] = val
                             end
                         end
-                        TUI:CreateExtraWindow(i)
+                        TDM:CreateExtraWindow(i)
                     else
-                        TUI:DestroyExtraWindow(i)
+                        TDM:DestroyExtraWindow(i)
                     end
                 end)
         end
@@ -177,7 +179,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
                 end
                 return winGet(i, 'standaloneWidth')
             end,
-            function(_, v) winSet(i, 'standaloneWidth', v); TUI:ResizeMeterWindow(i) end, sizeDisabled)
+            function(_, v) winSet(i, 'standaloneWidth', v); TDM:ResizeMeterWindow(i) end, sizeDisabled)
 
         win.standaloneHeight = ACH:Range("Height", nil, 2, { min = 60, max = 600, step = 1 }, nil,
             function()
@@ -187,7 +189,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
                 end
                 return winGet(i, 'standaloneHeight')
             end,
-            function(_, v) winSet(i, 'standaloneHeight', v); TUI:ResizeMeterWindow(i) end, sizeDisabled)
+            function(_, v) winSet(i, 'standaloneHeight', v); TDM:ResizeMeterWindow(i) end, sizeDisabled)
 
         win.showBackdrop = ACH:Toggle("Window Backdrop", nil, 3, nil, nil, nil,
             function() return winGet(i, 'showBackdrop') end,
