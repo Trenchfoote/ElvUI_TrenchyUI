@@ -1,6 +1,6 @@
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
 local hooksecurefunc = hooksecurefunc
 local pairs = pairs
@@ -12,15 +12,15 @@ local layoutPending = false
 
 local function DoRelayout()
 	layoutPending = false
-	local db = S.GetDB()
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
-	for viewerKey in pairs(S.VIEWER_KEYS) do
-		S.LayoutContainer(viewerKey, false)
+	for viewerKey in pairs(CDM.VIEWER_KEYS) do
+		CDM.LayoutContainer(viewerKey, false)
 	end
-	TUI:UpdateCDMVisibility()
+	CDM:UpdateCDMVisibility()
 end
 
-function S.ScheduleRelayout()
+function CDM.ScheduleRelayout()
 	if layoutPending then return end
 	layoutPending = true
 	C_Timer.After(0, DoRelayout)
@@ -35,17 +35,17 @@ local function OnCDMEvent(event, unit, ...)
 			local val = ...
 			if val == '0' then
 				cdmDisabledByCVar = true
-				for viewerKey, info in pairs(S.VIEWER_KEYS) do
+				for viewerKey, info in pairs(CDM.VIEWER_KEYS) do
 					if info.global then
-						local container = S.containers[viewerKey]
+						local container = CDM.containers[viewerKey]
 						if container then container:Hide() end
 					end
 				end
 				E:Print('|cffff2f3dTrenchyUI|r: Cooldown Manager requires Blizzard\'s Cooldown Viewer. Re-enable it in Options > Gameplay Enhancements > Enable Cooldown Manager.')
 			else
 				cdmDisabledByCVar = false
-				TUI:UpdateCDMVisibility()
-				S.ScheduleRelayout()
+				CDM:UpdateCDMVisibility()
+				CDM.ScheduleRelayout()
 			end
 		end
 		return
@@ -53,21 +53,21 @@ local function OnCDMEvent(event, unit, ...)
 	if cdmDisabledByCVar then return end
 	-- Track combat state from any event since PLAYER_REGEN may not fire
 	local inCombat = InCombatLockdown()
-	if inCombat ~= S.inCombat then
-		S.inCombat = inCombat
-		TUI:UpdateCDMVisibility()
+	if inCombat ~= CDM.inCombat then
+		CDM.inCombat = inCombat
+		CDM:UpdateCDMVisibility()
 	end
 	if event == 'UNIT_AURA' and unit ~= 'player' then return end
-	S.ScheduleRelayout()
+	CDM.ScheduleRelayout()
 end
 
 local function HookViewer(viewerKey)
-	local viewer = S.GetViewer(viewerKey)
-	if not viewer or S.hookedViewers[viewerKey] then return end
-	S.hookedViewers[viewerKey] = true
+	local viewer = CDM.GetViewer(viewerKey)
+	if not viewer or CDM.hookedViewers[viewerKey] then return end
+	CDM.hookedViewers[viewerKey] = true
 
 	-- Clear stale Edit Mode anchors
-	local container = S.containers[viewerKey]
+	local container = CDM.containers[viewerKey]
 	if container then
 		viewer:ClearAllPoints()
 		viewer:SetPoint('CENTER', container, 'CENTER', 0, 0)
@@ -76,23 +76,23 @@ local function HookViewer(viewerKey)
 
 	if viewer.itemFramePool then
 		hooksecurefunc(viewer.itemFramePool, 'Acquire', function()
-			S.ScheduleRelayout()
+			CDM.ScheduleRelayout()
 		end)
 		hooksecurefunc(viewer.itemFramePool, 'Release', function()
-			S.ScheduleRelayout()
+			CDM.ScheduleRelayout()
 		end)
 	end
 
 	if viewer.OnAcquireItemFrame then
 		hooksecurefunc(viewer, 'OnAcquireItemFrame', function()
-			S.ScheduleRelayout()
+			CDM.ScheduleRelayout()
 		end)
 	end
 
 	hooksecurefunc(viewer, 'RefreshLayout', function()
-		local db = S.GetDB()
+		local db = CDM.GetDB()
 		if not db or not db.enabled then return end
-		S.LayoutContainer(viewerKey, true)
+		CDM.LayoutContainer(viewerKey, true)
 	end)
 
 	local selection = viewer.Selection
@@ -142,7 +142,7 @@ local VIEWER_SYSTEM_INDEX = {
 	buffBar   = Enum.EditModeCooldownViewerSystemIndices and Enum.EditModeCooldownViewerSystemIndices.BuffBar,
 }
 
-function TUI:GetEditModeSetting(viewerKey, settingEnum)
+function CDM:GetEditModeSetting(viewerKey, settingEnum)
 	local sysIdx = VIEWER_SYSTEM_INDEX and VIEWER_SYSTEM_INDEX[viewerKey]
 	if not sysIdx then return nil end
 	local settings = FindViewerSettings(sysIdx)
@@ -153,7 +153,7 @@ function TUI:GetEditModeSetting(viewerKey, settingEnum)
 	return nil
 end
 
-function TUI:SetEditModeSetting(viewerKey, settingEnum, value)
+function CDM:SetEditModeSetting(viewerKey, settingEnum, value)
 	local sysIdx = VIEWER_SYSTEM_INDEX and VIEWER_SYSTEM_INDEX[viewerKey]
 	if not sysIdx then return end
 	local settings, layoutInfo = FindViewerSettings(sysIdx)
@@ -170,28 +170,28 @@ function TUI:SetEditModeSetting(viewerKey, settingEnum, value)
 	C_EditMode.SaveLayouts(layoutInfo)
 end
 
-function S.ShouldShowContainer(viewerKey)
-	local vdb = S.GetViewerDB(viewerKey)
+function CDM.ShouldShowContainer(viewerKey)
+	local vdb = CDM.GetViewerDB(viewerKey)
 	if not vdb then return true end
 
 	local vis = vdb.visibleSetting or 'ALWAYS'
 	if vis == 'HIDDEN' then return false end
 	if vis == 'FADER' then return true end
-	if vis == 'INCOMBAT' and not S.inCombat then return false end
+	if vis == 'INCOMBAT' and not CDM.inCombat then return false end
 	return true
 end
 
-function TUI:UpdateCDMVisibility()
-	local db = S.GetDB()
+function CDM:UpdateCDMVisibility()
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
 
 	local playerFrame = _G.ElvUF_Player
 
-	for viewerKey in pairs(S.VIEWER_KEYS) do
-		local vdb = S.GetViewerDB(viewerKey)
-		local show = S.ShouldShowContainer(viewerKey)
-		local container = S.containers[viewerKey]
-		local viewer = S.GetViewer(viewerKey)
+	for viewerKey in pairs(CDM.VIEWER_KEYS) do
+		local vdb = CDM.GetViewerDB(viewerKey)
+		local show = CDM.ShouldShowContainer(viewerKey)
+		local container = CDM.containers[viewerKey]
+		local viewer = CDM.GetViewer(viewerKey)
 
 		if container then container:SetShown(show) end
 
@@ -208,28 +208,29 @@ function TUI:UpdateCDMVisibility()
 end
 
 -- Public API
-function TUI:RefreshCDM()
-	local db = S.GetDB()
+function CDM:RefreshCDM()
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
 
-	wipe(S.styledFrames)
-	wipe(S.glowActive)
+	wipe(CDM.styledFrames)
+	wipe(CDM.glowActive)
 
-	for viewerKey in pairs(S.VIEWER_KEYS) do
-		S.LayoutContainer(viewerKey, true)
+	for viewerKey in pairs(CDM.VIEWER_KEYS) do
+		CDM.LayoutContainer(viewerKey, true)
 	end
 
-	S.RefreshCustomViewer()
+	CDM.RefreshCustomViewer()
 	self:UpdateCDMVisibility()
 
-	if S.previewActive then
-		S.previewActive = false
-		S.ShowPreview()
+	if CDM.previewActive then
+		CDM.previewActive = false
+		CDM.ShowPreview()
 	end
 end
 
-function TUI:InitCooldownManager()
-	local db = S.GetDB()
+function CDM:Initialize()
+	if TUI:IsCompatBlocked('cooldownManager') then return end
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
 	if self._cdmInitialized then return end
 	self._cdmInitialized = true
@@ -250,7 +251,7 @@ function TUI:InitCooldownManager()
 	local hwiSetting = Enum.EditModeCooldownViewerSetting and Enum.EditModeCooldownViewerSetting.HideWhenInactive
 	if hwiSetting then
 		for _, vk in ipairs({'buffIcon', 'buffBar'}) do
-			local vdb = S.GetViewerDB(vk)
+			local vdb = CDM.GetViewerDB(vk)
 			local val = self:GetEditModeSetting(vk, hwiSetting)
 			if vdb and val ~= nil then
 				vdb.hideWhenInactive = (val == 1)
@@ -267,7 +268,7 @@ function TUI:InitCooldownManager()
 			local val = self:GetEditModeSetting(vk, visSetting)
 			if val == visHidden then
 				self:SetEditModeSetting(vk, visSetting, visAlways)
-				local viewer = _G[S.VIEWER_KEYS[vk] and S.VIEWER_KEYS[vk].global]
+				local viewer = _G[CDM.VIEWER_KEYS[vk] and CDM.VIEWER_KEYS[vk].global]
 				if viewer then
 					viewer.visibleSetting = visAlways
 					viewer:UpdateShownState()
@@ -277,23 +278,23 @@ function TUI:InitCooldownManager()
 	end
 
 	C_Timer.After(0, function()
-		for viewerKey in pairs(S.VIEWER_KEYS) do
+		for viewerKey in pairs(CDM.VIEWER_KEYS) do
 			if viewerKey ~= 'custom' then
-				S.CreateContainer(viewerKey)
+				CDM.CreateContainer(viewerKey)
 				HookViewer(viewerKey)
-				S.LayoutContainer(viewerKey, true)
+				CDM.LayoutContainer(viewerKey, true)
 			end
 		end
 
-		S.InitCustomViewer()
+		CDM.InitCustomViewer()
 
 		-- Resolve viewerKey from a frame or its parents via styledFrames/tuiViewerKey
 		local function ResolveViewerKey(frame)
 			if not frame then return nil end
-			local key = S.styledFrames[frame] or frame.tuiViewerKey
+			local key = CDM.styledFrames[frame] or frame.tuiViewerKey
 			if key then return key end
 			local parent = frame:GetParent()
-			return parent and (S.styledFrames[parent] or parent.tuiViewerKey) or nil
+			return parent and (CDM.styledFrames[parent] or parent.tuiViewerKey) or nil
 		end
 
 		-- Post-hook ElvUI Skins to re-apply our text styling after ElvUI overrides it
@@ -303,9 +304,9 @@ function TUI:InitCooldownManager()
 				hooksecurefunc(ElvSkins, 'CooldownManager_UpdateTextContainer', function(_, itemFrame)
 					local viewerKey = ResolveViewerKey(itemFrame)
 					if not viewerKey then return end
-					local vdb = S.GetViewerDB(viewerKey)
+					local vdb = CDM.GetViewerDB(viewerKey)
 					if vdb then
-						S.ApplyCountText(itemFrame, vdb.countText)
+						CDM.ApplyCountText(itemFrame, vdb.countText)
 					end
 				end)
 			end
@@ -313,10 +314,10 @@ function TUI:InitCooldownManager()
 				hooksecurefunc(ElvSkins, 'CooldownManager_SkinIcon', function(_, itemFrame)
 					local viewerKey = ResolveViewerKey(itemFrame)
 					if not viewerKey then return end
-					local cdb = S.GetDB()
-					local vdb = S.GetViewerDB(viewerKey)
+					local cdb = CDM.GetDB()
+					local vdb = CDM.GetViewerDB(viewerKey)
 					if vdb and cdb then
-						S.ApplyTextOverrides(itemFrame, vdb, cdb)
+						CDM.ApplyTextOverrides(itemFrame, vdb, cdb)
 					end
 				end)
 			end
@@ -324,8 +325,8 @@ function TUI:InitCooldownManager()
 				hooksecurefunc(ElvSkins, 'CooldownManager_SkinBar', function(_, frame)
 					local viewerKey = ResolveViewerKey(frame)
 					if viewerKey == 'buffBar' then
-						local vdb = S.GetViewerDB('buffBar')
-						if vdb then S.ApplyBarStyle(frame, vdb) end
+						local vdb = CDM.GetViewerDB('buffBar')
+						if vdb then CDM.ApplyBarStyle(frame, vdb) end
 					end
 				end)
 			end
@@ -333,10 +334,10 @@ function TUI:InitCooldownManager()
 				hooksecurefunc(ElvSkins, 'CooldownManager_UpdateTextBar', function(_, bar)
 					local frame = bar:GetParent()
 					if frame and ResolveViewerKey(frame) == 'buffBar' then
-						local vdb = S.GetViewerDB('buffBar')
+						local vdb = CDM.GetViewerDB('buffBar')
 						if vdb then
-							if bar.Name and vdb.nameText then S.StyleFontString(bar.Name, vdb.nameText) end
-							if bar.Duration and vdb.durationText then S.StyleFontString(bar.Duration, vdb.durationText) end
+							if bar.Name and vdb.nameText then CDM.StyleFontString(bar.Name, vdb.nameText) end
+							if bar.Duration and vdb.durationText then CDM.StyleFontString(bar.Duration, vdb.durationText) end
 						end
 					end
 				end)
@@ -349,25 +350,25 @@ function TUI:InitCooldownManager()
 			cooldown:SetHideCountdownNumbers(false)
 		end)
 
-		TUI:RegisterEvent('UNIT_AURA', OnCDMEvent)
-		TUI:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnCDMEvent)
-		TUI:RegisterEvent('SPELLS_CHANGED', OnCDMEvent)
-		TUI:RegisterEvent('UPDATE_BINDINGS', OnCDMEvent)
-		TUI:RegisterEvent('CVAR_UPDATE', OnCDMEvent)
+		CDM:RegisterEvent('UNIT_AURA', OnCDMEvent)
+		CDM:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnCDMEvent)
+		CDM:RegisterEvent('SPELLS_CHANGED', OnCDMEvent)
+		CDM:RegisterEvent('UPDATE_BINDINGS', OnCDMEvent)
+		CDM:RegisterEvent('CVAR_UPDATE', OnCDMEvent)
 
-		TUI:UpdateCDMVisibility()
+		CDM:UpdateCDMVisibility()
 
 		-- Mirror player frame fader alpha to FADER-mode CDM containers
 		local playerFrame = _G.ElvUF_Player
 		if playerFrame then
 			hooksecurefunc(playerFrame, 'SetAlpha', function(pf)
 				local alpha = pf:GetAlpha()
-				for viewerKey in pairs(S.VIEWER_KEYS) do
-					local vdb = S.GetViewerDB(viewerKey)
+				for viewerKey in pairs(CDM.VIEWER_KEYS) do
+					local vdb = CDM.GetViewerDB(viewerKey)
 					if vdb and vdb.visibleSetting == 'FADER' then
-						local container = S.containers[viewerKey]
+						local container = CDM.containers[viewerKey]
 						if container then container:SetAlpha(alpha) end
-						local viewer = S.GetViewer(viewerKey)
+						local viewer = CDM.GetViewer(viewerKey)
 						if viewer then viewer:SetAlpha(alpha) end
 					end
 				end
@@ -393,12 +394,12 @@ function TUI:InitCooldownManager()
 			if cat == CATEGORY_TRACKED_BAR then
 				rootDescription:CreateButton('Bar Color Options', function()
 					local spellID = owner.GetBaseSpellID and owner:GetBaseSpellID()
-					if spellID then TUI:ShowBarColorPanel(spellID) end
+					if spellID then CDM:ShowBarColorPanel(spellID) end
 				end)
 			else
 				rootDescription:CreateButton('Glow Options', function()
 					local spellID = owner.GetBaseSpellID and owner:GetBaseSpellID()
-					if spellID then TUI:ShowGlowPanel(spellID) end
+					if spellID then CDM:ShowGlowPanel(spellID) end
 				end)
 			end
 		end)
@@ -409,7 +410,7 @@ function TUI:InitCooldownManager()
 				E:Print('|cffff2f3dTrenchyUI|r: Cooldown Manager requires Blizzard\'s Cooldown Viewer. Re-enable it in Options > Gameplay Enhancements > Enable Cooldown Manager.')
 				return
 			end
-			S.OpenCDMConfig()
+			CDM.OpenCDMConfig()
 		end
 	end)
 end
@@ -429,8 +430,8 @@ local function TryHookConfigClose()
 	hookedConfigFrames[configFrame.frame] = true
 	configFrame.frame:HookScript('OnHide', function()
 		cdmTabActive = false
-		S.HideBlizzardCDMSettings()
-		if S.previewActive then S.HidePreview() end
+		CDM.HideBlizzardCDMSettings()
+		if CDM.previewActive then CDM.HidePreview() end
 	end)
 end
 
@@ -445,11 +446,11 @@ C_Timer.After(0, function()
 
 			if pathContainsCDM and not cdmTabActive then
 				cdmTabActive = true
-				S.ShowBlizzardCDMSettings()
+				CDM.ShowBlizzardCDMSettings()
 			elseif not pathContainsCDM and cdmTabActive then
 				cdmTabActive = false
-				S.HideBlizzardCDMSettings()
-				if S.previewActive then S.HidePreview() end
+				CDM.HideBlizzardCDMSettings()
+				if CDM.previewActive then CDM.HidePreview() end
 			end
 		end
 
@@ -492,3 +493,5 @@ C_Timer.After(0, function()
 		C_Timer.After(0.1, TryHookConfigClose)
 	end)
 end)
+
+E:RegisterModule(CDM:GetName())

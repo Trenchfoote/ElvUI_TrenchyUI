@@ -1,10 +1,10 @@
 -- CDM shared helpers: containers, movers, styling, glow, preview
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
-local LCG = S.LCG
-local LSM = S.LSM
+local LCG = CDM.LCG
+local LSM = CDM.LSM
 
 local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
@@ -16,9 +16,9 @@ local math_floor = math.floor
 local CDM_CONFIG_STRING = 'TrenchyUI,cooldownManager'
 
 -- Container creation
-function S.CreateContainer(viewerKey)
-	local info = S.VIEWER_KEYS[viewerKey]
-	local vdb = S.GetViewerDB(viewerKey)
+function CDM.CreateContainer(viewerKey)
+	local info = CDM.VIEWER_KEYS[viewerKey]
+	local vdb = CDM.GetViewerDB(viewerKey)
 
 	local w, h
 	if viewerKey == 'buffBar' then
@@ -45,37 +45,68 @@ function S.CreateContainer(viewerKey)
 
 	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
 
-	S.containers[viewerKey] = frame
+	CDM.containers[viewerKey] = frame
 	return frame
 end
 
-function S.AnchorToMover(viewerKey, growUp)
-	local container = S.containers[viewerKey]
+function CDM.AnchorToMover(viewerKey, growDirection)
+	local container = CDM.containers[viewerKey]
 	if not container then return end
-	local info = S.VIEWER_KEYS[viewerKey]
+	local info = CDM.VIEWER_KEYS[viewerKey]
 	local mover = _G[info.mover .. 'Mover']
 	if not mover then return end
 
+	-- Re-anchor the mover so its fixed edge matches the growth direction
+	if not InCombatLockdown() and mover:GetPoint() then
+		local fixedAnchor
+		if growDirection == 'UP' then
+			fixedAnchor = 'BOTTOM'
+		elseif growDirection == 'DOWN' then
+			fixedAnchor = 'TOP'
+		else
+			fixedAnchor = 'CENTER'
+		end
+
+		local fixedX, fixedY
+		if fixedAnchor == 'BOTTOM' then
+			fixedX = (mover:GetLeft() + mover:GetRight()) / 2
+			fixedY = mover:GetBottom()
+		elseif fixedAnchor == 'TOP' then
+			fixedX = (mover:GetLeft() + mover:GetRight()) / 2
+			fixedY = mover:GetTop()
+		else
+			fixedX = (mover:GetLeft() + mover:GetRight()) / 2
+			fixedY = (mover:GetBottom() + mover:GetTop()) / 2
+		end
+
+		if fixedX and fixedY then
+			mover:ClearAllPoints()
+			mover:SetPoint(fixedAnchor, UIParent, 'BOTTOMLEFT', fixedX, fixedY)
+		end
+	end
+
 	container:ClearAllPoints()
-	if growUp then
-		container:SetPoint('BOTTOMLEFT', mover, 'BOTTOMLEFT')
+	if growDirection == 'UP' then
+		container:SetPoint('BOTTOM', mover, 'BOTTOM')
+	elseif growDirection == 'DOWN' then
+		container:SetPoint('TOP', mover, 'TOP')
 	else
-		container:SetPoint('TOPLEFT', mover, 'TOPLEFT')
+		container:SetPoint('CENTER', mover, 'CENTER')
 	end
 end
 
 -- Icon grid layout shared by essential, utility, buffIcon
-function S.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
-	local container = S.containers[viewerKey]
+function CDM.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
+	local container = CDM.containers[viewerKey]
 	if not container then return end
 
-	local db = S.GetDB()
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
 
-	local vdb = S.GetViewerDB(viewerKey)
+	local vdb = CDM.GetViewerDB(viewerKey)
 	if not vdb then return end
 
-	local viewer = S.GetViewer(viewerKey)
+	local viewer = CDM.GetViewer(viewerKey)
 	if not viewer or not viewer.itemFramePool then return end
 
 	local iconW = E:Scale(vdb.iconWidth or 30)
@@ -85,8 +116,8 @@ function S.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 	local spacing = E:Scale(vdb.spacing or 2)
 	local growUp = (vdb.growthDirection == 'UP')
 
-	local icons = S.iconCache[viewerKey]
-	if not icons then icons = {}; S.iconCache[viewerKey] = icons end
+	local icons = CDM.iconCache[viewerKey]
+	if not icons then icons = {}; CDM.iconCache[viewerKey] = icons end
 	wipe(icons)
 
 	for frame in viewer.itemFramePool:EnumerateActive() do
@@ -95,13 +126,13 @@ function S.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 		end
 	end
 
-	table.sort(icons, S.sortFunc)
+	table.sort(icons, CDM.sortFunc)
 
 	local count = #icons
 	if count == 0 then
 		local minW = perRow * iconW + (perRow - 1) * spacing
 		container:SetSize(minW, iconH)
-		S.AnchorToMover(viewerKey, growUp)
+		CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 		return
 	end
 
@@ -112,11 +143,11 @@ function S.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 		icon:SetScale(1)
 		icon:SetSize(iconW, iconH)
 
-		S.ApplyIconZoom(icon, iconZoom)
+		CDM.ApplyIconZoom(icon, iconZoom)
 
-		if applyStyle or not S.styledFrames[icon] then
-			S.ApplyTextOverrides(icon, vdb, db)
-			S.styledFrames[icon] = viewerKey
+		if applyStyle or not CDM.styledFrames[icon] then
+			CDM.ApplyTextOverrides(icon, vdb, db)
+			CDM.styledFrames[icon] = viewerKey
 			icon.tuiViewerKey = viewerKey
 		end
 
@@ -165,16 +196,16 @@ function S.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 		end
 	end
 
-	S.AnchorToMover(viewerKey, growUp)
+	CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 end
 
 -- Glow
 local glowColor = {}
 local GLOW_PREFIXES = { '_PixelGlow', '_AutoCastGlow', '_ButtonGlow', '_ProcGlow' }
 
-function S.StopGlow(itemFrame)
-	if not LCG or not S.glowActive[itemFrame] then return end
-	S.glowActive[itemFrame] = nil
+function CDM.StopGlow(itemFrame)
+	if not LCG or not CDM.glowActive[itemFrame] then return end
+	CDM.glowActive[itemFrame] = nil
 
 	LCG.PixelGlow_Stop(itemFrame, 'TUI_CDM')
 	LCG.AutoCastGlow_Stop(itemFrame, 'TUI_CDM')
@@ -188,13 +219,13 @@ function S.StopGlow(itemFrame)
 	end
 end
 
-function S.ApplyGlow(itemFrame, glowDB, perSpell)
+function CDM.ApplyGlow(itemFrame, glowDB, perSpell)
 	if not LCG then return end
 
 	local alert = itemFrame.SpellActivationAlert
 	if not perSpell then
 		if not alert or not alert:IsShown() then
-			S.StopGlow(itemFrame)
+			CDM.StopGlow(itemFrame)
 			return
 		end
 	end
@@ -204,19 +235,19 @@ function S.ApplyGlow(itemFrame, glowDB, perSpell)
 		itemFrame.tuiAlertHidden = true
 	end
 
-	if alert and not S.hookedAlerts[itemFrame] then
-		S.hookedAlerts[itemFrame] = true
+	if alert and not CDM.hookedAlerts[itemFrame] then
+		CDM.hookedAlerts[itemFrame] = true
 		hooksecurefunc(alert, 'Show', function(self)
-			local vKey = S.styledFrames[itemFrame]
+			local vKey = CDM.styledFrames[itemFrame]
 			if vKey == 'buffIcon' then
 				local sid = itemFrame.GetBaseSpellID and itemFrame:GetBaseSpellID()
-				local sgdb = sid and S.GetSpellGlowDB(sid)
+				local sgdb = sid and CDM.GetSpellGlowDB(sid)
 				if sgdb and sgdb.enabled then
 					self:SetAlpha(0)
 					itemFrame.tuiAlertHidden = true
 				end
 			else
-				local vdb = vKey and S.GetViewerDB(vKey)
+				local vdb = vKey and CDM.GetViewerDB(vKey)
 				if vdb and vdb.glow and vdb.glow.enabled then
 					self:SetAlpha(0)
 					itemFrame.tuiAlertHidden = true
@@ -225,7 +256,7 @@ function S.ApplyGlow(itemFrame, glowDB, perSpell)
 		end)
 	end
 
-	S.glowActive[itemFrame] = true
+	CDM.glowActive[itemFrame] = true
 
 	local glowType = glowDB.type or 'pixel'
 	local color = glowDB.color
@@ -263,7 +294,7 @@ function S.ApplyGlow(itemFrame, glowDB, perSpell)
 end
 
 -- Icon zoom
-function S.ApplyIconZoom(itemFrame, zoom)
+function CDM.ApplyIconZoom(itemFrame, zoom)
 	if not zoom or zoom <= 0 then return end
 	local icon = itemFrame.Icon
 	if icon then
@@ -285,7 +316,7 @@ local function GetTextColor(tdb)
 	return c.r, c.g, c.b
 end
 
-function S.StyleFontString(fs, tdb)
+function CDM.StyleFontString(fs, tdb)
 	if not fs then return end
 	fs:SetIgnoreParentScale(true)
 	fs:ClearAllPoints()
@@ -294,37 +325,37 @@ function S.StyleFontString(fs, tdb)
 	fs:SetTextColor(GetTextColor(tdb))
 end
 
-function S.ApplyCountText(itemFrame, tdb)
+function CDM.ApplyCountText(itemFrame, tdb)
 	if not tdb then return end
 	local fs
 	fs = itemFrame.Applications and itemFrame.Applications.Applications
-	if fs then S.StyleFontString(fs, tdb) end
+	if fs then CDM.StyleFontString(fs, tdb) end
 	fs = itemFrame.Count
-	if fs then S.StyleFontString(fs, tdb) end
+	if fs then CDM.StyleFontString(fs, tdb) end
 	fs = itemFrame.ChargeCount and itemFrame.ChargeCount.Current
-	if fs then S.StyleFontString(fs, tdb) end
+	if fs then CDM.StyleFontString(fs, tdb) end
 end
 
-function S.ApplyCooldownText(cooldown, tdb)
+function CDM.ApplyCooldownText(cooldown, tdb)
 	if not cooldown or not tdb then return end
 	cooldown:SetHideCountdownNumbers(false)
 	local text = cooldown.tuiText or cooldown.Text or cooldown:GetRegions()
 	if text and text.SetTextColor then
 		cooldown.tuiText = text
 		cooldown.Text = nil
-		S.StyleFontString(text, tdb)
+		CDM.StyleFontString(text, tdb)
 	end
 end
 
-function S.ApplySwipeOverride(cooldown, db)
+function CDM.ApplySwipeOverride(cooldown, db)
 	if not cooldown then return end
 	if db.hideSwipe then
 		cooldown:SetDrawSwipe(false)
-		if not S.hookedSwipes[cooldown] then
-			S.hookedSwipes[cooldown] = true
+		if not CDM.hookedSwipes[cooldown] then
+			CDM.hookedSwipes[cooldown] = true
 			hooksecurefunc(cooldown, 'SetDrawSwipe', function(self, draw)
 				if draw then
-					local cdb = S.GetDB()
+					local cdb = CDM.GetDB()
 					if cdb and cdb.enabled and cdb.hideSwipe then
 						self:SetDrawSwipe(false)
 					end
@@ -334,15 +365,15 @@ function S.ApplySwipeOverride(cooldown, db)
 	end
 end
 
-function S.ApplyTextOverrides(itemFrame, vdb, db)
-	S.ApplyCountText(itemFrame, vdb.countText)
-	S.ApplyCooldownText(itemFrame.Cooldown, vdb.cooldownText)
-	S.ApplySwipeOverride(itemFrame.Cooldown, db)
+function CDM.ApplyTextOverrides(itemFrame, vdb, db)
+	CDM.ApplyCountText(itemFrame, vdb.countText)
+	CDM.ApplyCooldownText(itemFrame.Cooldown, vdb.cooldownText)
+	CDM.ApplySwipeOverride(itemFrame.Cooldown, db)
 end
 
 -- Keybind text: read directly from ElvUI action bar button HotKey FontStrings
 
-function S.GetSpellKeybind(spellID)
+function CDM.GetSpellKeybind(spellID)
 	local slots = C_ActionBar.FindSpellActionButtons(spellID)
 	if not slots then return nil end
 	for _, slot in ipairs(slots) do
@@ -361,7 +392,7 @@ function S.GetSpellKeybind(spellID)
 	return nil
 end
 
-function S.ApplyKeybindText(itemFrame, vdb)
+function CDM.ApplyKeybindText(itemFrame, vdb)
 	local tdb = vdb and vdb.keybindText
 	if not vdb.showKeybind or not tdb then
 		if itemFrame.tuiKeybind then itemFrame.tuiKeybind:SetText('') end
@@ -380,9 +411,9 @@ function S.ApplyKeybindText(itemFrame, vdb)
 		itemFrame.tuiKeybind:SetWordWrap(false)
 	end
 
-	S.StyleFontString(itemFrame.tuiKeybind, tdb)
+	CDM.StyleFontString(itemFrame.tuiKeybind, tdb)
 
-	local key = S.GetSpellKeybind(sid)
+	local key = CDM.GetSpellKeybind(sid)
 	if key then
 		itemFrame.tuiKeybind:SetText(key)
 		itemFrame.tuiKeybind:Show()
@@ -392,7 +423,7 @@ function S.ApplyKeybindText(itemFrame, vdb)
 end
 
 -- Preview text
-function S.SetPreviewText(itemFrame, show, vdb)
+function CDM.SetPreviewText(itemFrame, show, vdb)
 	local bar = itemFrame.Bar
 	if bar then
 		local nameText = bar.Name and bar.Name:IsShown() and bar.Name:GetText()
@@ -403,7 +434,7 @@ function S.SetPreviewText(itemFrame, show, vdb)
 					bar.tuiPreviewName = bar:CreateFontString(nil, 'OVERLAY')
 				end
 				local pfs = bar.tuiPreviewName
-				S.StyleFontString(pfs, vdb.nameText)
+				CDM.StyleFontString(pfs, vdb.nameText)
 				pfs:SetText('Buff Name')
 				pfs:Show()
 			elseif bar.tuiPreviewName then
@@ -414,7 +445,7 @@ function S.SetPreviewText(itemFrame, show, vdb)
 					bar.tuiPreviewDuration = bar:CreateFontString(nil, 'OVERLAY')
 				end
 				local pfs = bar.tuiPreviewDuration
-				S.StyleFontString(pfs, vdb.durationText)
+				CDM.StyleFontString(pfs, vdb.durationText)
 				pfs:SetText('12.5s')
 				pfs:Show()
 			end
@@ -432,7 +463,7 @@ function S.SetPreviewText(itemFrame, show, vdb)
 				itemFrame.tuiCDPreview = itemFrame:CreateFontString(nil, 'OVERLAY')
 			end
 			local pfs = itemFrame.tuiCDPreview
-			S.StyleFontString(pfs, tdb)
+			CDM.StyleFontString(pfs, tdb)
 			pfs:SetText('12')
 			pfs:Show()
 		end
@@ -441,54 +472,54 @@ function S.SetPreviewText(itemFrame, show, vdb)
 	end
 end
 
-function S.ShowPreview()
-	if S.previewActive then return end
-	S.previewActive = true
+function CDM.ShowPreview()
+	if CDM.previewActive then return end
+	CDM.previewActive = true
 
-	for viewerKey in pairs(S.VIEWER_KEYS) do
-		local vdb = S.GetViewerDB(viewerKey)
-		local viewer = S.GetViewer(viewerKey)
+	for viewerKey in pairs(CDM.VIEWER_KEYS) do
+		local vdb = CDM.GetViewerDB(viewerKey)
+		local viewer = CDM.GetViewer(viewerKey)
 		if viewer and vdb and viewer.itemFramePool then
 			for frame in viewer.itemFramePool:EnumerateActive() do
 				if frame and frame:IsShown() then
-					S.SetPreviewText(frame, true, vdb)
+					CDM.SetPreviewText(frame, true, vdb)
 				end
 			end
 		end
 	end
 
-	if S.RefreshCustomViewer then S.RefreshCustomViewer() end
+	if CDM.RefreshCustomViewer then CDM.RefreshCustomViewer() end
 end
 
-function S.HidePreview()
-	if not S.previewActive then return end
-	S.previewActive = false
+function CDM.HidePreview()
+	if not CDM.previewActive then return end
+	CDM.previewActive = false
 
-	for viewerKey in pairs(S.VIEWER_KEYS) do
-		local viewer = S.GetViewer(viewerKey)
+	for viewerKey in pairs(CDM.VIEWER_KEYS) do
+		local viewer = CDM.GetViewer(viewerKey)
 		if viewer and viewer.itemFramePool then
 			for frame in viewer.itemFramePool:EnumerateActive() do
 				if frame then
-					S.SetPreviewText(frame, false)
+					CDM.SetPreviewText(frame, false)
 				end
 			end
 		end
 	end
 
-	if S.RefreshCustomViewer then S.RefreshCustomViewer() end
-	S.ScheduleRelayout()
+	if CDM.RefreshCustomViewer then CDM.RefreshCustomViewer() end
+	CDM.ScheduleRelayout()
 end
 
 -- Dispatcher: routes to per-viewer layout functions (loaded after per-viewer files)
 local LAYOUT_MAP = {
-	essential = function(c) return S.LayoutEssential(c) end,
-	utility   = function(c) return S.LayoutUtility(c) end,
-	buffIcon  = function(c) return S.LayoutBuffIcon(c) end,
-	buffBar   = function(c) return S.LayoutBuffBar('buffBar', c) end,
-	custom    = function() return S.LayoutCustomViewer and S.LayoutCustomViewer() end,
+	essential = function(c) return CDM.LayoutEssential(c) end,
+	utility   = function(c) return CDM.LayoutUtility(c) end,
+	buffIcon  = function(c) return CDM.LayoutBuffIcon(c) end,
+	buffBar   = function(c) return CDM.LayoutBuffBar('buffBar', c) end,
+	custom    = function() return CDM.LayoutCustomViewer and CDM.LayoutCustomViewer() end,
 }
 
-function S.LayoutContainer(viewerKey, isCapture)
+function CDM.LayoutContainer(viewerKey, isCapture)
 	local fn = LAYOUT_MAP[viewerKey]
 	if fn then fn(isCapture) end
 end

@@ -1,18 +1,17 @@
 -- CDM Essential Cooldowns viewer
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
-function S.LayoutEssential(isCapture)
-	local vdb = S.GetViewerDB('essential')
+function CDM.LayoutEssential(isCapture)
+	local vdb = CDM.GetViewerDB('essential')
 	local useGlow = vdb and vdb.glow and vdb.glow.enabled
 
-	S.LayoutIconViewer('essential', isCapture, function(icon)
+	CDM.LayoutIconViewer('essential', isCapture, function(icon)
 		if useGlow then
-			S.ApplyGlow(icon, vdb.glow)
+			CDM.ApplyGlow(icon, vdb.glow)
 		else
-			S.StopGlow(icon)
+			CDM.StopGlow(icon)
 		end
-		S.ApplyKeybindText(icon, vdb)
+		CDM.ApplyKeybindText(icon, vdb)
 	end)
 end

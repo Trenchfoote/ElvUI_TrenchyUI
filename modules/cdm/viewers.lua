@@ -1,6 +1,5 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
 local hooksecurefunc = hooksecurefunc
 
@@ -46,11 +45,11 @@ do
 		for frame in viewer.itemFramePool:EnumerateActive() do
 			if frame and frame:IsShown() and frame.GetBaseSpellID then
 				local sid = frame:GetBaseSpellID()
-				local sgdb = sid and S.GetSpellGlowDB(sid)
+				local sgdb = sid and CDM.GetSpellGlowDB(sid)
 				if sgdb and sgdb.enabled then
-					S.ApplyGlow(frame, sgdb, true)
+					CDM.ApplyGlow(frame, sgdb, true)
 				else
-					S.StopGlow(frame)
+					CDM.StopGlow(frame)
 				end
 			end
 		end
@@ -58,7 +57,7 @@ do
 
 	local function UpdateVisibleSliders()
 		if not glowPanel or not currentSpellID then return end
-		local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+		local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 		if not sgdb then return end
 		local isPixel = sgdb.type == 'pixel'
 		local isAutocast = sgdb.type == 'autocast'
@@ -71,7 +70,7 @@ do
 
 	local function UpdatePanelWidgets()
 		if not glowPanel or not currentSpellID then return end
-		local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+		local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 		if not sgdb then return end
 		widgets.enable:SetValue(sgdb.enabled)
 		widgets.glowType:SetValue(sgdb.type)
@@ -97,7 +96,7 @@ do
 		enable:SetLabel('Enable Glow')
 		enable:SetFullWidth(true)
 		enable:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.enabled = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(enable)
@@ -108,7 +107,7 @@ do
 		glowType:SetList(GLOW_TYPES, GLOW_TYPE_ORDER)
 		glowType:SetRelativeWidth(0.5)
 		glowType:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.type = val; UpdateVisibleSliders(); RefreshBuffIconGlow() end
 		end)
 		window:AddChild(glowType)
@@ -120,7 +119,7 @@ do
 		color:SetHasAlpha(true)
 
 		local function colorChanged(_, _, r, g, b, a)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.color.r, sgdb.color.g, sgdb.color.b, sgdb.color.a = r, g, b, a; RefreshBuffIconGlow() end
 		end
 		color:SetCallback('OnValueChanged', colorChanged)
@@ -134,7 +133,7 @@ do
 		speed:SetSliderValues(0.05, 2, 0.05)
 		speed:SetFullWidth(true)
 		speed:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.speed = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(speed)
@@ -145,7 +144,7 @@ do
 		lines:SetSliderValues(1, 20, 1)
 		lines:SetFullWidth(true)
 		lines:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.lines = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(lines)
@@ -156,7 +155,7 @@ do
 		thickness:SetSliderValues(1, 8, 1)
 		thickness:SetFullWidth(true)
 		thickness:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.thickness = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(thickness)
@@ -167,7 +166,7 @@ do
 		particles:SetSliderValues(1, 16, 1)
 		particles:SetFullWidth(true)
 		particles:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.particles = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(particles)
@@ -178,7 +177,7 @@ do
 		scale:SetSliderValues(0.5, 3, 0.1)
 		scale:SetFullWidth(true)
 		scale:SetCallback('OnValueChanged', function(_, _, val)
-			local sgdb = S.GetOrCreateSpellGlowDB(currentSpellID)
+			local sgdb = CDM.GetOrCreateSpellGlowDB(currentSpellID)
 			if sgdb then sgdb.scale = val; RefreshBuffIconGlow() end
 		end)
 		window:AddChild(scale)
@@ -189,14 +188,14 @@ do
 		glowPanel = window
 	end
 
-	function TUI:HideGlowPanel()
+	function CDM:HideGlowPanel()
 		if glowPanel then glowPanel:Hide() end
 	end
 
-	function TUI:ShowGlowPanel(spellID)
+	function CDM:ShowGlowPanel(spellID)
 		if not glowPanel then CreateGlowPanel() end
 		currentSpellID = spellID
-		TUI:HideBarColorPanel()
+		CDM:HideBarColorPanel()
 		AnchorOptionPanel(glowPanel, spellID, 'tuiGlowHooked')
 		UpdatePanelWidgets()
 		glowPanel:Show()
@@ -212,18 +211,18 @@ do
 	local function RefreshBuffBarColors()
 		local viewer = _G['BuffBarCooldownViewer']
 		if not viewer or not viewer.itemFramePool then return end
-		local vdb = S.GetViewerDB('buffBar')
+		local vdb = CDM.GetViewerDB('buffBar')
 		if not vdb then return end
 		for frame in viewer.itemFramePool:EnumerateActive() do
 			if frame and frame:IsShown() then
-				S.ApplyBarStyle(frame, vdb)
+				CDM.ApplyBarStyle(frame, vdb)
 			end
 		end
 	end
 
 	local function UpdateBarColorWidgets()
 		if not barColorPanel or not barColorSpellID then return end
-		local sbc = S.GetOrCreateSpellBarColorDB(barColorSpellID)
+		local sbc = CDM.GetOrCreateSpellBarColorDB(barColorSpellID)
 		if not sbc then return end
 		bcWidgets.enable:SetValue(sbc.enabled)
 		bcWidgets.fgColor:SetColor(sbc.fgColor.r, sbc.fgColor.g, sbc.fgColor.b)
@@ -243,7 +242,7 @@ do
 		enable:SetLabel('Enable Custom Colors')
 		enable:SetFullWidth(true)
 		enable:SetCallback('OnValueChanged', function(_, _, val)
-			local sbc = S.GetOrCreateSpellBarColorDB(barColorSpellID)
+			local sbc = CDM.GetOrCreateSpellBarColorDB(barColorSpellID)
 			if sbc then sbc.enabled = val; RefreshBuffBarColors() end
 		end)
 		window:AddChild(enable)
@@ -254,7 +253,7 @@ do
 		fgColor:SetRelativeWidth(0.5)
 		fgColor:SetHasAlpha(false)
 		local function fgChanged(_, _, r, g, b)
-			local sbc = S.GetOrCreateSpellBarColorDB(barColorSpellID)
+			local sbc = CDM.GetOrCreateSpellBarColorDB(barColorSpellID)
 			if sbc then sbc.fgColor.r, sbc.fgColor.g, sbc.fgColor.b = r, g, b; RefreshBuffBarColors() end
 		end
 		fgColor:SetCallback('OnValueChanged', fgChanged)
@@ -267,7 +266,7 @@ do
 		bgColor:SetRelativeWidth(0.5)
 		bgColor:SetHasAlpha(true)
 		local function bgChanged(_, _, r, g, b, a)
-			local sbc = S.GetOrCreateSpellBarColorDB(barColorSpellID)
+			local sbc = CDM.GetOrCreateSpellBarColorDB(barColorSpellID)
 			if sbc then sbc.bgColor.r, sbc.bgColor.g, sbc.bgColor.b, sbc.bgColor.a = r, g, b, a; RefreshBuffBarColors() end
 		end
 		bgColor:SetCallback('OnValueChanged', bgChanged)
@@ -280,14 +279,14 @@ do
 		barColorPanel = window
 	end
 
-	function TUI:HideBarColorPanel()
+	function CDM:HideBarColorPanel()
 		if barColorPanel then barColorPanel:Hide() end
 	end
 
-	function TUI:ShowBarColorPanel(spellID)
+	function CDM:ShowBarColorPanel(spellID)
 		if not barColorPanel then CreateBarColorPanel() end
 		barColorSpellID = spellID
-		TUI:HideGlowPanel()
+		CDM:HideGlowPanel()
 		AnchorOptionPanel(barColorPanel, spellID, 'tuiBarColorHooked')
 		UpdateBarColorWidgets()
 		barColorPanel:Show()
@@ -295,7 +294,7 @@ do
 end
 
 -- Blizzard CDM settings
-function S.ShowBlizzardCDMSettings()
+function CDM.ShowBlizzardCDMSettings()
 	if not C_AddOns.IsAddOnLoaded('Blizzard_CooldownViewer') then
 		C_AddOns.LoadAddOn('Blizzard_CooldownViewer')
 	end
@@ -303,24 +302,24 @@ function S.ShowBlizzardCDMSettings()
 	if settings and not settings:IsShown() then
 		settings:Show()
 	end
-	S.ScheduleRelayout()
+	CDM.ScheduleRelayout()
 end
 
-function S.HideBlizzardCDMSettings()
+function CDM.HideBlizzardCDMSettings()
 	local settings = _G.CooldownViewerSettings
 	if settings and settings:IsShown() then
 		settings:Hide()
 	end
-	S.ScheduleRelayout()
+	CDM.ScheduleRelayout()
 end
 
-function S.IsConfigOpen()
+function CDM.IsConfigOpen()
 	local ACD = E.Libs.AceConfigDialog
 	return ACD and ACD.OpenFrames and ACD.OpenFrames.ElvUI
 end
 
-function S.OpenCDMConfig()
-	if not S.IsConfigOpen() then
+function CDM.OpenCDMConfig()
+	if not CDM.IsConfigOpen() then
 		E:ToggleOptions('TrenchyUI')
 	end
 	C_Timer.After(0.1, function()

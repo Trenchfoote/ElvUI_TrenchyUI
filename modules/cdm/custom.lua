@@ -1,8 +1,7 @@
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
-local LSM = S.LSM
+local LSM = CDM.LSM
 local GetInventoryItemID = GetInventoryItemID
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemTexture = GetInventoryItemTexture
@@ -94,7 +93,7 @@ local function CreateCustomIcon(parent, index)
 
 	frame:SetScript('OnEnter', function(self)
 		if not self.tuiTrackType then return end
-		local vdb = S.GetViewerDB('custom')
+		local vdb = CDM.GetViewerDB('custom')
 		if vdb and vdb.showTooltips == false then return end
 		GameTooltip:SetOwner(self, 'ANCHOR_RIGHT')
 		if self.tuiTrackType == 'racial' and self.tuiSpellID then
@@ -189,7 +188,7 @@ end
 
 -- Master update: populate icons based on config toggles
 local function UpdateAllIcons()
-	local vdb = S.GetViewerDB('custom')
+	local vdb = CDM.GetViewerDB('custom')
 	if not vdb or not vdb.enabled then return end
 
 	wipe(activeIcons)
@@ -273,15 +272,15 @@ local function UpdateAllIcons()
 		customIcons[i]:Hide()
 	end
 
-	S.LayoutCustomViewer()
+	CDM.LayoutCustomViewer()
 end
 
 -- Layout: position active icons in the container
-function S.LayoutCustomViewer()
-	local container = S.containers['custom']
+function CDM.LayoutCustomViewer()
+	local container = CDM.containers['custom']
 	if not container then return end
 
-	local vdb = S.GetViewerDB('custom')
+	local vdb = CDM.GetViewerDB('custom')
 	if not vdb then return end
 
 	local iconW = E:Scale(vdb.iconWidth or 36)
@@ -296,19 +295,19 @@ function S.LayoutCustomViewer()
 		container:Hide()
 		return
 	end
-	if not container:IsShown() and S.ShouldShowContainer('custom') then
+	if not container:IsShown() and CDM.ShouldShowContainer('custom') then
 		container:Show()
 	end
 
-	local db = S.GetDB()
+	local db = CDM.GetDB()
 	for _, icon in ipairs(activeIcons) do
 		icon:SetSize(iconW, iconH)
 		icon.icon:SetTexCoord(E:GetTexCoords())
-		S.ApplyIconZoom(icon, zoom)
-		S.ApplyCooldownText(icon.Cooldown, vdb.cooldownText)
-		S.ApplySwipeOverride(icon.Cooldown, db)
-		S.StyleFontString(icon.countText, vdb.countText)
-		S.SetPreviewText(icon, S.previewActive, vdb)
+		CDM.ApplyIconZoom(icon, zoom)
+		CDM.ApplyCooldownText(icon.Cooldown, vdb.cooldownText)
+		CDM.ApplySwipeOverride(icon.Cooldown, db)
+		CDM.StyleFontString(icon.countText, vdb.countText)
+		CDM.SetPreviewText(icon, CDM.previewActive, vdb)
 	end
 
 	local cols = count < perRow and count or perRow
@@ -340,7 +339,7 @@ function S.LayoutCustomViewer()
 		icon:SetPoint(anchor, container, anchor, xDir * col * (iconW + spacing), yDir * row * (iconH + spacing))
 	end
 
-	local info = S.VIEWER_KEYS['custom']
+	local info = CDM.VIEWER_KEYS['custom']
 	local mover = _G[info.mover .. 'Mover']
 	if mover then
 		container:ClearAllPoints()
@@ -381,8 +380,8 @@ end
 
 -- Create custom container (ignoreSizeChanged: we manage mover size manually)
 local function CreateCustomContainer()
-	local info = S.VIEWER_KEYS['custom']
-	local vdb = S.GetViewerDB('custom')
+	local info = CDM.VIEWER_KEYS['custom']
+	local vdb = CDM.GetViewerDB('custom')
 	local iconW = vdb and vdb.iconWidth or 36
 	local iconH = (vdb and vdb.keepSizeRatio and iconW) or (vdb and vdb.iconHeight or 36)
 
@@ -394,34 +393,34 @@ local function CreateCustomContainer()
 
 	local configStr = 'TrenchyUI,cooldownManager,custom'
 	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
-	S.containers['custom'] = frame
+	CDM.containers['custom'] = frame
 end
 
-function S.InitCustomViewer()
-	local vdb = S.GetViewerDB('custom')
+function CDM.InitCustomViewer()
+	local vdb = CDM.GetViewerDB('custom')
 	if not vdb or not vdb.enabled then return end
 
 	CreateCustomContainer()
 
-	local container = S.containers['custom']
+	local container = CDM.containers['custom']
 	for i = 1, MAX_ICONS do
 		customIcons[i] = CreateCustomIcon(container, i)
 	end
 
 	DetectRacials()
 
-	TUI:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnEvent)
-	TUI:RegisterEvent('BAG_UPDATE_COOLDOWN', OnEvent)
-	TUI:RegisterEvent('BAG_UPDATE', OnEvent)
-	TUI:RegisterEvent('PLAYER_EQUIPMENT_CHANGED', OnEvent)
-	TUI:RegisterEvent('PLAYER_ENTERING_WORLD', OnEvent)
-	TUI:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', OnEvent)
-	TUI:RegisterEvent('PLAYER_TALENT_UPDATE', OnEvent)
+	CDM:RegisterEvent('SPELL_UPDATE_COOLDOWN', OnEvent)
+	CDM:RegisterEvent('BAG_UPDATE_COOLDOWN', OnEvent)
+	CDM:RegisterEvent('BAG_UPDATE', OnEvent)
+	CDM:RegisterEvent('PLAYER_EQUIPMENT_CHANGED', OnEvent)
+	CDM:RegisterEvent('PLAYER_ENTERING_WORLD', OnEvent)
+	CDM:RegisterEvent('ACTIVE_TALENT_GROUP_CHANGED', OnEvent)
+	CDM:RegisterEvent('PLAYER_TALENT_UPDATE', OnEvent)
 
 	UpdateAllIcons()
 end
 
-function S.RefreshCustomViewer()
-	if not S.containers['custom'] then return end
+function CDM.RefreshCustomViewer()
+	if not CDM.containers['custom'] then return end
 	UpdateAllIcons()
 end

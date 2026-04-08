@@ -1,16 +1,15 @@
 -- CDM Buff Bar Cooldowns viewer
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
-local LSM = S.LSM
+local LSM = CDM.LSM
 local hooksecurefunc = hooksecurefunc
 local ipairs = ipairs
 local math_ceil = math.ceil
 local wipe = wipe
 
 -- Bar styling
-function S.ApplyBarStyle(frame, vdb)
+function CDM.ApplyBarStyle(frame, vdb)
 	local bar = frame.Bar
 	if not bar then return end
 
@@ -67,7 +66,7 @@ function S.ApplyBarStyle(frame, vdb)
 	end
 
 	local spellID = frame.GetBaseSpellID and frame:GetBaseSpellID()
-	local sbc = spellID and S.GetSpellBarColorDB(spellID)
+	local sbc = spellID and CDM.GetSpellBarColorDB(spellID)
 	local hasCustomColor = sbc and sbc.enabled
 
 	if hasCustomColor then
@@ -81,7 +80,7 @@ function S.ApplyBarStyle(frame, vdb)
 			local origSetColor = bar.SetStatusBarColor
 			hooksecurefunc(bar, 'SetStatusBarColor', function(self)
 				local sid = frame.GetBaseSpellID and frame:GetBaseSpellID()
-				local sc = sid and S.GetSpellBarColorDB(sid)
+				local sc = sid and CDM.GetSpellBarColorDB(sid)
 				if sc and sc.enabled and not frame.tuiSettingColor then
 					frame.tuiSettingColor = true
 					origSetColor(self, sc.fgColor.r, sc.fgColor.g, sc.fgColor.b)
@@ -123,7 +122,7 @@ function S.ApplyBarStyle(frame, vdb)
 	if bar.Name then
 		if vdb.showName ~= false and vdb.nameText then
 			bar.Name:Show()
-			S.StyleFontString(bar.Name, vdb.nameText)
+			CDM.StyleFontString(bar.Name, vdb.nameText)
 		else
 			bar.Name:Hide()
 		end
@@ -132,13 +131,13 @@ function S.ApplyBarStyle(frame, vdb)
 	if bar.Duration then
 		if vdb.showTimer ~= false and vdb.durationText then
 			bar.Duration:Show()
-			S.StyleFontString(bar.Duration, vdb.durationText)
+			CDM.StyleFontString(bar.Duration, vdb.durationText)
 		else
 			bar.Duration:Hide()
 		end
 	end
 
-	if icon and showIcon then S.ApplyCountText(icon, vdb.stacksText) end
+	if icon and showIcon then CDM.ApplyCountText(icon, vdb.stacksText) end
 
 	if frame.DebuffBorder and not frame.tuiDebuffBorderKilled then
 		frame.DebuffBorder:Hide()
@@ -149,17 +148,17 @@ function S.ApplyBarStyle(frame, vdb)
 end
 
 -- Buff bar layout
-function S.LayoutBuffBar(viewerKey, isCapture)
-	local container = S.containers[viewerKey]
+function CDM.LayoutBuffBar(viewerKey, isCapture)
+	local container = CDM.containers[viewerKey]
 	if not container then return end
 
-	local db = S.GetDB()
+	local db = CDM.GetDB()
 	if not db or not db.enabled then return end
 
-	local vdb = S.GetViewerDB(viewerKey)
+	local vdb = CDM.GetViewerDB(viewerKey)
 	if not vdb then return end
 
-	local viewer = S.GetViewer(viewerKey)
+	local viewer = CDM.GetViewer(viewerKey)
 	if not viewer then return end
 
 	local barW = vdb.barWidth or 200
@@ -167,8 +166,8 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 	local spacing = vdb.spacing or 2
 	local growUp = (vdb.growthDirection == 'UP')
 
-	local bars = S.iconCache[viewerKey]
-	if not bars then bars = {}; S.iconCache[viewerKey] = bars end
+	local bars = CDM.iconCache[viewerKey]
+	if not bars then bars = {}; CDM.iconCache[viewerKey] = bars end
 	wipe(bars)
 
 	if not viewer.itemFramePool then return end
@@ -178,7 +177,7 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 		end
 	end
 
-	table.sort(bars, S.sortFunc)
+	table.sort(bars, CDM.sortFunc)
 
 	local count = #bars
 
@@ -186,14 +185,14 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 	if vdb.hideWhenInactive and count == 0 then
 		container:Hide()
 	elseif vis ~= 'HIDDEN' and not container:IsShown() then
-		if S.ShouldShowContainer(viewerKey) then
+		if CDM.ShouldShowContainer(viewerKey) then
 			container:Show()
 		end
 	end
 
 	if count == 0 then
 		container:SetSize(barW, barH)
-		S.AnchorToMover(viewerKey, growUp)
+		CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 		return
 	end
 
@@ -216,9 +215,9 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 			left:SetScale(1)
 			left:SetSize(right and colW or barW, barH)
 			left.tuiBarIconSide = right and 'RIGHT' or 'LEFT'
-			if isCapture or not S.styledFrames[left] then
-				S.ApplyBarStyle(left, vdb)
-				S.styledFrames[left] = viewerKey
+			if isCapture or not CDM.styledFrames[left] then
+				CDM.ApplyBarStyle(left, vdb)
+				CDM.styledFrames[left] = viewerKey
 				left.tuiViewerKey = viewerKey
 			end
 			left:ClearAllPoints()
@@ -228,9 +227,9 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 				right:SetScale(1)
 				right:SetSize(colW, barH)
 				right.tuiBarIconSide = 'LEFT'
-				if isCapture or not S.styledFrames[right] then
-					S.ApplyBarStyle(right, vdb)
-					S.styledFrames[right] = viewerKey
+				if isCapture or not CDM.styledFrames[right] then
+					CDM.ApplyBarStyle(right, vdb)
+					CDM.styledFrames[right] = viewerKey
 					right.tuiViewerKey = viewerKey
 				end
 				right:ClearAllPoints()
@@ -245,9 +244,9 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 			frame:SetSize(barW, barH)
 			frame.tuiBarIconSide = 'LEFT'
 
-			if isCapture or not S.styledFrames[frame] then
-				S.ApplyBarStyle(frame, vdb)
-				S.styledFrames[frame] = viewerKey
+			if isCapture or not CDM.styledFrames[frame] then
+				CDM.ApplyBarStyle(frame, vdb)
+				CDM.styledFrames[frame] = viewerKey
 				frame.tuiViewerKey = viewerKey
 			end
 
@@ -256,5 +255,5 @@ function S.LayoutBuffBar(viewerKey, isCapture)
 		end
 	end
 
-	S.AnchorToMover(viewerKey, growUp)
+	CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 end

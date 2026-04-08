@@ -1,18 +1,17 @@
 -- CDM Utility Cooldowns viewer
 local E = unpack(ElvUI)
-local TUI = E:GetModule('TrenchyUI')
-local S = TUI._cdm
+local CDM = E:GetModule('TUI_CDM')
 
-function S.LayoutUtility(isCapture)
-	local vdb = S.GetViewerDB('utility')
+function CDM.LayoutUtility(isCapture)
+	local vdb = CDM.GetViewerDB('utility')
 	local useGlow = vdb and vdb.glow and vdb.glow.enabled
 
-	S.LayoutIconViewer('utility', isCapture, function(icon)
+	CDM.LayoutIconViewer('utility', isCapture, function(icon)
 		if useGlow then
-			S.ApplyGlow(icon, vdb.glow)
+			CDM.ApplyGlow(icon, vdb.glow)
 		else
-			S.StopGlow(icon)
+			CDM.StopGlow(icon)
 		end
-		S.ApplyKeybindText(icon, vdb)
+		CDM.ApplyKeybindText(icon, vdb)
 	end)
 end
