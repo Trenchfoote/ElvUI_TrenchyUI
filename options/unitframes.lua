@@ -97,6 +97,44 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
+    root.unitframes.args.absorbTexture = ACH:Group("Absorb Textures", nil, 2.7)
+    root.unitframes.args.absorbTexture.inline = true
+    local abs = root.unitframes.args.absorbTexture.args
+
+    abs.desc = ACH:Description(
+        "Override the statusbar texture for absorb indicators on unit frames. "
+        .. "Applies to both normal and over-absorb states. Leave at default to use ElvUI's health bar texture.",
+        1, "medium"
+    )
+
+    abs.damageAbsorb = ACH:SharedMediaStatusbar(
+        "Absorbs / Over Absorbs", "Texture for damage absorb shields (Power Word: Shield, etc.).", 2, nil,
+        function()
+            local t = TUI.db.profile.absorbTexture.damageAbsorb
+            return (t and t ~= '') and t or E.private.general.normTex
+        end,
+        function(_, value)
+            local def = E.private.general.normTex
+            TUI.db.profile.absorbTexture.damageAbsorb = (value == def) and '' or value
+            local UF = E:GetModule('UnitFrames')
+            UF:Update_AllFrames()
+        end
+    )
+
+    abs.healAbsorb = ACH:SharedMediaStatusbar(
+        "Heal Absorbs / Over Heal Absorbs", "Texture for heal absorption effects (Necrotic Wound, etc.).", 3, nil,
+        function()
+            local t = TUI.db.profile.absorbTexture.healAbsorb
+            return (t and t ~= '') and t or E.private.general.normTex
+        end,
+        function(_, value)
+            local def = E.private.general.normTex
+            TUI.db.profile.absorbTexture.healAbsorb = (value == def) and '' or value
+            local UF = E:GetModule('UnitFrames')
+            UF:Update_AllFrames()
+        end
+    )
+
     root.unitframes.args.groupPower = ACH:Group("Group Power", nil, 3)
     root.unitframes.args.groupPower.inline = true
     local gp = root.unitframes.args.groupPower.args

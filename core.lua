@@ -7,6 +7,8 @@ local pairs = pairs
 
 local mediaPath = 'Interface\\AddOns\\ElvUI_TrenchyUI\\media\\'
 LSM:Register('statusbar', 'TrenchyFocus', mediaPath .. 'statusbar\\TrenchyFocus')
+LSM:Register('statusbar', 'T-Absorb', mediaPath .. 'statusbar\\T-Absorb')
+LSM:Register('statusbar', 'T-HealAbsorb', mediaPath .. 'statusbar\\T-HealAbsorb')
 
 local TUI = E:NewModule('TrenchyUI', 'AceHook-3.0', 'AceEvent-3.0')
 ns.TUI = TUI
