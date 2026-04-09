@@ -41,6 +41,7 @@
 	<Script file="unitframes\tankpower.lua"/>
 	<Script file="unitframes\essencecharge.lua"/>
 	<Script file="unitframes\steadyflight.lua"/>
+	<Script file="unitframes\absorbs.lua"/>
 	<Script file="unitframes\raidrole.lua"/>
 
 	<!-- Datatexts -->
