@@ -10,6 +10,36 @@ LSM:Register('statusbar', 'TrenchyFocus', mediaPath .. 'statusbar\\TrenchyFocus'
 LSM:Register('statusbar', 'T-Absorb', mediaPath .. 'statusbar\\T-Absorb')
 LSM:Register('statusbar', 'T-HealAbsorb', mediaPath .. 'statusbar\\T-HealAbsorb')
 
+-- Inject Slug font flags into ElvUI's font dropdown and FontTemplate
+do
+	local ACH = E.Libs.ACH
+	if ACH and ACH.FontValues then
+		ACH.FontValues.SLUG = '|cFFCCCCCCSlug|r'
+		ACH.FontValues.SLUGOUTLINE = '|cFFCCCCCCSlug|r Outline'
+		ACH.FontValues.SLUGTHICKOUTLINE = '|cFFCCCCCCSlug|r Thick'
+		ACH.FontValues.SLUGMONOCHROMEOUTLINE = '|cFFCCCCCCSlug|r Mono Outline'
+	end
+
+	-- Handle SLUG prefix in FontTemplate (same pattern as SHADOW)
+	local strsub = strsub
+	local frameMeta = getmetatable(CreateFrame('Frame')).__index
+	local origFontTemplate = frameMeta.FontTemplate
+	if origFontTemplate then
+		frameMeta.FontTemplate = function(fs, font, size, style, skip)
+			if style and strsub(style, 1, 4) == 'SLUG' then
+				local remainder = strsub(style, 5)
+				if remainder == '' then remainder = 'SLUG' else remainder = 'SLUG, ' .. remainder end
+				fs.font, fs.fontSize, fs.fontStyle = font, size, style
+				if not size then size = E.db.general.fontSize or E.DF.profile.general.fontSize end
+				fs:SetFont(font or E.media.normFont, size, remainder)
+				E.texts[fs] = true
+				return
+			end
+			return origFontTemplate(fs, font, size, style, skip)
+		end
+	end
+end
+
 local TUI = E:NewModule('TrenchyUI', 'AceHook-3.0', 'AceEvent-3.0')
 ns.TUI = TUI
 
