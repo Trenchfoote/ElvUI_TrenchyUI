@@ -97,7 +97,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
-    root.unitframes.args.absorbTexture = ACH:Group("Absorb Textures", nil, 2.7)
+    root.unitframes.args.absorbTexture = ACH:Group(E.NewSign .. "Absorb Textures", nil, 2.7)
     root.unitframes.args.absorbTexture.inline = true
     local abs = root.unitframes.args.absorbTexture.args
 
@@ -145,7 +145,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
     )
 
     gp.tankPower = ACH:Toggle(
-        E.NewSign .. "Include Tank Power",
+        "Include Tank Power",
         "Show resource bars for Blood DK (Runic Power) and Brewmaster Monk (Stagger) when 'Only Healer' is enabled in ElvUI's party/raid power settings.",
         2, nil, nil, nil,
         function() return TUI.db.profile.tankPower end,

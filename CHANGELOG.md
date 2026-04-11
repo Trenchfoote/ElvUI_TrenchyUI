@@ -1,15 +1,17 @@
 # TrenchyUI Changelog
 
-## v1.4
+## v1.5
 
 ### New Features
-- Profiles: "Trenchy after Dark" and "Trenchy in Color" buttons in the Profiles tab to switch color modes without slash commands
-- Profiles: Updated ElvUI profile (v1.3.0) with new defaults, mover positions, and nameplate colors
+- Unit Frames: Custom absorb texture overrides — set independent statusbar textures for damage absorbs and heal absorbs
+- Unit Frames: New T-Absorb (diagonal stripe) and T-HealAbsorb (hatched) statusbar textures for absorb indicators
+- Unit Frames: Private aura preview icons now display during ElvUI config mode for accurate placement and sizing
+- General: Slug GPU font rendering options added to all font outline dropdowns across ElvUI
 
 ### Bug Fixes
-- Cooldown Manager: Blizzard cooldown settings window now properly closes when pressing ESC
-- QoL: Minimap button bar now auto-updates when addon icons are added or removed
+- Unit Frames: Raid role indicator hiding now works correctly for Main Tank and Main Assist
 
 ### Improvements
-- Profiles: Color mode switching now includes the player castbar — swaps fill, backdrop, and text colors to match the active mode
-- Damage Meter: Class icons now show a dark background in color mode for better readability
+- Cooldown Manager: Config restructured with per-viewer sub-tabs (Buff Icons, Essential, Utility, Buff Bars, Custom) instead of dropdown selector
+- Damage Meter: Config restructured with per-window sub-tabs instead of dropdown selector
+- General: All modules converted to proper ElvUI submodules for cleaner architecture
