@@ -180,10 +180,41 @@ do -- Class-Coloured Bar Backgrounds
 	end
 end
 
+do -- Slug font rendering for bars
+	local function AddSlugToFont(fontString)
+		if not fontString then return end
+		local font, size, flags = fontString:GetFont()
+		if not font or not flags then return end
+		if flags:find('SLUG') then return end
+		local newFlags = flags == '' and 'SLUG' or ('SLUG, ' .. flags)
+		fontString:SetFont(font, size, newFlags)
+	end
+
+	local function ApplySlugToBar(bar)
+		if not bar then return end
+		if bar.candyBarLabel then AddSlugToFont(bar.candyBarLabel) end
+		if bar.candyBarDuration then AddSlugToFont(bar.candyBarDuration) end
+	end
+
+	function SKN:InitBigWigsSlug()
+		if not TUI.db.profile.addons.slugBigWigs then return end
+
+		BigWigsLoader.RegisterMessage({}, 'BigWigs_BarCreated', function(_, _, bar)
+			ApplySlugToBar(bar)
+		end)
+		BigWigsLoader.RegisterMessage({}, 'BigWigs_BarEmphasized', function(_, _, bar)
+			ApplySlugToBar(bar)
+		end)
+	end
+end
+
 function SKN:InitSkinBigWigs()
 	if not BigWigsLoader then return end
-	if not TUI.db.profile.addons.skinBigWigs then return end
 
-	self:InitLFGTimerSkin()
-	self:InitBigWigsClassColorBars()
+	if TUI.db.profile.addons.skinBigWigs then
+		self:InitLFGTimerSkin()
+		self:InitBigWigsClassColorBars()
+	end
+
+	self:InitBigWigsSlug()
 end

@@ -29,4 +29,31 @@ function TUI:BuildSkinsConfig(root, tuiName)
             function() return not E:IsAddOnEnabled(def.addon) end
         )
     end
+
+    skins.slug = ACH:Group("Slug Font Rendering", nil, 2)
+    skins.slug.inline = true
+    local slug = skins.slug.args
+
+    slug.desc = ACH:Description(
+        "Enable Slug GPU font rendering on addon bar text. Produces sharper outlines that scale with text size.",
+        1, "medium"
+    )
+
+    slug.slugBigWigs = ACH:Toggle("BigWigs Bars", "Apply Slug rendering to BigWigs bar text.", 2, nil, nil, nil,
+        function() return TUI.db.profile.addons.slugBigWigs end,
+        function(_, value)
+            TUI.db.profile.addons.slugBigWigs = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end,
+        function() return not E:IsAddOnEnabled('BigWigs') end
+    )
+
+    slug.slugWarpDeplete = ACH:Toggle("WarpDeplete", "Apply Slug rendering to WarpDeplete text.", 3, nil, nil, nil,
+        function() return TUI.db.profile.addons.slugWarpDeplete end,
+        function(_, value)
+            TUI.db.profile.addons.slugWarpDeplete = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end,
+        function() return not E:IsAddOnEnabled('WarpDeplete') end
+    )
 end
