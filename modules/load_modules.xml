@@ -42,7 +42,6 @@
 	<Script file="unitframes\essencecharge.lua"/>
 	<Script file="unitframes\steadyflight.lua"/>
 	<Script file="unitframes\absorbs.lua"/>
-	<Script file="unitframes\privateaurapreview.lua"/>
 	<Script file="unitframes\raidrole.lua"/>
 
 	<!-- Datatexts -->

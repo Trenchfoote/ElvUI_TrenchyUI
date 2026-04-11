@@ -91,10 +91,6 @@ TUI.defaults = {
             damageAbsorb = '',
             healAbsorb = '',
         },
-        raidRole = {
-            hideMainTank = false,
-            hideMainAssist = false,
-        },
         fader = {
             steadyFlight = false,
         },
