@@ -3,25 +3,25 @@ local TUI = E:GetModule('TrenchyUI')
 local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 
-local function HookRaidRole(frame)
+local function HookIndicatorPostUpdate(frame)
 	if not frame or not frame.RaidRoleIndicator then return end
-	if frame.RaidRoleIndicator._tuiHooked then return end
-	frame.RaidRoleIndicator._tuiHooked = true
+	if frame.RaidRoleIndicator._tuiRoleHooked then return end
+	frame.RaidRoleIndicator._tuiRoleHooked = true
 
-	local indicator = frame.RaidRoleIndicator
-	hooksecurefunc(indicator, 'Show', function(self)
+	local origPostUpdate = frame.RaidRoleIndicator.PostUpdate
+	frame.RaidRoleIndicator.PostUpdate = function(self, role)
+		if origPostUpdate then origPostUpdate(self, role) end
+
+		if not role then return end
 		local db = TUI.db.profile.raidRole
 		if not db then return end
 
-		local tex = self:GetTexture()
-		if not tex then return end
-		local texLower = tostring(tex):lower()
-		if db.hideMainTank and texLower:find('maintankicon') then
+		if db.hideMainTank and role == 'MAINTANK' then
 			self:Hide()
-		elseif db.hideMainAssist and texLower:find('mainassisticon') then
+		elseif db.hideMainAssist and role == 'MAINASSIST' then
 			self:Hide()
 		end
-	end)
+	end
 end
 
 function UFC:InitRaidRoleFilter()
@@ -29,7 +29,7 @@ function UFC:InitRaidRoleFilter()
 	if not db or (not db.hideMainTank and not db.hideMainAssist) then return end
 
 	hooksecurefunc(UF, 'Configure_RaidRoleIcons', function(_, frame)
-		HookRaidRole(frame)
+		HookIndicatorPostUpdate(frame)
 	end)
 end
 
@@ -40,6 +40,7 @@ function UFC:Initialize()
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
 	if self.InitRaidRoleFilter then self:InitRaidRoleFilter() end
 	self:InitAbsorbTextures()
+	self:InitPrivateAuraPreview()
 end
 
 E:RegisterModule(UFC:GetName())
