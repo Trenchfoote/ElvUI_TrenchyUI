@@ -45,11 +45,8 @@ local function RefreshEssenceChargeBar(bars)
 	end
 
 	local partial = UnitPartialPower('player', POWERTYPE_ESSENCE) or 0
-	if partial < 0 then
-		partial = 0
-	elseif partial > 1000 then
-		partial = 1000
-	end
+	if partial < 0 then partial = 0
+	elseif partial > 1000 then partial = 1000 end
 
 	local value = partial * 0.001
 	fillBar:SetValue(value)
