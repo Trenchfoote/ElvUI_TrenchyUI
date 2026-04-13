@@ -2,19 +2,20 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NPS = E:GetModule('TUI_Nameplates')
 local NP = E:GetModule('NamePlates')
-local LSM = E.Libs.LSM
 
 local IsSpellImportant = C_Spell and C_Spell.IsSpellImportant
-
 local EDGE_FILE = [[Interface\BUTTONS\WHITE8X8]]
 local backdropInfo = { edgeFile = EDGE_FILE, edgeSize = 2 }
+
+local trackedPlates = {}
 
 local function GetDB()
 	return TUI.db.profile.nameplates.importantCast
 end
 
--- Castbar border
-local function GetOrCreateBorder(castbar)
+-- Frame creation helpers
+
+local function GetOrCreateCastbarBorder(castbar)
 	if castbar.TUI_ImportantBorder then return castbar.TUI_ImportantBorder end
 	local border = CreateFrame('Frame', nil, castbar, 'BackdropTemplate')
 	border:SetFrameLevel(castbar:GetFrameLevel() + 5)
@@ -23,194 +24,194 @@ local function GetOrCreateBorder(castbar)
 	return border
 end
 
-local function ApplyBorderStyle(border, castbar)
-	local db = GetDB()
-	local thickness = db.thickness or 2
-	border:ClearAllPoints()
-	border:SetPoint('TOPLEFT', castbar, -thickness, thickness)
-	border:SetPoint('BOTTOMRIGHT', castbar, thickness, -thickness)
-	backdropInfo.edgeSize = thickness
-	border:SetBackdrop(backdropInfo)
-
-	local r, g, b, a
-	if db.classColor then
-		local c = E:ClassColor(E.myclass)
-		r, g, b, a = c.r, c.g, c.b, db.color.a
-	else
-		r, g, b, a = db.color.r, db.color.g, db.color.b, db.color.a
-	end
-	border:SetBackdropBorderColor(r, g, b, a)
-end
-
--- Health border
 local function GetOrCreateHealthBorder(nameplate)
-	if nameplate.TUI_ImportantHealthBorder then return nameplate.TUI_ImportantHealthBorder end
 	local health = nameplate.Health
 	if not health then return end
+	if health.TUI_ImportantBorder then return health.TUI_ImportantBorder end
 	local border = CreateFrame('Frame', nil, health, 'BackdropTemplate')
 	border:SetFrameLevel(health:GetFrameLevel() + 5)
 	border:Hide()
-	nameplate.TUI_ImportantHealthBorder = border
+	health.TUI_ImportantBorder = border
 	return border
 end
 
--- Apply all important cast enhancements
-local function ApplyImportantStyle(castbar)
+local function GetOrCreateHealthOverlay(nameplate)
+	local health = nameplate.Health
+	if not health then return end
+	if health.TUI_ImportantOverlay then return health.TUI_ImportantOverlay end
+	local fillTex = health:GetStatusBarTexture()
+	local overlay = health:CreateTexture(nil, 'OVERLAY', nil, 7)
+	overlay:SetTexture(EDGE_FILE)
+	overlay:SetBlendMode('BLEND')
+	overlay:SetPoint('TOPLEFT', fillTex, 'TOPLEFT')
+	overlay:SetPoint('BOTTOMRIGHT', fillTex, 'BOTTOMRIGHT')
+	overlay:SetAlpha(0)
+	health.TUI_ImportantOverlay = overlay
+	return overlay
+end
+
+-- Apply functions (called when isImportant is confirmed)
+
+local function ApplyCastbar(castbar, db)
+	local cbDB = db.castbar
+	if not cbDB then return end
+
+	-- Border
+	if cbDB.borderEnabled then
+		local border = GetOrCreateCastbarBorder(castbar)
+		local t = cbDB.thickness or 2
+		border:ClearAllPoints()
+		border:SetPoint('TOPLEFT', castbar, -t, t)
+		border:SetPoint('BOTTOMRIGHT', castbar, t, -t)
+		backdropInfo.edgeSize = t
+		border:SetBackdrop(backdropInfo)
+		local r, g, b, a
+		if cbDB.classColor then
+			local c = E:ClassColor(E.myclass)
+			r, g, b, a = c.r, c.g, c.b, cbDB.borderColor.a
+		else
+			r, g, b, a = cbDB.borderColor.r, cbDB.borderColor.g, cbDB.borderColor.b, cbDB.borderColor.a
+		end
+		border:SetBackdropBorderColor(r, g, b, a)
+		border:Show()
+	end
+
+	-- Bar color
+	if cbDB.colorEnabled then
+		local c = cbDB.barColor
+		castbar:SetStatusBarColor(c.r, c.g, c.b)
+	end
+
+	-- Bar texture
+	if cbDB.texture and cbDB.texture ~= '' then
+		local LSM = E.Libs.LSM
+		castbar:SetStatusBarTexture(LSM:Fetch('statusbar', cbDB.texture))
+	end
+end
+
+local function ApplyHealth(nameplate, db)
+	local hDB = db.health
+	if not hDB then return end
+
+	-- Color overlay
+	if hDB.overlayEnabled then
+		local overlay = GetOrCreateHealthOverlay(nameplate)
+		if overlay then
+			local c = hDB.overlayColor
+			overlay:SetVertexColor(c.r, c.g, c.b)
+			overlay:SetAlpha(c.a or 0.3)
+		end
+	end
+
+	-- Border
+	if hDB.borderEnabled then
+		local border = GetOrCreateHealthBorder(nameplate)
+		if border then
+			local t = hDB.thickness or 2
+			border:ClearAllPoints()
+			border:SetPoint('TOPLEFT', nameplate.Health, -t, t)
+			border:SetPoint('BOTTOMRIGHT', nameplate.Health, t, -t)
+			backdropInfo.edgeSize = t
+			border:SetBackdrop(backdropInfo)
+			local c = hDB.borderColor
+			border:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
+			border:Show()
+		end
+	end
+end
+
+
+-- Remove functions (called when cast ends)
+
+local function RemoveCastbar(castbar)
+	local border = castbar.TUI_ImportantBorder
+	if border then border:Hide() end
+end
+
+local function RemoveHealth(nameplate)
+	local health = nameplate.Health
+	if not health then return end
+
+	local overlay = health.TUI_ImportantOverlay
+	if overlay then overlay:SetAlpha(0) end
+
+	local border = health.TUI_ImportantBorder
+	if border then border:Hide() end
+end
+
+
+-- Core trigger
+
+local function ApplyImportant(castbar)
 	local db = GetDB()
 	local nameplate = castbar.__owner
 	if not nameplate then return end
 
-	-- Castbar border
-	local border = GetOrCreateBorder(castbar)
-	ApplyBorderStyle(border, castbar)
-	border:Show()
+	ApplyCastbar(castbar, db)
+	ApplyHealth(nameplate, db)
 
-	-- Raise frame level
-	if db.raiseLevel and nameplate.SetFrameLevel then
-		nameplate._tuiOrigLevel = nameplate._tuiOrigLevel or nameplate:GetFrameLevel()
-		nameplate:SetFrameLevel(nameplate._tuiOrigLevel + 50)
-	end
-
-	-- Scale
-	if db.scale and db.scale ~= 1.0 then
-		nameplate._tuiOrigScale = nameplate._tuiOrigScale or nameplate:GetScale()
-		nameplate:SetScale(nameplate._tuiOrigScale * db.scale)
-	end
-
-	-- Health color
-	if db.healthColor and nameplate.Health then
-		local c = db.healthColorValue
-		nameplate.Health:SetStatusBarColor(c.r, c.g, c.b)
-		nameplate.Health._tuiImportantColored = true
-	end
-
-	-- Health texture
-	if db.healthTexture and db.healthTexture ~= '' and nameplate.Health then
-		nameplate.Health._tuiOrigTexture = nameplate.Health._tuiOrigTexture or nameplate.Health:GetStatusBarTexture():GetTexture()
-		nameplate.Health:SetStatusBarTexture(LSM:Fetch('statusbar', db.healthTexture))
-		nameplate.Health._tuiImportantTextured = true
-	end
-
-	-- Health border
-	if db.healthBorder and nameplate.Health then
-		local hBorder = GetOrCreateHealthBorder(nameplate)
-		if hBorder then
-			local thickness = db.thickness or 2
-			hBorder:ClearAllPoints()
-			hBorder:SetPoint('TOPLEFT', nameplate.Health, -thickness, thickness)
-			hBorder:SetPoint('BOTTOMRIGHT', nameplate.Health, thickness, -thickness)
-			backdropInfo.edgeSize = thickness
-			hBorder:SetBackdrop(backdropInfo)
-			local c = db.healthBorderColor
-			hBorder:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
-			hBorder:Show()
-		end
-	end
-
-	-- Castbar color
-	if db.castbarColor then
-		local c = db.castbarColorValue
-		castbar:SetStatusBarColor(c.r, c.g, c.b)
-		castbar._tuiImportantCBColored = true
-	end
-
-	-- Castbar texture
-	if db.castbarTexture and db.castbarTexture ~= '' then
-		castbar._tuiOrigCBTexture = castbar._tuiOrigCBTexture or castbar:GetStatusBarTexture():GetTexture()
-		castbar:SetStatusBarTexture(LSM:Fetch('statusbar', db.castbarTexture))
-		castbar._tuiImportantCBTextured = true
-	end
-
-	-- Castbar border (separate from the existing outline border)
-	if db.castbarBorder then
-		local cbBorder = GetOrCreateBorder(castbar)
-		local c = db.castbarBorderColor
-		cbBorder:SetBackdropBorderColor(c.r, c.g, c.b, c.a)
-	end
-
-	nameplate._tuiImportantActive = true
+	trackedPlates[nameplate] = true
 end
 
--- Remove all important cast enhancements
-local function RemoveImportantStyle(castbar)
-	local border = castbar.TUI_ImportantBorder
-	if border and border:IsShown() then border:Hide() end
+local function RemoveImportant(castbar)
+	RemoveCastbar(castbar)
 
 	local nameplate = castbar.__owner
-	if not nameplate or not nameplate._tuiImportantActive then return end
-	nameplate._tuiImportantActive = nil
+	if not nameplate then return end
+	if not trackedPlates[nameplate] then return end
 
-	-- Restore frame level
-	if nameplate._tuiOrigLevel then
-		nameplate:SetFrameLevel(nameplate._tuiOrigLevel)
-		nameplate._tuiOrigLevel = nil
-	end
-
-	-- Restore scale
-	if nameplate._tuiOrigScale then
-		nameplate:SetScale(nameplate._tuiOrigScale)
-		nameplate._tuiOrigScale = nil
-	end
-
-	-- Force health color restore
-	if nameplate.Health and nameplate.Health._tuiImportantColored then
-		nameplate.Health._tuiImportantColored = nil
-		if nameplate.unit then
-			nameplate.Health:ForceUpdate()
-		end
-	end
-
-	-- Restore health texture
-	if nameplate.Health and nameplate.Health._tuiImportantTextured then
-		if nameplate.Health._tuiOrigTexture then
-			nameplate.Health:SetStatusBarTexture(nameplate.Health._tuiOrigTexture)
-			nameplate.Health._tuiOrigTexture = nil
-		end
-		nameplate.Health._tuiImportantTextured = nil
-	end
-
-	-- Hide health border
-	if nameplate.TUI_ImportantHealthBorder then
-		nameplate.TUI_ImportantHealthBorder:Hide()
-	end
-
-	-- Restore castbar color — ElvUI re-applies on next cast start
-	if castbar._tuiImportantCBColored then
-		castbar._tuiImportantCBColored = nil
-		local db = NP.db and NP.db.colors
-		if db then
-			castbar:SetStatusBarColor(db.castColor.r, db.castColor.g, db.castColor.b)
-		end
-	end
-
-	-- Restore castbar texture
-	if castbar._tuiImportantCBTextured then
-		if castbar._tuiOrigCBTexture then
-			castbar:SetStatusBarTexture(castbar._tuiOrigCBTexture)
-			castbar._tuiOrigCBTexture = nil
-		end
-		castbar._tuiImportantCBTextured = nil
-	end
+	RemoveHealth(nameplate)
+	trackedPlates[nameplate] = nil
 end
 
 local function CheckImportant(castbar)
 	local spellID = castbar.spellID
 	if not spellID then
-		RemoveImportantStyle(castbar)
+		RemoveImportant(castbar)
 		return
 	end
 
 	local isImportant = IsSpellImportant(spellID)
 	if E:IsSecretValue(isImportant) then
-		ApplyImportantStyle(castbar)
-		local border = castbar.TUI_ImportantBorder
-		if border then border:SetAlphaFromBoolean(isImportant, 1, 0) end
+		-- Secret boolean: show elements, let alpha handle visibility
+		local db = GetDB()
+		local nameplate = castbar.__owner
+
+		-- Castbar border
+		if db.castbar and db.castbar.borderEnabled then
+			local border = GetOrCreateCastbarBorder(castbar)
+			ApplyCastbar(castbar, db)
+			border:SetAlphaFromBoolean(isImportant, 1, 0)
+		end
+
+		-- Health overlay
+		if nameplate and db.health and db.health.overlayEnabled then
+			local overlay = GetOrCreateHealthOverlay(nameplate)
+			if overlay then
+				local c = db.health.overlayColor
+				overlay:SetVertexColor(c.r, c.g, c.b)
+				overlay:SetAlphaFromBoolean(isImportant, c.a or 0.3, 0)
+			end
+		end
+
+		-- Health border
+		if nameplate and db.health and db.health.borderEnabled then
+			local border = GetOrCreateHealthBorder(nameplate)
+			if border then
+				ApplyHealth(nameplate, db)
+				border:SetAlphaFromBoolean(isImportant, 1, 0)
+			end
+		end
+
+		if nameplate then trackedPlates[nameplate] = true end
 	elseif isImportant then
-		ApplyImportantStyle(castbar)
+		ApplyImportant(castbar)
 	else
-		RemoveImportantStyle(castbar)
+		RemoveImportant(castbar)
 	end
 end
+
+-- Init
 
 function NPS:HookImportantCast()
 	if self._hookedImportantCast then return end
@@ -219,19 +220,30 @@ function NPS:HookImportantCast()
 	if not IsSpellImportant then return end
 
 	hooksecurefunc(NP, 'Castbar_PostCastStart', function(castbar)
-		if not castbar then return end
-		CheckImportant(castbar)
+		if castbar then CheckImportant(castbar) end
 	end)
 
 	hooksecurefunc(NP, 'Castbar_PostCastStop', function(castbar)
-		RemoveImportantStyle(castbar)
+		if castbar then RemoveImportant(castbar) end
 	end)
 
 	hooksecurefunc(NP, 'Castbar_PostCastFail', function(castbar)
-		RemoveImportantStyle(castbar)
+		if castbar then RemoveImportant(castbar) end
 	end)
 
 	hooksecurefunc(NP, 'Castbar_PostCastInterrupted', function(castbar)
-		RemoveImportantStyle(castbar)
+		if castbar then RemoveImportant(castbar) end
+	end)
+
+	-- Clean up on plate removal
+	local cleanupFrame = CreateFrame('Frame')
+	cleanupFrame:RegisterEvent('NAME_PLATE_UNIT_REMOVED')
+	cleanupFrame:SetScript('OnEvent', function(_, _, unit)
+		if not unit then return end
+		local plate = C_NamePlate.GetNamePlateForUnit(unit)
+		if plate and plate.unitFrame and trackedPlates[plate.unitFrame] then
+			RemoveHealth(plate.unitFrame)
+			trackedPlates[plate.unitFrame] = nil
+		end
 	end)
 end
