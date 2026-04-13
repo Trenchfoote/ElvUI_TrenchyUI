@@ -91,6 +91,46 @@ function TUI:BuildQoLConfig(root, tuiName)
     )
     qolGen.shortenEnchantStrings.customWidth = 250
 
+    root.qol.args.auraFader = ACH:Group("Aura Mouseover", nil, 1.4)
+    root.qol.args.auraFader.inline = true
+    local af = root.qol.args.auraFader.args
+
+    af.buffMouseover = ACH:Toggle(
+        "Buffs", "Only show buff icons when mousing over them.",
+        1, nil, nil, nil,
+        function() return TUI.db.profile.qol.buffMouseover end,
+        function(_, value)
+            TUI.db.profile.qol.buffMouseover = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    af.buffMouseoverAlpha = ACH:Range(
+        "Buffs Hidden Alpha", nil, 2,
+        { min = 0, max = 1, step = 0.05, isPercent = true }, nil,
+        function() return TUI.db.profile.qol.buffMouseoverAlpha end,
+        function(_, value) TUI.db.profile.qol.buffMouseoverAlpha = value; E:StaticPopup_Show('CONFIG_RL') end,
+        function() return not TUI.db.profile.qol.buffMouseover end
+    )
+
+    af.debuffMouseover = ACH:Toggle(
+        "Debuffs", "Only show debuff icons when mousing over them.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.qol.debuffMouseover end,
+        function(_, value)
+            TUI.db.profile.qol.debuffMouseover = value
+            E:StaticPopup_Show('CONFIG_RL')
+        end
+    )
+
+    af.debuffMouseoverAlpha = ACH:Range(
+        "Debuffs Hidden Alpha", nil, 4,
+        { min = 0, max = 1, step = 0.05, isPercent = true }, nil,
+        function() return TUI.db.profile.qol.debuffMouseoverAlpha end,
+        function(_, value) TUI.db.profile.qol.debuffMouseoverAlpha = value; E:StaticPopup_Show('CONFIG_RL') end,
+        function() return not TUI.db.profile.qol.debuffMouseover end
+    )
+
     root.qol.args.cursorCircle = ACH:Group("Cursor Circle", nil, 1.5)
     root.qol.args.cursorCircle.inline = true
     local ccArgs = root.qol.args.cursorCircle.args

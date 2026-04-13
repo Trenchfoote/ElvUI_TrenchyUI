@@ -170,6 +170,7 @@ function QOL:Initialize()
 	if self.InitMinimapButtonBar then self:InitMinimapButtonBar() end
 	if db.cursorCircle then self:InitCursorCircle() end
 	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
+	if self.InitAuraFader then self:InitAuraFader() end
 end
 
 E:RegisterModule(QOL:GetName())
