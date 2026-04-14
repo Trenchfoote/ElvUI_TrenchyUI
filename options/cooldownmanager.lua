@@ -332,6 +332,9 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     ct.showCombatPotions = ACH:Toggle("Show Combat Potions", nil, 5, nil, nil, nil,
         function() return customVDB().showCombatPotions end,
         function(_, v) customVDB().showCombatPotions = v; cdmRefresh() end, ctDis)
+    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track your belt's on-use tinker cooldown (e.g. Nitro Boosts).", 5.5, nil, nil, nil,
+        function() return customVDB().showBeltTinker end,
+        function(_, v) customVDB().showBeltTinker = v; cdmRefresh() end, ctDis)
     ct.trinketMode = ACH:Select("Trinkets", nil, 6,
         { both = 'Both', slot1 = 'Trinket 1', slot2 = 'Trinket 2', none = 'None' }, nil, nil,
         function() return customVDB().trinketMode end,

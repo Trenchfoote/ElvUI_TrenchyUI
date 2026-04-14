@@ -8,6 +8,7 @@ local GetInventoryItemTexture = GetInventoryItemTexture
 local IsSpellKnown = C_SpellBook and C_SpellBook.IsSpellKnown
 
 local HEALTHSTONES = { 5512, 224464 }
+local BELT_SLOT = 6
 local TRINKET_SLOTS = { 13, 14 }
 local MAX_ICONS = 12
 
@@ -241,6 +242,20 @@ local function UpdateAllIcons()
 				local frame = customIcons[idx]
 				UpdateItemIcon(frame, itemID, 'item')
 				activeIcons[#activeIcons + 1] = frame
+			end
+		end
+	end
+
+	-- Belt tinker
+	if vdb.showBeltTinker then
+		local itemID = GetInventoryItemID('player', BELT_SLOT)
+		if itemID then
+			idx = idx + 1
+			if idx <= MAX_ICONS then
+				local frame = customIcons[idx]
+				if UpdateTrinketIcon(frame, BELT_SLOT) then
+					activeIcons[#activeIcons + 1] = frame
+				end
 			end
 		end
 	end
