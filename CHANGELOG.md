@@ -1,12 +1,16 @@
 # TrenchyUI Changelog
 
-## v1.5.1
+## v1.5.2
 
 ### New Features
-- Skins: Slug GPU font rendering toggles for BigWigs bars and WarpDeplete text
+- QoL: Buff/debuff mouseover fader — hide buff and debuff icons until moused over
+- Cooldown Manager: Belt tinker tracking in Custom viewer (e.g. Nitro Boosts)
+- Cooldown Manager: "In Party/Raid" visibility option for all viewers
 
 ### Bug Fixes
-- Cooldown Manager: Fixed Preview Text, font adjustments, and visibility toggles not applying
+- Nameplates: Fixed Warlock pet interrupt detection using correct API
 
 ### Improvements
-- Profiles: All font outlines updated to Slug Outline rendering
+- Cooldown Manager: Config now uses tree sidebar navigation per viewer
+- Damage Meter: Config now uses tree sidebar navigation per window
+- QoL: Config now uses tree sidebar navigation with renamed sections

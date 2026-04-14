@@ -71,7 +71,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
-    root.unitframes.args.absorbTexture = ACH:Group(E.NewSign .. "Absorb Textures", nil, 2.7)
+    root.unitframes.args.absorbTexture = ACH:Group("Absorb Textures", nil, 2.7)
     root.unitframes.args.absorbTexture.inline = true
     local abs = root.unitframes.args.absorbTexture.args
 
