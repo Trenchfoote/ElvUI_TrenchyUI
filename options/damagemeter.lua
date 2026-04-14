@@ -117,7 +117,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
     -- Per-window tab builder
     local function BuildWindowTab(i)
         local winDis = function() return dmDisabled() or not isWindowEnabled(i) end
-        local tab = ACH:Group("Window " .. i, nil, i + 1, 'group', nil, nil, dmDisabled)
+        local tab = ACH:Group("Window " .. i, nil, i + 1, 'tree', nil, nil, dmDisabled)
 
         -- Enable (windows 2-4 only)
         if i > 1 then
@@ -150,7 +150,6 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
 
         -- Window settings
         tab.args.window = ACH:Group("Window", nil, 1)
-        tab.args.window.inline = true
         local win = tab.args.window.args
 
         if i == 1 then
@@ -202,7 +201,6 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
 
         -- Header
         tab.args.header = ACH:Group("Header", nil, 2)
-        tab.args.header.inline = true
         local hdr = tab.args.header.args
 
         hdr.headerFont = ACH:SharedMediaFont("Font", nil, 1, nil,
@@ -232,26 +230,25 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
 
         -- Bars
         tab.args.bars = ACH:Group("Bars", nil, 3)
-        tab.args.bars.inline = true
         local bars = tab.args.bars.args
 
         bars.barHeight = ACH:Range("Height", nil, 1, { min = 12, max = 40, step = 1 }, nil,
             function() return winGet(i, 'barHeight') end,
             function(_, v) winSet(i, 'barHeight', v); winUpdate() end, winDis)
-        bars.clickInCombat = ACH:Toggle("Click in Combat", "Allow clicking bars during combat.", 1.5, nil, nil, nil,
+        bars.clickInCombat = ACH:Toggle("Click in Combat", nil, 2, nil, nil, nil,
             function() return winGet(i, 'clickInCombat') end,
             function(_, v) winSet(i, 'clickInCombat', v) end, winDis)
-        bars.barSpacing = ACH:Range("Spacing", nil, 2, { min = 0, max = 10, step = 1 }, nil,
+        bars.barSpacing = ACH:Range("Spacing", nil, 3, { min = 0, max = 10, step = 1 }, nil,
             function() return winGet(i, 'barSpacing') end,
             function(_, v) winSet(i, 'barSpacing', v); winUpdate() end, winDis)
-        bars.barBorderEnabled = ACH:Toggle("Borders", nil, 3, nil, nil, nil,
+        bars.barBorderEnabled = ACH:Toggle("Borders", nil, 4, nil, nil, nil,
             function() return winGet(i, 'barBorderEnabled') end,
             function(_, v) winSet(i, 'barBorderEnabled', v); winUpdate() end, winDis)
-        bars.showClassIcon = ACH:Toggle("Class Icons", nil, 4, nil, nil, nil,
+        bars.showClassIcon = ACH:Toggle("Class Icons", nil, 5, nil, nil, nil,
             function() return winGet(i, 'showClassIcon') end,
             function(_, v) winSet(i, 'showClassIcon', v); winUpdate() end, winDis)
 
-        -- Foreground
+        -- Foreground (inside Bars)
         bars.foreground = ACH:Group("Foreground", nil, 10)
         bars.foreground.inline = true
         local fg = bars.foreground.args
@@ -266,7 +263,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
             function() local t = winGet(i, 'barTexture'); return (t and t ~= '') and t or E.private.general.normTex end,
             function(_, v) local def = E.private.general.normTex; winSet(i, 'barTexture', (v == def) and '' or v); winUpdate() end, winDis)
 
-        -- Background
+        -- Background (inside Bars)
         bars.background = ACH:Group("Background", nil, 20)
         bars.background.inline = true
         local bg = bars.background.args
@@ -283,7 +280,6 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
 
         -- Text
         tab.args.text = ACH:Group("Text", nil, 4)
-        tab.args.text.inline = true
         local txt = tab.args.text.args
 
         txt.barFont = ACH:SharedMediaFont("Font", nil, 1, nil,
@@ -296,7 +292,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
             function() return winGet(i, 'barFontOutline') end,
             function(_, v) winSet(i, 'barFontOutline', v); winUpdate() end, winDis)
 
-        -- Name
+        -- Name (inside Text)
         txt.name = ACH:Group("Name", nil, 10)
         txt.name.inline = true
         local nm = txt.name.args
@@ -308,7 +304,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
             function(_, r, g, b) winSetColor(i, 'textColor', r, g, b); winRefresh() end,
             function() return winDis() or winGet(i, 'textClassColor') end)
 
-        -- Value
+        -- Value (inside Text)
         txt.value = ACH:Group("Value", nil, 20)
         txt.value.inline = true
         local val = txt.value.args
@@ -320,7 +316,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
             function(_, r, g, b) winSetColor(i, 'valueColor', r, g, b); winRefresh() end,
             function() return winDis() or winGet(i, 'valueClassColor') end)
 
-        -- Rank
+        -- Rank (inside Text)
         txt.rank = ACH:Group("Rank", nil, 30)
         txt.rank.inline = true
         local rk = txt.rank.args

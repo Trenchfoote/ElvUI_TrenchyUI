@@ -178,6 +178,7 @@ function CDM.ShouldShowContainer(viewerKey)
 	if vis == 'HIDDEN' then return false end
 	if vis == 'FADER' then return true end
 	if vis == 'INCOMBAT' and not CDM.inCombat then return false end
+	if vis == 'INPARTY' and not IsInGroup() then return false end
 	return true
 end
 
@@ -355,6 +356,7 @@ function CDM:Initialize()
 		CDM:RegisterEvent('SPELLS_CHANGED', OnCDMEvent)
 		CDM:RegisterEvent('UPDATE_BINDINGS', OnCDMEvent)
 		CDM:RegisterEvent('CVAR_UPDATE', OnCDMEvent)
+		CDM:RegisterEvent('GROUP_ROSTER_UPDATE', function() CDM:UpdateCDMVisibility() end)
 
 		CDM:UpdateCDMVisibility()
 

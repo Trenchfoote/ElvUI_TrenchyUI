@@ -12,10 +12,11 @@ local POSITIONS = {
     TOPLEFT = 'Top Left', TOPRIGHT = 'Top Right', BOTTOMLEFT = 'Bottom Left', BOTTOMRIGHT = 'Bottom Right',
 }
 
--- Shared builder: text settings (font, size, outline, class color, color, position, offsets)
+local VIS_OPTIONS = { ALWAYS = 'Always', INCOMBAT = 'In Combat', INPARTY = 'In Party/Raid', FADER = 'Player Fader', HIDDEN = 'Hidden' }
+
+-- Shared builder: text settings
 local function BuildTextGroup(name, order, getDB, hidden)
     local g = ACH:Group(name, nil, order)
-    g.inline = true
     if hidden then g.hidden = hidden end
     local a = g.args
 
@@ -50,11 +51,10 @@ end
 -- Shared builder: icon viewer tab (essential, utility, buffIcon)
 local function BuildIconViewerTab(viewerKey, label, order)
     local vdb = function() return cdmDB().viewers[viewerKey] end
-    local tab = ACH:Group(label, nil, order, 'group', nil, nil, cdmDisabled)
+    local tab = ACH:Group(label, nil, order, 'tree', nil, nil, cdmDisabled)
 
     -- Layout
     tab.args.layout = ACH:Group("Layout", nil, 1)
-    tab.args.layout.inline = true
     local lay = tab.args.layout.args
 
     lay.keepSizeRatio = ACH:Toggle("Keep Size Ratio", nil, 1, nil, nil, nil,
@@ -73,7 +73,7 @@ local function BuildIconViewerTab(viewerKey, label, order)
         { min = 0, max = 0.60, step = 0.01, isPercent = true }, nil,
         function() return vdb().iconZoom end,
         function(_, v) vdb().iconZoom = v; cdmRefresh() end)
-    lay.spacing = ACH:Range("Spacing", "Gap between icons in pixels.", 5, { min = 0, max = 20, step = 1 }, nil,
+    lay.spacing = ACH:Range("Spacing", nil, 5, { min = 0, max = 20, step = 1 }, nil,
         function() return vdb().spacing end,
         function(_, v) vdb().spacing = v; cdmRefresh() end)
     lay.iconsPerRow = ACH:Range("Icons Per Row", nil, 6, { min = 1, max = 20, step = 1 }, nil,
@@ -82,11 +82,15 @@ local function BuildIconViewerTab(viewerKey, label, order)
     lay.growthDirection = ACH:Select("Vertical Growth", nil, 7, { DOWN = 'Down', UP = 'Up' }, nil, nil,
         function() return vdb().growthDirection end,
         function(_, v) vdb().growthDirection = v; cdmRefresh() end)
-    lay.visibleSetting = ACH:Select("Visibility", "When to show this viewer.", 8,
-        { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
+
+    -- Visibility
+    tab.args.visibility = ACH:Group("Visibility", nil, 2)
+    local vis = tab.args.visibility.args
+
+    vis.visibleSetting = ACH:Select("When to Show", nil, 1, VIS_OPTIONS, nil, nil,
         function() return vdb().visibleSetting end,
         function(_, v) vdb().visibleSetting = v; local CDM = getCDM(); if CDM then CDM:UpdateCDMVisibility() end end)
-    lay.showTooltips = ACH:Toggle("Show Tooltips", nil, 9, nil, nil, nil,
+    vis.showTooltips = ACH:Toggle("Show Tooltips", nil, 2, nil, nil, nil,
         function() return vdb().showTooltips end,
         function(_, v)
             vdb().showTooltips = v
@@ -96,15 +100,14 @@ local function BuildIconViewerTab(viewerKey, label, order)
             E:StaticPopup_Show('CONFIG_RL')
         end)
 
-    -- Viewer-specific options
     if viewerKey == 'essential' or viewerKey == 'utility' then
-        lay.showKeybind = ACH:Toggle("Show Keybind", "Display the spell's keybind text on the icon.", 10, nil, nil, nil,
+        vis.showKeybind = ACH:Toggle("Show Keybind", nil, 3, nil, nil, nil,
             function() return vdb().showKeybind end,
             function(_, v) vdb().showKeybind = v; cdmRefresh() end)
     end
 
     if viewerKey == 'buffIcon' then
-        lay.hideWhenInactive = ACH:Toggle("Hide When Inactive", "Hide when no buff icons are active.", 10, nil, nil, nil,
+        vis.hideWhenInactive = ACH:Toggle("Hide When Inactive", nil, 3, nil, nil, nil,
             function() return vdb().hideWhenInactive end,
             function(_, v)
                 vdb().hideWhenInactive = v
@@ -116,27 +119,26 @@ local function BuildIconViewerTab(viewerKey, label, order)
     end
 
     -- Cooldown Text
-    tab.args.cooldownText = BuildTextGroup("Cooldown Text", 2, function() return vdb().cooldownText end)
+    tab.args.cooldownText = BuildTextGroup("Cooldown Text", 3, function() return vdb().cooldownText end)
 
     -- Count Text
-    tab.args.countText = BuildTextGroup("Count Text", 3, function() return vdb().countText end)
+    tab.args.countText = BuildTextGroup("Count Text", 4, function() return vdb().countText end)
 
     -- Keybind Text (essential/utility only)
     if viewerKey == 'essential' or viewerKey == 'utility' then
-        tab.args.keybindText = BuildTextGroup("Keybind Text", 4, function() return vdb().keybindText end,
+        tab.args.keybindText = BuildTextGroup("Keybind Text", 5, function() return vdb().keybindText end,
             function() return not vdb().showKeybind end)
     end
 
     -- Glow (essential only)
     if viewerKey == 'essential' then
-        tab.args.glow = ACH:Group("Proc Glow", nil, 5)
-        tab.args.glow.inline = true
+        tab.args.glow = ACH:Group("Proc Glow", nil, 6)
         local gl = tab.args.glow.args
         local glDis = function() return not vdb().glow.enabled end
 
         gl.enabled = ACH:Toggle(
             function() return vdb().glow.enabled and "|cff00ff00Enable|r" or "Enable" end,
-            "Apply a glow effect when abilities proc.", 1, nil, nil, nil,
+            nil, 1, nil, nil, nil,
             function() return vdb().glow.enabled end,
             function(_, v) vdb().glow.enabled = v; cdmRefresh() end)
         gl.type = ACH:Select("Type", nil, 2,
@@ -173,11 +175,10 @@ end
 -- Shared builder: buff bar viewer tab
 local function BuildBarViewerTab(viewerKey, label, order)
     local vdb = function() return cdmDB().viewers[viewerKey] end
-    local tab = ACH:Group(label, nil, order, 'group', nil, nil, cdmDisabled)
+    local tab = ACH:Group(label, nil, order, 'tree', nil, nil, cdmDisabled)
 
     -- Layout
     tab.args.layout = ACH:Group("Layout", nil, 1)
-    tab.args.layout.inline = true
     local lay = tab.args.layout.args
 
     lay.barWidth = ACH:Range("Bar Width", nil, 1, { min = 80, max = 400, step = 1 }, nil,
@@ -192,7 +193,7 @@ local function BuildBarViewerTab(viewerKey, label, order)
     lay.showIcon = ACH:Toggle("Show Icon", nil, 4, nil, nil, nil,
         function() return vdb().showIcon end,
         function(_, v) vdb().showIcon = v; cdmRefresh() end)
-    lay.iconGap = ACH:Range("Icon Gap", "Space between icon and bar.", 5, { min = 0, max = 10, step = 1 }, nil,
+    lay.iconGap = ACH:Range("Icon Gap", nil, 5, { min = 0, max = 10, step = 1 }, nil,
         function() return vdb().iconGap end,
         function(_, v) vdb().iconGap = v; cdmRefresh() end,
         function() return not vdb().showIcon end)
@@ -209,14 +210,18 @@ local function BuildBarViewerTab(viewerKey, label, order)
     lay.growthDirection = ACH:Select("Vertical Growth", nil, 9, { DOWN = 'Down', UP = 'Up' }, nil, nil,
         function() return vdb().growthDirection end,
         function(_, v) vdb().growthDirection = v; cdmRefresh() end)
-    lay.visibleSetting = ACH:Select("Visibility", nil, 10,
-        { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
+
+    -- Visibility
+    tab.args.visibility = ACH:Group("Visibility", nil, 2)
+    local vis = tab.args.visibility.args
+
+    vis.visibleSetting = ACH:Select("When to Show", nil, 1, VIS_OPTIONS, nil, nil,
         function() return vdb().visibleSetting end,
         function(_, v) vdb().visibleSetting = v; local CDM = getCDM(); if CDM then CDM:UpdateCDMVisibility() end end)
-    lay.hideWhenInactive = ACH:Toggle("Hide When Inactive", nil, 11, nil, nil, nil,
+    vis.hideWhenInactive = ACH:Toggle("Hide When Inactive", nil, 2, nil, nil, nil,
         function() return vdb().hideWhenInactive end,
         function(_, v) vdb().hideWhenInactive = v; E:StaticPopup_Show('CONFIG_RL') end)
-    lay.showTooltips = ACH:Toggle("Show Tooltips", nil, 12, nil, nil, nil,
+    vis.showTooltips = ACH:Toggle("Show Tooltips", nil, 3, nil, nil, nil,
         function() return vdb().showTooltips end,
         function(_, v)
             vdb().showTooltips = v
@@ -227,8 +232,7 @@ local function BuildBarViewerTab(viewerKey, label, order)
         end)
 
     -- Textures
-    tab.args.textures = ACH:Group("Textures", nil, 2)
-    tab.args.textures.inline = true
+    tab.args.textures = ACH:Group("Textures", nil, 3)
     local tex = tab.args.textures.args
 
     tex.foregroundTexture = ACH:SharedMediaStatusbar("Foreground", nil, 1, nil,
@@ -239,26 +243,26 @@ local function BuildBarViewerTab(viewerKey, label, order)
         function(_, v) vdb().backgroundTexture = v; cdmRefresh() end)
 
     -- Name Text
-    tab.args.nameText = BuildTextGroup("Name Text", 3, function() return vdb().nameText end)
+    tab.args.nameText = BuildTextGroup("Name Text", 4, function() return vdb().nameText end)
     tab.args.nameText.args.enable = ACH:Toggle(
         function() return vdb().showName ~= false and "|cff00ff00Show|r" or "Show" end,
-        "Show buff name text.", 0, nil, nil, nil,
+        nil, 0, nil, nil, nil,
         function() return vdb().showName ~= false end,
         function(_, v) vdb().showName = v; cdmRefresh() end)
 
     -- Duration Text
-    tab.args.durationText = BuildTextGroup("Duration Text", 4, function() return vdb().durationText end)
+    tab.args.durationText = BuildTextGroup("Duration Text", 5, function() return vdb().durationText end)
     tab.args.durationText.args.enable = ACH:Toggle(
         function() return vdb().showTimer ~= false and "|cff00ff00Show|r" or "Show" end,
-        "Show remaining duration.", 0, nil, nil, nil,
+        nil, 0, nil, nil, nil,
         function() return vdb().showTimer ~= false end,
         function(_, v) vdb().showTimer = v; cdmRefresh() end)
 
     -- Stacks Text
-    tab.args.stacksText = BuildTextGroup("Stacks Text", 5, function() return vdb().stacksText end)
+    tab.args.stacksText = BuildTextGroup("Stacks Text", 6, function() return vdb().stacksText end)
     tab.args.stacksText.args.enable = ACH:Toggle(
         function() return vdb().showStacks ~= false and "|cff00ff00Show|r" or "Show" end,
-        "Show stack count.", 0, nil, nil, nil,
+        nil, 0, nil, nil, nil,
         function() return vdb().showStacks ~= false end,
         function(_, v) vdb().showStacks = v; cdmRefresh() end)
 
@@ -307,16 +311,16 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
 
     -- Custom Tracker tab
     local customVDB = function() return cdmDB().viewers.custom end
-    local customTab = ACH:Group("Custom", nil, 6, 'group', nil, nil, cdmDisabled)
+    local customTab = ACH:Group("Custom", nil, 6, 'tree', nil, nil, cdmDisabled)
     root.cooldownManager.args.custom = customTab
 
-    customTab.args.general = ACH:Group("Custom Tracker", nil, 1)
-    customTab.args.general.inline = true
+    -- Custom: General
+    customTab.args.general = ACH:Group("General", nil, 1)
     local ct = customTab.args.general.args
 
     ct.enabled = ACH:Toggle(
         function() return customVDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
-        "Track racials, healthstones, potions, and trinkets independently.", 1, nil, nil, nil,
+        nil, 1, nil, nil, nil,
         function() return customVDB().enabled end,
         function(_, v) customVDB().enabled = v; E:StaticPopup_Show('CONFIG_RL') end)
     local ctDis = function() return not customVDB().enabled end
@@ -332,18 +336,17 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     ct.showCombatPotions = ACH:Toggle("Show Combat Potions", nil, 5, nil, nil, nil,
         function() return customVDB().showCombatPotions end,
         function(_, v) customVDB().showCombatPotions = v; cdmRefresh() end, ctDis)
-    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track your belt's on-use tinker cooldown (e.g. Nitro Boosts).", 5.5, nil, nil, nil,
+    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track belt on-use tinker cooldown.", 6, nil, nil, nil,
         function() return customVDB().showBeltTinker end,
         function(_, v) customVDB().showBeltTinker = v; cdmRefresh() end, ctDis)
-    ct.trinketMode = ACH:Select("Trinkets", nil, 6,
+    ct.trinketMode = ACH:Select("Trinkets", nil, 7,
         { both = 'Both', slot1 = 'Trinket 1', slot2 = 'Trinket 2', none = 'None' }, nil, nil,
         function() return customVDB().trinketMode end,
         function(_, v) customVDB().trinketMode = v; cdmRefresh() end, ctDis)
     ct.trinketMode.sorting = { 'both', 'slot1', 'slot2', 'none' }
 
-    -- Custom layout
+    -- Custom: Layout
     customTab.args.layout = ACH:Group("Layout", nil, 2)
-    customTab.args.layout.inline = true
     local cLay = customTab.args.layout.args
 
     cLay.keepSizeRatio = ACH:Toggle("Keep Size Ratio", nil, 1, nil, nil, nil,
@@ -373,15 +376,19 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function() return customVDB().growthDirection end,
         function(_, v) customVDB().growthDirection = v; E:StaticPopup_Show('CONFIG_RL') end, ctDis)
     cLay.growthDirection.sorting = { 'CENTER', 'LEFT', 'RIGHT', 'UP', 'DOWN' }
-    cLay.visibleSetting = ACH:Select("Visibility", nil, 8,
-        { ALWAYS = 'Always', INCOMBAT = 'In Combat', FADER = 'Player Fader', HIDDEN = 'Hidden' }, nil, nil,
+
+    -- Custom: Visibility
+    customTab.args.visibility = ACH:Group("Visibility", nil, 3)
+    local cVis = customTab.args.visibility.args
+
+    cVis.visibleSetting = ACH:Select("When to Show", nil, 1, VIS_OPTIONS, nil, nil,
         function() return customVDB().visibleSetting end,
         function(_, v) customVDB().visibleSetting = v; local CDM = getCDM(); if CDM then CDM:UpdateCDMVisibility() end end, ctDis)
-    cLay.showTooltips = ACH:Toggle("Show Tooltips", nil, 9, nil, nil, nil,
+    cVis.showTooltips = ACH:Toggle("Show Tooltips", nil, 2, nil, nil, nil,
         function() return customVDB().showTooltips end,
         function(_, v) customVDB().showTooltips = v end, ctDis)
 
-    -- Custom text
-    customTab.args.cooldownText = BuildTextGroup("Cooldown Text", 3, function() return customVDB().cooldownText end)
-    customTab.args.countText = BuildTextGroup("Count Text", 4, function() return customVDB().countText end)
+    -- Custom: Text
+    customTab.args.cooldownText = BuildTextGroup("Cooldown Text", 4, function() return customVDB().cooldownText end)
+    customTab.args.countText = BuildTextGroup("Count Text", 5, function() return customVDB().countText end)
 end
