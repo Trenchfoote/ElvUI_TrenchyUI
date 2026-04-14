@@ -102,7 +102,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     local npImp = elv.importantCast.args
 
     npImp.desc = ACH:Description(
-        "Enhance nameplates when a mob is casting a spell flagged as important by Blizzard.",
+        "Highlight casts that Blizzard flags as important with a colored border around the castbar.",
         1, "medium"
     )
 
@@ -116,75 +116,39 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         end
     )
 
-    local impDB = function() return TUI.db.profile.nameplates.importantCast end
-    local impDisabled = function() return not impDB().enabled end
+    local impDisabled = function() return not TUI.db.profile.nameplates.importantCast.enabled end
 
-    -- Castbar
-    npImp.castbar = ACH:Group("Castbar", nil, 10)
-    npImp.castbar.inline = true
-    local cb = npImp.castbar.args
-    local cbDB = function() return impDB().castbar end
+    npImp.classColor = ACH:Toggle(
+        "Class Color", "Use your class color for the border.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.importantCast.classColor end,
+        function(_, value) TUI.db.profile.nameplates.importantCast.classColor = value end,
+        impDisabled
+    )
 
-    cb.borderEnabled = ACH:Toggle("Show Border", nil, 1, nil, nil, nil,
-        function() return cbDB().borderEnabled end,
-        function(_, v) cbDB().borderEnabled = v end, impDisabled)
+    npImp.thickness = ACH:Range(
+        "Thickness", "Pixel thickness of the border.", 4,
+        { min = 1, max = 5, step = 1 }, nil,
+        function() return TUI.db.profile.nameplates.importantCast.thickness end,
+        function(_, value) TUI.db.profile.nameplates.importantCast.thickness = value end,
+        impDisabled
+    )
 
-    cb.classColor = ACH:Toggle("Class Color", "Use your class color for the border.", 2, nil, nil, nil,
-        function() return cbDB().classColor end,
-        function(_, v) cbDB().classColor = v end,
-        function() return impDisabled() or not cbDB().borderEnabled end)
-
-    cb.thickness = ACH:Range("Thickness", nil, 3, { min = 1, max = 5, step = 1 }, nil,
-        function() return cbDB().thickness end,
-        function(_, v) cbDB().thickness = v end,
-        function() return impDisabled() or not cbDB().borderEnabled end)
-
-    cb.borderColor = ACH:Color("Border Color", nil, 4, true, nil,
-        function() local c = cbDB().borderColor; return c.r, c.g, c.b, c.a end,
-        function(_, r, g, b, a) local c = cbDB().borderColor; c.r, c.g, c.b, c.a = r, g, b, a end,
-        function() return impDisabled() or not cbDB().borderEnabled or cbDB().classColor end)
-
-    cb.colorEnabled = ACH:Toggle("Override Bar Color", nil, 5, nil, nil, nil,
-        function() return cbDB().colorEnabled end,
-        function(_, v) cbDB().colorEnabled = v end, impDisabled)
-
-    cb.barColor = ACH:Color("Bar Color", nil, 6, nil, nil,
-        function() local c = cbDB().barColor; return c.r, c.g, c.b end,
-        function(_, r, g, b) local c = cbDB().barColor; c.r, c.g, c.b = r, g, b end,
-        function() return impDisabled() or not cbDB().colorEnabled end)
-
-    cb.texture = ACH:SharedMediaStatusbar("Texture", nil, 7, nil,
-        function() local t = cbDB().texture; return (t and t ~= '') and t or E.private.general.normTex end,
-        function(_, v) local def = E.private.general.normTex; cbDB().texture = (v == def) and '' or v end, impDisabled)
-
-    -- Health
-    npImp.health = ACH:Group("Health Bar", nil, 20)
-    npImp.health.inline = true
-    local hp = npImp.health.args
-    local hpDB = function() return impDB().health end
-
-    hp.overlayEnabled = ACH:Toggle("Color Overlay", "Show a colored overlay on the health bar during important casts.", 1, nil, nil, nil,
-        function() return hpDB().overlayEnabled end,
-        function(_, v) hpDB().overlayEnabled = v end, impDisabled)
-
-    hp.overlayColor = ACH:Color("Overlay Color", nil, 2, true, nil,
-        function() local c = hpDB().overlayColor; return c.r, c.g, c.b, c.a end,
-        function(_, r, g, b, a) local c = hpDB().overlayColor; c.r, c.g, c.b, c.a = r, g, b, a end,
-        function() return impDisabled() or not hpDB().overlayEnabled end)
-
-    hp.borderEnabled = ACH:Toggle("Show Border", nil, 3, nil, nil, nil,
-        function() return hpDB().borderEnabled end,
-        function(_, v) hpDB().borderEnabled = v end, impDisabled)
-
-    hp.borderColor = ACH:Color("Border Color", nil, 4, true, nil,
-        function() local c = hpDB().borderColor; return c.r, c.g, c.b, c.a end,
-        function(_, r, g, b, a) local c = hpDB().borderColor; c.r, c.g, c.b, c.a = r, g, b, a end,
-        function() return impDisabled() or not hpDB().borderEnabled end)
-
-    hp.thickness = ACH:Range("Border Thickness", nil, 5, { min = 1, max = 5, step = 1 }, nil,
-        function() return hpDB().thickness end,
-        function(_, v) hpDB().thickness = v end,
-        function() return impDisabled() or not hpDB().borderEnabled end)
+    npImp.color = ACH:Color(
+        "Border Color", nil, 5, true, nil,
+        function()
+            local c = TUI.db.profile.nameplates.importantCast.color
+            return c.r, c.g, c.b, c.a
+        end,
+        function(_, r, g, b, a)
+            local c = TUI.db.profile.nameplates.importantCast.color
+            c.r, c.g, c.b, c.a = r, g, b, a
+        end,
+        function()
+            local h = TUI.db.profile.nameplates.importantCast
+            return not h.enabled or h.classColor
+        end
+    )
 
     elv.hover = ACH:Group("Hover Highlight", nil, 3)
     elv.hover.inline = true

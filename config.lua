@@ -64,22 +64,9 @@ TUI.defaults = {
             disableFriendlyHighlight = false,
             importantCast = {
                 enabled = false,
-                castbar = {
-                    borderEnabled = true,
-                    classColor = false,
-                    thickness = 2,
-                    borderColor = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
-                    colorEnabled = false,
-                    barColor = { r = 1.0, g = 0.8, b = 0.0 },
-                    texture = '',
-                },
-                health = {
-                    overlayEnabled = false,
-                    overlayColor = { r = 1.0, g = 0.0, b = 0.0, a = 0.3 },
-                    borderEnabled = false,
-                    borderColor = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
-                    thickness = 2,
-                },
+                classColor = false,
+                thickness = 2,
+                color   = { r = 1.0, g = 0.0, b = 0.0, a = 1.0 },
             },
             hoverHighlight = {
                 enabled = false,
