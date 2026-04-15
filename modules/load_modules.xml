@@ -5,10 +5,12 @@
 	<!-- Skins -->
 	<Script file="skins\warpdeplete.lua"/>
 	<Script file="skins\bigwigs.lua"/>
+	<Script file="skins\bigwigskeystones.lua"/>
 	<Script file="skins\auctionator.lua"/>
 	<Script file="skins\bugsack.lua"/>
 	<Script file="skins\opie.lua"/>
 	<Script file="skins\cooldownviewer.lua"/>
+	<Script file="skins\playerspells.lua"/>
 	<Script file="skins\platynator.lua"/>
 	<Script file="skins\premadegroupsfilter.lua"/>
 
@@ -64,6 +66,7 @@
 	<Script file="cdm\bufficons.lua"/>
 	<Script file="cdm\buffbars.lua"/>
 	<Script file="cdm\custom.lua"/>
+	<Script file="cdm\reminders.lua"/>
 	<Script file="cdm\viewers.lua"/>
 	<Script file="cdm\init.lua"/>
 </Ui>
