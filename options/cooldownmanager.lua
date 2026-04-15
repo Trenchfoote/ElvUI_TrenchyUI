@@ -391,4 +391,87 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     -- Custom: Text
     customTab.args.cooldownText = BuildTextGroup("Cooldown Text", 4, function() return customVDB().cooldownText end)
     customTab.args.countText = BuildTextGroup("Count Text", 5, function() return customVDB().countText end)
+
+    -- Reminders tab
+    local remDB = function() return cdmDB().reminders end
+    local remTab = ACH:Group(E.NewSign .. "Reminders", nil, 7, 'tree', nil, nil, cdmDisabled)
+    root.cooldownManager.args.reminders = remTab
+
+    -- Reminders: General
+    remTab.args.general = ACH:Group("General", nil, 1)
+    local rg = remTab.args.general.args
+
+    rg.desc = ACH:Description(
+        "Show reminder icons for missing raid buffs, consumables, and pets when out of combat in instances. "
+        .. "Missing buffs appear desaturated. Expiring buffs show a countdown timer. Actionable reminders glow and can be clicked.",
+        1, "medium")
+    rg.enabled = ACH:Toggle(
+        function() return remDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
+        nil, 2, nil, nil, nil,
+        function() return remDB().enabled end,
+        function(_, v) remDB().enabled = v; E:StaticPopup_Show('CONFIG_RL') end)
+
+    local remDis = function() return not remDB().enabled end
+
+    rg.iconSize = ACH:Range("Icon Size", nil, 3, { min = 16, max = 64, step = 1 }, nil,
+        function() return remDB().iconSize end,
+        function(_, v) remDB().iconSize = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end, remDis)
+    rg.spacing = ACH:Range("Spacing", nil, 4, { min = 0, max = 20, step = 1 }, nil,
+        function() return remDB().spacing end,
+        function(_, v) remDB().spacing = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end, remDis)
+    rg.expirationThreshold = ACH:Range("Expiration Warning", "Show a timer when a consumable buff has less than this many minutes remaining.", 5,
+        { min = 1, max = 30, step = 1 }, nil,
+        function() return (remDB().expirationThreshold or 600) / 60 end,
+        function(_, v) remDB().expirationThreshold = v * 60; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end, remDis)
+    rg.growthDirection = ACH:Select("Growth Direction", nil, 6,
+        { RIGHT = 'Right', LEFT = 'Left', UP = 'Up', DOWN = 'Down' }, nil, nil,
+        function() return remDB().growthDirection end,
+        function(_, v) remDB().growthDirection = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end, remDis)
+    rg.growthDirection.sorting = { 'RIGHT', 'LEFT', 'UP', 'DOWN' }
+
+    -- Reminders: Raid Buffs
+    remTab.args.raidBuffs = ACH:Group("Raid Buffs", nil, 2, nil, nil, nil, remDis)
+    local rb = remTab.args.raidBuffs.args
+
+    rb.desc = ACH:Description(
+        "Show reminders for missing raid buffs (Intellect, Fortitude, Battle Shout, Mark of the Wild) when in a group.",
+        1, "medium")
+    rb.raidBuffs = ACH:Toggle("Enable Raid Buff Reminders",
+        "Only shows reminders for buffs that someone in your group can provide.", 2, nil, nil, nil,
+        function() return remDB().raidBuffs end,
+        function(_, v) remDB().raidBuffs = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+
+    -- Reminders: Consumables
+    remTab.args.consumables = ACH:Group("Consumables", nil, 3, nil, nil, nil, remDis)
+    local rc = remTab.args.consumables.args
+
+    rc.desc = ACH:Description(
+        "Show reminders for missing consumable buffs. Flask and rune detection uses known buff IDs — "
+        .. "report missing IDs if a consumable isn't detected.",
+        1, "medium")
+    rc.flask = ACH:Toggle("Flask", nil, 2, nil, nil, nil,
+        function() return remDB().flask end,
+        function(_, v) remDB().flask = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+    rc.food = ACH:Toggle("Food Buff", nil, 3, nil, nil, nil,
+        function() return remDB().food end,
+        function(_, v) remDB().food = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+    rc.weaponOil = ACH:Toggle("Weapon Oil", nil, 4, nil, nil, nil,
+        function() return remDB().weaponOil end,
+        function(_, v) remDB().weaponOil = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+    rc.rune = ACH:Toggle("Augment Rune", nil, 5, nil, nil, nil,
+        function() return remDB().rune end,
+        function(_, v) remDB().rune = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+
+    -- Reminders: Other
+    remTab.args.other = ACH:Group("Other", nil, 4, nil, nil, nil, remDis)
+    local ro = remTab.args.other.args
+
+    ro.pet = ACH:Toggle("Pet Summoned",
+        "Remind you to summon your pet if your class/spec should have one (Hunter, Warlock, Unholy DK, Frost Mage).", 1, nil, nil, nil,
+        function() return remDB().pet end,
+        function(_, v) remDB().pet = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
+    ro.healthstone = ACH:Toggle("Healthstone",
+        "Remind you to grab a healthstone when in a group and you don't have one.", 2, nil, nil, nil,
+        function() return remDB().healthstone end,
+        function(_, v) remDB().healthstone = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
 end
