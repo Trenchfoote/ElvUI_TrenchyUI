@@ -12,12 +12,10 @@ local function SkinKeystoneFrame(frame)
 
 	S:HandlePortraitFrame(frame)
 
-	-- Hide the BigWigs portrait icon
 	if frame.PortraitContainer then
 		frame.PortraitContainer:SetAlpha(0)
 	end
 
-	-- Tabs and scroll bar
 	for _, child in ipairs({ frame:GetChildren() }) do
 		if child:IsObjectType('Button') and child.Left and child.Middle and child.Right and child.Text then
 			S:HandleTab(child)
@@ -27,23 +25,19 @@ local function SkinKeystoneFrame(frame)
 	end
 end
 
--- Hook the /key slash command: BigWigs registers it as SlashCmdList["key"]
--- On first invocation the frame becomes visible and we skin it
-C_Timer.After(0, function()
-	if not SlashCmdList['key'] then return end
-
-	hooksecurefunc(SlashCmdList, 'key', function()
-		if skinned then return end
-
-		-- The frame is now visible — find it among UIParent's shown children
-		for _, child in ipairs({ UIParent:GetChildren() }) do
-			local ok, match = pcall(function()
-				return child:IsShown() and child.PortraitContainer and child.CloseButton and child.TitleContainer
-			end)
-			if ok and match then
-				SkinKeystoneFrame(child)
-				return
-			end
+-- Find the BW keystones frame via EnumerateFrames (avoids UIParent:GetChildren taint)
+-- Identified by unique properties: tip, teleportBar, CloseButton, TitleContainer
+C_Timer.After(1, function()
+	if skinned then return end
+	local frame = EnumerateFrames()
+	while frame do
+		local ok, match = pcall(function()
+			return frame.tip and frame.teleportBar and frame.CloseButton and frame.TitleContainer
+		end)
+		if ok and match then
+			SkinKeystoneFrame(frame)
+			return
 		end
-	end)
+		frame = EnumerateFrames(frame)
+	end
 end)
