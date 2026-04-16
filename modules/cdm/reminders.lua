@@ -350,24 +350,26 @@ local function AddReminder(iconID, label, remaining, actionType, actionID, isIte
 	end
 
 	ClearAction(frame)
-	StopGlow(frame)
 
-	if actionType == 'spell' and actionID then
-		SetSpellAction(frame, actionID)
-		StartGlow(frame)
-	elseif actionType == 'item' and actionID then
-		SetItemAction(frame, actionID)
-		StartGlow(frame)
+	local wantGlow = (actionType == 'spell' and actionID) or (actionType == 'item' and actionID)
+	if wantGlow then
+		if actionType == 'spell' then
+			SetSpellAction(frame, actionID)
+		else
+			SetItemAction(frame, actionID)
+		end
+		if not frame.tuiGlowing then StartGlow(frame) end
+	else
+		StopGlow(frame)
 	end
 
 	frame:Show()
 	activeReminders[idx] = frame
 end
 
--- Clear all icons
+-- Clear all icons (defer glow stop to avoid restart flicker)
 local function ClearAllIcons()
 	for i = 1, MAX_ICONS do
-		StopGlow(reminderIcons[i])
 		ClearAction(reminderIcons[i])
 		reminderIcons[i]:Hide()
 	end
@@ -475,6 +477,11 @@ local function UpdateReminders()
 				AddReminder(HEALTHSTONE_ICON, 'No healthstone in bags', nil, nil, nil, true)
 			end
 		end
+	end
+
+	-- Stop glows on icons no longer in use
+	for i = #activeReminders + 1, MAX_ICONS do
+		StopGlow(reminderIcons[i])
 	end
 
 	CDM.LayoutReminders()
