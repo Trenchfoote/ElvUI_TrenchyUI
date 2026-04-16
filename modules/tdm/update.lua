@@ -299,7 +299,7 @@ function TDM.RefreshWindow(win)
                         bar.dpsText:SetPoint('RIGHT', bar.rightText, 'LEFT', -4, 0)
                         bar.dpsText:Show()
                         bar.leftText:ClearAllPoints()
-                        if db.showClassIcon then
+                        if db.classIconStyle and db.classIconStyle ~= 'none' then
                             bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
                         else
                             bar.leftText:SetPoint("LEFT", 4, 0)
@@ -318,17 +318,7 @@ function TDM.RefreshWindow(win)
                 local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', td.class)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
-                if db.showClassIcon then
-                    local coords = TDM.CLASS_ICON_COORDS[td.class]
-                    if coords then
-                        bar.classIcon:SetTexCoord(unpack(coords))
-                        bar.classIcon:Show()
-                    else
-                        bar.classIcon:Hide()
-                    end
-                else
-                    bar.classIcon:Hide()
-                end
+                TDM.SetBarClassIcon(bar, db.classIconStyle, td.class)
                 bar.frame.sourceGUID   = nil
                 bar.frame.sourceClass  = td.class
                 bar.frame.sourceName   = td.name
@@ -522,7 +512,7 @@ function TDM.RefreshWindow(win)
                         bar.dpsText:SetPoint('RIGHT', bar.rightText, 'LEFT', -4, 0)
                         bar.dpsText:Show()
                         bar.leftText:ClearAllPoints()
-                        if db.showClassIcon then
+                        if db.classIconStyle and db.classIconStyle ~= 'none' then
                             bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
                         else
                             bar.leftText:SetPoint("LEFT", 4, 0)
@@ -543,17 +533,7 @@ function TDM.RefreshWindow(win)
                 bar.rightText:SetTextColor(vR, vG, vB)
                 if bar.dpsText then bar.dpsText:SetTextColor(vR, vG, vB) end
 
-                if db.showClassIcon then
-                    local coords = classFilename and TDM.CLASS_ICON_COORDS[classFilename]
-                    if coords then
-                        bar.classIcon:SetTexCoord(unpack(coords))
-                        bar.classIcon:Show()
-                    else
-                        bar.classIcon:Hide()
-                    end
-                else
-                    bar.classIcon:Hide()
-                end
+                TDM.SetBarClassIcon(bar, db.classIconStyle, classFilename, specIcon)
             else
                 bar.frame:Hide()
                 bar.frame.sourceGUID = nil

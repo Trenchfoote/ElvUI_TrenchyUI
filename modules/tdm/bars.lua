@@ -74,10 +74,11 @@ function TDM.ApplyBarIconLayout(bar, db)
     local iconSize = max(8, (db.barHeight or 18) - 2)
     bar.classIcon:SetSize(iconSize, iconSize)
     bar.classIconBG:SetSize(iconSize, iconSize)
-    local showBG = db.showClassIcon and TUI.db.profile.colorMode == 'color'
+    local showIcon = db.classIconStyle and db.classIconStyle ~= 'none'
+    local showBG = showIcon and TUI.db.profile.colorMode == 'color'
     if showBG then bar.classIconBG:Show() else bar.classIconBG:Hide() end
     bar.leftText:ClearAllPoints()
-    if db.showClassIcon then
+    if showIcon then
         bar.leftText:SetPoint("LEFT", bar.classIconBG, "RIGHT", 2, 0)
     else
         bar.leftText:SetPoint("LEFT", 4, 0)
@@ -360,7 +361,6 @@ function TDM.ResetDrillBar(bar, db)
     bar.rightText:ClearAllPoints()
     bar.rightText:SetWidth(0)
     bar.rightText:SetPoint("RIGHT", -4, 0)
-    bar.classIcon:SetTexture(TDM.CLASS_ICONS)
     TDM.ApplyBarIconLayout(bar, db)
 end
 

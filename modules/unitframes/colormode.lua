@@ -95,7 +95,7 @@ function UFC:ApplyColorMode(mode)
 
 	-- TDM class icon backgrounds
 	local TDM = E:GetModule('TUI_TDM', true)
-	if TDM and TDM.windows and tdb.damageMeter and tdb.damageMeter.showClassIcon then
+	if TDM and TDM.windows and tdb.damageMeter and tdb.damageMeter.classIconStyle and tdb.damageMeter.classIconStyle ~= 'none' then
 		local showBG = not isDark
 		for _, win in pairs(TDM.windows) do
 			if win.bars then

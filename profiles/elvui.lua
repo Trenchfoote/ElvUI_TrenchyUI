@@ -3000,7 +3000,7 @@ local function SetupTrenchyUI()
     E.db.TrenchyUI.damageMeter.hideInPetBattle = true
     E.db.TrenchyUI.damageMeter.modeIndex = 2
     E.db.TrenchyUI.damageMeter.rankClassColor = true
-    E.db.TrenchyUI.damageMeter.showClassIcon = true
+    E.db.TrenchyUI.damageMeter.classIconStyle = 'fabled'
     E.db.TrenchyUI.damageMeter.showRank = false
     E.db.TrenchyUI.damageMeter.standaloneHeight = 185
     E.db.TrenchyUI.damageMeter.standaloneWidth = 412

@@ -244,9 +244,11 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
         bars.barBorderEnabled = ACH:Toggle("Borders", nil, 4, nil, nil, nil,
             function() return winGet(i, 'barBorderEnabled') end,
             function(_, v) winSet(i, 'barBorderEnabled', v); winUpdate() end, winDis)
-        bars.showClassIcon = ACH:Toggle("Class Icons", nil, 5, nil, nil, nil,
-            function() return winGet(i, 'showClassIcon') end,
-            function(_, v) winSet(i, 'showClassIcon', v); winUpdate() end, winDis)
+        bars.classIconStyle = ACH:Select("Class Icons", nil, 5,
+            { none = 'None', fabled = 'Fabled', class = 'Blizzard Class', spec = 'Blizzard Spec' }, nil, nil,
+            function() return winGet(i, 'classIconStyle') or 'none' end,
+            function(_, v) winSet(i, 'classIconStyle', v); winUpdate() end, winDis)
+        bars.classIconStyle.sorting = { 'none', 'fabled', 'class', 'spec' }
 
         -- Foreground (inside Bars)
         bars.foreground = ACH:Group("Foreground", nil, 10)

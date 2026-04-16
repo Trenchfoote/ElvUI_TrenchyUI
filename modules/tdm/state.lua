@@ -11,6 +11,7 @@ TDM.PANEL_INSET   = 2
 TDM.HEADER_HEIGHT = 22
 -- Use of Fabled class icons with permission from Jiberish, 2026-03-10
 TDM.CLASS_ICONS   = 'Interface\\AddOns\\ElvUI_TrenchyUI\\media\\fabled'
+TDM.BLIZZ_CLASS_ICONS = 'Interface\\TargetingFrame\\UI-Classes-Circles'
 
 TDM.COMBINED_DAMAGE  = "CombinedDamage"
 TDM.COMBINED_HEALING = "CombinedHealing"
@@ -73,7 +74,7 @@ if Enum.DamageMeterType.Deaths           then TDM.MODE_SHORT[Enum.DamageMeterTyp
 if Enum.DamageMeterType.EnemyDamageTaken then TDM.MODE_SHORT[Enum.DamageMeterType.EnemyDamageTaken] = "Enemy Dmg" end
 
 -- 8-value texcoords: ULx, ULy, LLx, LLy, URx, URy, LRx, LRy
-TDM.CLASS_ICON_COORDS = {
+TDM.FABLED_COORDS = {
     WARRIOR     = { 0,     0,     0,     0.125, 0.125, 0,     0.125, 0.125 },
     MAGE        = { 0.125, 0,     0.125, 0.125, 0.25,  0,     0.25,  0.125 },
     ROGUE       = { 0.25,  0,     0.25,  0.125, 0.375, 0,     0.375, 0.125 },
@@ -88,6 +89,45 @@ TDM.CLASS_ICON_COORDS = {
     MONK        = { 0.25,  0.25,  0.25,  0.375, 0.375, 0.25,  0.375, 0.375 },
     DEMONHUNTER = { 0.375, 0.25,  0.375, 0.375, 0.5,   0.25,  0.5,   0.375 },
 }
+
+-- Set the class/spec icon on a bar based on the current style
+-- style: 'none', 'fabled', 'class', 'spec'
+function TDM.SetBarClassIcon(bar, style, classFilename, specIconID)
+    if style == 'none' or not classFilename then
+        bar.classIcon:Hide()
+        return false
+    end
+
+    if style == 'spec' and specIconID and E:NotSecretValue(specIconID) and specIconID > 0 then
+        bar.classIcon:SetTexture(specIconID)
+        bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+        bar.classIcon:Show()
+        return true
+    end
+
+    if style == 'class' then
+        local coords = CLASS_ICON_TCOORDS[classFilename]
+        if coords then
+            bar.classIcon:SetTexture(TDM.BLIZZ_CLASS_ICONS)
+            bar.classIcon:SetTexCoord(unpack(coords))
+            bar.classIcon:Show()
+            return true
+        end
+        bar.classIcon:Hide()
+        return false
+    end
+
+    -- Default: fabled
+    local coords = TDM.FABLED_COORDS[classFilename]
+    if coords then
+        bar.classIcon:SetTexture(TDM.CLASS_ICONS)
+        bar.classIcon:SetTexCoord(unpack(coords))
+        bar.classIcon:Show()
+        return true
+    end
+    bar.classIcon:Hide()
+    return false
+end
 
 TDM.SESSION_LABELS = {
     [Enum.DamageMeterSessionType.Current] = "Current",
