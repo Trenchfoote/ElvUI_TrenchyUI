@@ -125,6 +125,7 @@ local function BuildFriendTable(total)
 				zone = info.area or '',
 				status = statusKey and statusText[statusKey] or '',
 				statusKey = statusKey,
+				faction = E.myfaction,
 			}
 		end
 	end
@@ -206,6 +207,7 @@ local function BuildBNTable(total)
 				wowProjectID = gameInfo.wowProjectID,
 				isFavorite = accountInfo.isFavorite or false,
 				showChar = showChar,
+				faction = gameInfo.factionName,
 			}
 
 			bnTable[#bnTable + 1] = entry
@@ -259,6 +261,11 @@ local function GetOrCreateRow(index)
 
 	local row = CreateFrame('Button', nil, tooltip)
 	row:SetHeight(ROW_HEIGHT)
+
+	row.factionIcon = row:CreateTexture(nil, 'OVERLAY')
+	row.factionIcon:SetPoint('LEFT', row, 'LEFT', 0, 0)
+	row.factionIcon:SetSize(20, 20)
+	row.factionIcon:Hide()
 
 	row.level = row:CreateFontString(nil, 'OVERLAY')
 	row.level:SetPoint('LEFT', row, 'LEFT', 0, 0)
@@ -354,6 +361,26 @@ local function GetOrCreateIcon(row)
 	return icon
 end
 
+-- Apply the faction icon to a row, or hide it when faction is unknown
+-- Re-anchors the level text so it sits after the icon when present
+local function ApplyFactionIcon(row, faction)
+	if faction == 'Horde' then
+		row.factionIcon:SetAtlas('glues-characterselect-icon-faction-horde-hover')
+		row.factionIcon:Show()
+		row.level:ClearAllPoints()
+		row.level:SetPoint('LEFT', row.factionIcon, 'RIGHT', 4, 0)
+	elseif faction == 'Alliance' then
+		row.factionIcon:SetAtlas('glues-characterselect-icon-faction-alliance-hover')
+		row.factionIcon:Show()
+		row.level:ClearAllPoints()
+		row.level:SetPoint('LEFT', row.factionIcon, 'RIGHT', 4, 0)
+	else
+		row.factionIcon:Hide()
+		row.level:ClearAllPoints()
+		row.level:SetPoint('LEFT', row, 'LEFT', 0, 0)
+	end
+end
+
 local function SetupHeaderRow(row, text, prevRow, client)
 	row.isHeader = true
 	row.level:SetText('')
@@ -364,6 +391,7 @@ local function SetupHeaderRow(row, text, prevRow, client)
 	row.canInvite = false
 	row.friendGameID = nil
 
+	row.factionIcon:Hide()
 	local icon = GetOrCreateIcon(row)
 	row.name:ClearAllPoints()
 	if client and GetTitleIconTexture and ICON_VERSION then
@@ -423,6 +451,7 @@ local function ShowTooltip(panel)
 		shown = shown + 1
 		local row = GetOrCreateRow(shown)
 		if row.clientIcon then row.clientIcon:Hide() end
+		ApplyFactionIcon(row, info.faction)
 		row.name:ClearAllPoints()
 		row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
 		local levelc = GetQuestDifficultyColor(info.level)
@@ -469,6 +498,7 @@ local function ShowTooltip(panel)
 				shown = shown + 1
 				local row = GetOrCreateRow(shown)
 				if row.clientIcon then row.clientIcon:Hide() end
+				ApplyFactionIcon(row, info.isWoW and info.faction or nil)
 				row.name:ClearAllPoints()
 				row.name:SetPoint('LEFT', row.level, 'RIGHT', 4, 0)
 
@@ -494,7 +524,11 @@ local function ShowTooltip(panel)
 				else
 					row.level:SetText('')
 					row.name:ClearAllPoints()
-					row.name:SetPoint('LEFT', row, 'LEFT', 0, 0)
+					if row.factionIcon:IsShown() then
+						row.name:SetPoint('LEFT', row.factionIcon, 'RIGHT', 4, 0)
+					else
+						row.name:SetPoint('LEFT', row, 'LEFT', 0, 0)
+					end
 					local nameStr = info.displayName
 					if info.showChar then
 						nameStr = nameStr .. ' - ' .. info.name
