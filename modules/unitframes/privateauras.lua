@@ -47,41 +47,30 @@ local function ShowFakes(frame)
 	local db = frame.db and frame.db.privateAuras
 	if not db or not db.enable or not db.icon then HideFakes(frame) return end
 
-	local size = db.icon.size or 32
-	local amount = db.icon.amount or 1
-	local spacing = db.icon.offset or 3
-	local iconPoint = db.icon.point or 'CENTER'
-	local parentPoint = (db.parent and db.parent.point) or 'CENTER'
-	local parentOffsetX = (db.parent and db.parent.offsetX) or 0
-	local parentOffsetY = (db.parent and db.parent.offsetY) or 0
+	-- ElvUI populates element.auraIcons with the real anchor frames Blizzard uses.
+	-- Overlay on those directly for pixel-accurate placement.
+	local element = frame.PrivateAuras
+	if not element or not element.auraIcons or #element.auraIcons == 0 then HideFakes(frame) return end
 
-	-- Mirror ElvUI's db.borderScale so the preview matches what real PAs will render
+	local size = db.icon.size or 32
+	local iconPoint = db.icon.point or 'CENTER'
 	local borderScale = db.borderScale or 1
 	local borderSize = size + (5 * borderScale)
 
 	local list = activeByFrame[frame] or {}
 	activeByFrame[frame] = list
 
-	for i = 1, amount do
+	for i, anchor in ipairs(element.auraIcons) do
 		local fake = list[i] or AcquireFake()
 		list[i] = fake
 
-		fake:SetParent(frame)
-		fake:SetFrameStrata(frame:GetFrameStrata())
-		fake:SetFrameLevel((frame:GetFrameLevel() or 0) + 10)
+		fake:SetParent(anchor)
+		fake:SetFrameStrata(anchor:GetFrameStrata())
+		fake:SetFrameLevel((anchor:GetFrameLevel() or 0) + 5)
 		fake:SetSize(size, size)
 		fake:ClearAllPoints()
-
-		if i == 1 then
-			fake:SetPoint(E.InversePoints[parentPoint] or 'CENTER', frame, parentPoint, parentOffsetX, parentOffsetY)
-		else
-			local offsetX, offsetY = 0, 0
-			if iconPoint == 'RIGHT' then offsetX = spacing
-			elseif iconPoint == 'LEFT' then offsetX = -spacing
-			elseif iconPoint == 'TOP' then offsetY = spacing
-			else offsetY = -spacing end
-			fake:SetPoint(E.InversePoints[iconPoint] or 'CENTER', list[i-1], iconPoint, offsetX, offsetY)
-		end
+		-- Match Blizzard's iconAnchor: point = iconPoint on both icon and anchor
+		fake:SetPoint(iconPoint, anchor, iconPoint, 0, 0)
 
 		local tex = C_Spell.GetSpellTexture(FAKE_SPELL_ID)
 		if tex then fake.icon:SetTexture(tex) end
