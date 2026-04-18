@@ -53,7 +53,6 @@ local FLASK_ITEMS = {
 	241334, 241335,
 	245926, 245927, 245928, 245929, 245930, 245931, 245932, 245933,
 }
-local FLASK_ICON = 1235111
 
 -- Food: all Well Fed buffs share icon texture 136000
 local FOOD_BUFF_ICON = 136000
@@ -66,12 +65,10 @@ local WEAPON_ITEMS = {
 	243737, 243738,                 -- Smuggler's Edge
 	257749, 257750, 257751, 257752, -- Engineering
 }
-local WEAPON_ICON = 1237008
 
 -- Augment rune
 local RUNE_BUFFS = { [1264426] = true }
 local RUNE_ITEMS = { 259085 }
-local RUNE_ICON = 1264426
 
 -- Healthstone
 local HEALTHSTONE_IDS = { 5512, 224464 }
@@ -278,7 +275,10 @@ end
 
 -- Icon frame creation
 local function CreateReminderIcon(parent, index)
+	local rdb = TUI.db and TUI.db.profile and TUI.db.profile.cooldownManager and TUI.db.profile.cooldownManager.reminders
+	local iconSize = (rdb and rdb.iconSize) or 32
 	local frame = CreateFrame('Button', 'TUI_CDM_Reminder' .. index, parent, 'SecureActionButtonTemplate,BackdropTemplate')
+	frame:SetSize(iconSize, iconSize)
 	frame:SetTemplate('Default')
 	frame:SetFrameStrata('MEDIUM')
 	frame:SetFrameLevel(6)
@@ -367,9 +367,10 @@ local function AddReminder(iconID, label, remaining, actionType, actionID, isIte
 	activeReminders[idx] = frame
 end
 
--- Clear all icons (defer glow stop to avoid restart flicker)
-local function ClearAllIcons()
+-- Hide all icons (used when leaving instance or when reminders are disabled)
+local function HideAllIcons()
 	for i = 1, MAX_ICONS do
+		StopGlow(reminderIcons[i])
 		ClearAction(reminderIcons[i])
 		reminderIcons[i]:Hide()
 	end
@@ -384,20 +385,21 @@ local function UpdateReminders()
 	if not rdb or not rdb.enabled then return end
 
 	if not IsInInstance() then
-		ClearAllIcons()
+		HideAllIcons()
 		local container = CDM.containers['reminders']
 		if container then container:Hide() end
 		return
 	end
 
-	ClearAllIcons()
+	-- Clear the active list but don't hide icons yet — AddReminder reuses slots
+	wipe(activeReminders)
 
 	-- Single pass: scan all player buffs once
 	ScanPlayerBuffs()
 
-	-- If aura fields were restricted (secret values), don't show any consumable reminders
-	-- We can't tell what's missing vs what's just unreadable
+	-- If aura fields were restricted (secret values), hide all and bail
 	if scan.restricted then
+		HideAllIcons()
 		CDM.LayoutReminders()
 		return
 	end
@@ -421,12 +423,11 @@ local function UpdateReminders()
 
 	-- Flask
 	if rdb.flask and HasAnyItem(FLASK_ITEMS) then
+		local itemID = FindFirstItem(FLASK_ITEMS)
 		if not scan.hasFlask then
-			local itemID = FindFirstItem(FLASK_ITEMS)
-			AddReminder(FLASK_ICON, 'Use your flask', nil, 'item', itemID)
+			AddReminder(itemID, 'Use your flask', nil, 'item', itemID, true)
 		elseif scan.flaskRemaining and scan.flaskRemaining < threshold then
-			local itemID = FindFirstItem(FLASK_ITEMS)
-			AddReminder(FLASK_ICON, 'Flask expiring', scan.flaskRemaining, 'item', itemID)
+			AddReminder(itemID, 'Flask expiring', scan.flaskRemaining, 'item', itemID, true)
 		end
 	end
 
@@ -441,23 +442,21 @@ local function UpdateReminders()
 
 	-- Weapon enhancement
 	if rdb.weaponOil and HasAnyItem(WEAPON_ITEMS) then
+		local itemID = FindFirstItem(WEAPON_ITEMS)
 		if not scan.hasWeapon then
-			local itemID = FindFirstItem(WEAPON_ITEMS)
-			AddReminder(WEAPON_ICON, 'Apply your weapon enhancement', nil, 'item', itemID)
+			AddReminder(itemID, 'Apply your weapon enhancement', nil, 'item', itemID, true)
 		elseif scan.weaponRemaining and scan.weaponRemaining < threshold then
-			local itemID = FindFirstItem(WEAPON_ITEMS)
-			AddReminder(WEAPON_ICON, 'Weapon enhancement expiring', scan.weaponRemaining, 'item', itemID)
+			AddReminder(itemID, 'Weapon enhancement expiring', scan.weaponRemaining, 'item', itemID, true)
 		end
 	end
 
 	-- Augment rune
 	if rdb.rune and HasAnyItem(RUNE_ITEMS) then
+		local itemID = FindFirstItem(RUNE_ITEMS)
 		if not scan.hasRune then
-			local itemID = FindFirstItem(RUNE_ITEMS)
-			AddReminder(RUNE_ICON, 'Use your augment rune', nil, 'item', itemID)
+			AddReminder(itemID, 'Use your augment rune', nil, 'item', itemID, true)
 		elseif scan.runeRemaining and scan.runeRemaining < threshold then
-			local itemID = FindFirstItem(RUNE_ITEMS)
-			AddReminder(RUNE_ICON, 'Augment rune expiring', scan.runeRemaining, 'item', itemID)
+			AddReminder(itemID, 'Augment rune expiring', scan.runeRemaining, 'item', itemID, true)
 		end
 	end
 
@@ -479,9 +478,11 @@ local function UpdateReminders()
 		end
 	end
 
-	-- Stop glows on icons no longer in use
+	-- Hide and clean up icons no longer in use
 	for i = #activeReminders + 1, MAX_ICONS do
 		StopGlow(reminderIcons[i])
+		ClearAction(reminderIcons[i])
+		reminderIcons[i]:Hide()
 	end
 
 	CDM.LayoutReminders()
