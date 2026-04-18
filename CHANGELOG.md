@@ -5,6 +5,7 @@
 ### New Features
 - Damage Meter: Class icon style selector — choose between Fabled (Jiberish), Blizzard Class, or Blizzard Spec icons on bars
 - Friends Datatext: Faction icons (Horde/Alliance) now display on WoW friend rows
+- Unit Frames: Private Aura preview — fake private aura icons appear on frames during ElvUI's Show/Hide Auras preview, mirroring the configured icon size, slot count, and border scale
 
 ### Bug Fixes
 - Cooldown Manager: Fixed reminder glow

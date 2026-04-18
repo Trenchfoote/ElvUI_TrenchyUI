@@ -100,6 +100,9 @@ TUI.defaults = {
         fader = {
             steadyFlight = false,
         },
+        privateAuras = {
+            enabled = false,
+        },
         cooldownManager = {
             enabled = false,
             hideSwipe = false,

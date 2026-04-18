@@ -129,4 +129,26 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
+    root.unitframes.args.privateAuras = ACH:Group(E.NewSign .. "Private Aura Preview", nil, 4)
+    root.unitframes.args.privateAuras.inline = true
+    local pa = root.unitframes.args.privateAuras.args
+
+    pa.desc = ACH:Description(
+        "Show fake private aura icons at ElvUI's configured anchors while using ElvUI's Show/Hide Auras preview. "
+        .. "Lets you see where real private auras will land — the number of slots mirrors your ElvUI Private Aura settings.",
+        1, "medium"
+    )
+
+    pa.enabled = ACH:Toggle(
+        function() return TUI.db.profile.privateAuras.enabled and "|cff00ff00Include Private Auras|r" or "Include Private Auras" end,
+        "Show fake private aura icons during ElvUI's Show/Hide Auras preview.",
+        2, nil, nil, nil,
+        function() return TUI.db.profile.privateAuras.enabled end,
+        function(_, value)
+            TUI.db.profile.privateAuras.enabled = value
+            local UFC = E:GetModule('TUI_UnitFrames', true)
+            if UFC and UFC.RefreshPrivateAuraPreview then UFC:RefreshPrivateAuraPreview() end
+        end
+    )
+
 end

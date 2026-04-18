@@ -7,6 +7,7 @@ function UFC:Initialize()
 	if not TUI:IsCompatBlocked('auraHighlight') and self.InitPixelGlow then self:InitPixelGlow() end
 	if self.InitEvokerEssenceCharge then self:InitEvokerEssenceCharge() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
+	if self.InitPrivateAuraPreview then self:InitPrivateAuraPreview() end
 	self:InitAbsorbTextures()
 end
 
