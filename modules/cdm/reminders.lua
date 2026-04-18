@@ -78,6 +78,19 @@ local HEALTHSTONE_ICON = 5512
 local CREATE_SOULWELL = 29893
 local SOULWELL_ICON = 29893
 
+-- Repair: hammers (consumable) and bots (cooldown reusable). Bots take priority when off CD.
+local REPAIR_HAMMERS = {
+	132514, -- Auto-Hammer (Legion engineering)
+}
+local REPAIR_BOTS = {
+	49040,  -- Jeeves (Northrend engineering)
+}
+local REPAIR_ICON_FALLBACK = 132514 -- Auto-Hammer icon as generic fallback
+local DURABILITY_THRESHOLD = 0.30
+local DURABILITY_SLOTS = { 1, 3, 5, 6, 7, 8, 9, 10, 16, 17 }
+local GetInventoryItemDurability = GetInventoryItemDurability
+local GetItemCooldown = C_Container.GetItemCooldown
+
 -- Pet spec detection
 local LONE_WOLF = 155228
 local LONELY_WINTER = 205024
@@ -218,6 +231,36 @@ end
 
 local function HasHealthstone()
 	return HasAnyItem(HEALTHSTONE_IDS)
+end
+
+local function GetAverageDurability()
+	local cur, max = 0, 0
+	for _, slot in ipairs(DURABILITY_SLOTS) do
+		local c, m = GetInventoryItemDurability(slot)
+		if c and m and m > 0 then
+			cur = cur + c
+			max = max + m
+		end
+	end
+	if max == 0 then return 1 end
+	return cur / max
+end
+
+-- Returns (itemID, isReady) — prefers bot off cooldown, falls back to any hammer
+local function FindRepairItem()
+	local now = GetTime()
+	for _, itemID in ipairs(REPAIR_BOTS) do
+		if GetItemCount(itemID) > 0 then
+			local start, duration = GetItemCooldown(itemID)
+			if not start or start == 0 or (start + duration - now) <= 0 then
+				return itemID
+			end
+		end
+	end
+	for _, itemID in ipairs(REPAIR_HAMMERS) do
+		if GetItemCount(itemID) > 0 then return itemID end
+	end
+	return nil
 end
 
 local function FormatDuration(seconds)
@@ -474,6 +517,20 @@ local function UpdateReminders()
 		elseif groupClasses['WARLOCK'] then
 			if not HasHealthstone() then
 				AddReminder(HEALTHSTONE_ICON, 'No healthstone in bags', nil, nil, nil, true)
+			end
+		end
+	end
+
+	-- Repair: average durability below threshold
+	if rdb.repair then
+		local avg = GetAverageDurability()
+		if avg < DURABILITY_THRESHOLD then
+			local itemID = FindRepairItem()
+			local iconID = itemID or REPAIR_ICON_FALLBACK
+			if itemID then
+				AddReminder(iconID, 'Gear needs repair', nil, 'item', itemID, true)
+			else
+				AddReminder(iconID, 'Gear needs repair', nil, nil, nil, true)
 			end
 		end
 	end

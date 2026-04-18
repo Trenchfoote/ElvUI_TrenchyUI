@@ -172,6 +172,7 @@ TUI.defaults = {
                 rune = true,
                 pet = true,
                 healthstone = true,
+                repair = true,
             },
             spellGlow = {},
             spellBarColor = {},
