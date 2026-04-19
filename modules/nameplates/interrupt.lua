@@ -1,7 +1,7 @@
 -- Adapted from mMediaTag with permission from Blinkii, 2026-03-14
 local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
-local NPS = E:GetModule('TUI_Nameplates')
+local NPS = E:NewModule('TUI_Nameplates', 'AceEvent-3.0', 'AceHook-3.0')
 local NP = E:GetModule('NamePlates')
 local UF = E:GetModule('UnitFrames')
 

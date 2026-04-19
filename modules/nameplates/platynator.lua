@@ -86,7 +86,6 @@ function NPS:Initialize()
 	local np = TUI.db.profile.nameplates
 	if np and E.private.nameplates.enable then
 		if np.hideFriendlyRealm then self:InitHideFriendlyRealm() end
-		self:HookClassColorTargetIndicator()
 		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
 		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
 		if np.importantCast and np.importantCast.enabled then self:HookImportantCast() end

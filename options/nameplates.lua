@@ -13,19 +13,6 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     root.nameplates.args.elvui.disabled = not elvEnabled
     local elv = root.nameplates.args.elvui.args
 
-    elv.target = ACH:Group("Target Indicator", nil, 0)
-    elv.target.inline = true
-    elv.target.args = {}
-    elv.target.args.classColorTargetIndicator = ACH:Toggle(
-        "Class Color",
-        "Override the target indicator color with your class color.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.nameplates.classColorTargetIndicator end,
-        function(_, value)
-            TUI.db.profile.nameplates.classColorTargetIndicator = value
-        end
-    )
-
     elv.interrupt = ACH:Group("Interrupt Ready", nil, 1)
     elv.interrupt.inline = true
     local npInt = elv.interrupt.args

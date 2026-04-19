@@ -51,7 +51,6 @@ TUI.defaults = {
             skinPlatynator  = false,
         },
         nameplates = {
-            classColorTargetIndicator = false,
             interruptCastbarColors      = false,
             castbarInterruptReady       = { r = 0.2, g = 0.8, b = 0.2 },
             castbarInterruptOnCD        = { r = 0.9, g = 0.4, b = 0.1 },

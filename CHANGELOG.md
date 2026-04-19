@@ -16,3 +16,7 @@
 ### Improvements
 - Cooldown Manager: Reminder icons for flask, weapon enhancement, and augment rune now use the icon of the item in your bags
 - Skins: Platynator Designer preview area now has a lighter background with a pixel grid overlay
+
+### Removals
+- General: Value color force — ElvUI will address the custom class color lookup upstream
+- Nameplates: Class Color target indicator — ElvUI will address the custom class color lookup upstream
