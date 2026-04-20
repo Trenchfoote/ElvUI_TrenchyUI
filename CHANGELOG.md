@@ -7,7 +7,6 @@
 - Friends Datatext: Faction icons (Horde/Alliance) now display on WoW friend rows
 - Unit Frames: Private Aura preview — fake private aura icons appear on frames during ElvUI's Show/Hide Auras preview, mirroring the configured icon size, slot count, and border scale
 - Cooldown Manager: Repair reminder — fires when average gear durability drops below 30%, glows when an auto-hammer or repair bot is available
-- Skins: Hide circle masks on affix icons in the Challenges and Keystone frames
 
 ### Bug Fixes
 - Cooldown Manager: Fixed reminder glow

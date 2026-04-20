@@ -10,8 +10,6 @@
 	<Script file="skins\bugsack.lua"/>
 	<Script file="skins\opie.lua"/>
 	<Script file="skins\cooldownviewer.lua"/>
-	<Script file="skins\playerspells.lua"/>
-	<Script file="skins\challengeskeystone.lua"/>
 	<Script file="skins\platynator.lua"/>
 	<Script file="skins\premadegroupsfilter.lua"/>
 
