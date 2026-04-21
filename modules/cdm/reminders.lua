@@ -333,7 +333,7 @@ local function CreateReminderIcon(parent, index)
 
 	local duration = frame:CreateFontString(nil, 'OVERLAY')
 	duration:SetPoint('CENTER', 0, 0)
-	duration:FontTemplate(LSM:Fetch('font', 'Expressway'), 28, 'SLUGOUTLINE')
+	duration:FontTemplate(LSM:Fetch('font', 'Expressway'), 28, 'OUTLINE')
 	duration:SetTextColor(1, 1, 1)
 	frame.duration = duration
 

@@ -10,36 +10,6 @@ LSM:Register('statusbar', 'TrenchyFocus', mediaPath .. 'statusbar\\TrenchyFocus'
 LSM:Register('statusbar', 'T-Absorb', mediaPath .. 'statusbar\\T-Absorb')
 LSM:Register('statusbar', 'T-HealAbsorb', mediaPath .. 'statusbar\\T-HealAbsorb')
 
--- Inject Slug font flags into ElvUI's font dropdown and FontTemplate
-do
-	local ACH = E.Libs.ACH
-	if ACH and ACH.FontValues then
-		ACH.FontValues.SLUG = '|cFFCCCCCCSlug|r'
-		ACH.FontValues.SLUGOUTLINE = '|cFFCCCCCCSlug|r Outline'
-		ACH.FontValues.SLUGTHICKOUTLINE = '|cFFCCCCCCSlug|r Thick'
-		ACH.FontValues.SLUGMONOCHROMEOUTLINE = '|cFFCCCCCCSlug|r Mono Outline'
-	end
-
-	-- Handle SLUG prefix in FontTemplate (same pattern as SHADOW)
-	local strsub = strsub
-	local frameMeta = getmetatable(CreateFrame('Frame')).__index
-	local origFontTemplate = frameMeta.FontTemplate
-	if origFontTemplate then
-		frameMeta.FontTemplate = function(fs, font, size, style, skip)
-			if style and strsub(style, 1, 4) == 'SLUG' then
-				local remainder = strsub(style, 5)
-				if remainder == '' then remainder = 'SLUG' else remainder = 'SLUG, ' .. remainder end
-				fs.font, fs.fontSize, fs.fontStyle = font, size, style
-				if not size then size = E.db.general.fontSize or E.DF.profile.general.fontSize end
-				fs:SetFont(font or E.media.normFont, size, remainder)
-				E.texts[fs] = true
-				return
-			end
-			return origFontTemplate(fs, font, size, style, skip)
-		end
-	end
-end
-
 local TUI = E:NewModule('TrenchyUI', 'AceHook-3.0', 'AceEvent-3.0')
 ns.TUI = TUI
 
@@ -247,6 +217,24 @@ do -- Settings merge
 		end
 	end
 
+	-- One-shot migration: ElvUI ships native Slug rendering, so SLUG* outline strings are stale
+	local slugOutlineMap = {
+		SLUG = 'NONE',
+		SLUGOUTLINE = 'OUTLINE',
+		SLUGTHICKOUTLINE = 'THICKOUTLINE',
+		SLUGMONOCHROMEOUTLINE = 'MONOCHROMEOUTLINE',
+	}
+
+	local function MigrateSlugOutlines(tbl)
+		for k, v in pairs(tbl) do
+			if type(v) == 'table' then
+				MigrateSlugOutlines(v)
+			elseif type(v) == 'string' and slugOutlineMap[v] then
+				tbl[k] = slugOutlineMap[v]
+			end
+		end
+	end
+
 	function TUI:Initialize()
 		if not E.db.TrenchyUI then E.db.TrenchyUI = {} end
 
@@ -278,6 +266,11 @@ do -- Settings merge
 			end
 			addons.skinBigWigsLFG = nil
 			addons.bigWigsClassColorBars = nil
+		end
+
+		if not E.db.TrenchyUI._slugMigrated then
+			MigrateSlugOutlines(E.db)
+			E.db.TrenchyUI._slugMigrated = true
 		end
 
 		local defaults = self.defaults and self.defaults.profile or {}

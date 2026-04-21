@@ -19,3 +19,4 @@
 ### Removals
 - General: Value color force — ElvUI will address the custom class color lookup upstream
 - Nameplates: Class Color target indicator — ElvUI will address the custom class color lookup upstream
+- General: Slug font integration — ElvUI now ships native Slug rendering, so TUI's font dropdown entries and template wrapper are no longer needed; existing Slug outline settings migrate automatically
