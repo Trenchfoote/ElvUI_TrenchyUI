@@ -336,7 +336,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     ct.showCombatPotions = ACH:Toggle("Show Combat Potions", nil, 5, nil, nil, nil,
         function() return customVDB().showCombatPotions end,
         function(_, v) customVDB().showCombatPotions = v; cdmRefresh() end, ctDis)
-    ct.showBeltTinker = ACH:Toggle(E.NewSign .. "Show Belt Tinker", "Track belt on-use tinker cooldown.", 6, nil, nil, nil,
+    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track belt on-use tinker cooldown.", 6, nil, nil, nil,
         function() return customVDB().showBeltTinker end,
         function(_, v) customVDB().showBeltTinker = v; cdmRefresh() end, ctDis)
     ct.trinketMode = ACH:Select("Trinkets", nil, 7,
@@ -394,7 +394,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
 
     -- Reminders tab
     local remDB = function() return cdmDB().reminders end
-    local remTab = ACH:Group(E.NewSign .. "Reminders", nil, 7, 'tree', nil, nil, cdmDisabled)
+    local remTab = ACH:Group("Reminders", nil, 7, 'tree', nil, nil, cdmDisabled)
     root.cooldownManager.args.reminders = remTab
 
     -- Reminders: General

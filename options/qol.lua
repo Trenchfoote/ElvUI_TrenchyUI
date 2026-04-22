@@ -211,7 +211,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return mbbDB().hideInCombat end, function(_, v) mbbDB().hideInCombat = v; mbbUpdate() end, mbbDisabled)
 
     -- Buff/Debuff Mouseover
-    root.qol.args.auraFader = ACH:Group(E.NewSign .. "Buff/Debuff Mouseover", nil, 5)
+    root.qol.args.auraFader = ACH:Group("Buff/Debuff Mouseover", nil, 5)
     local af = root.qol.args.auraFader.args
 
     af.buffMouseover = ACH:Toggle("Buffs", "Only show buff icons when mousing over them.", 1, nil, nil, nil,

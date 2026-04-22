@@ -244,7 +244,7 @@ function TUI:BuildDamageMeterConfig(root, tuiName)
         bars.barBorderEnabled = ACH:Toggle("Borders", nil, 4, nil, nil, nil,
             function() return winGet(i, 'barBorderEnabled') end,
             function(_, v) winSet(i, 'barBorderEnabled', v); winUpdate() end, winDis)
-        bars.classIconStyle = ACH:Select("Class Icons", nil, 5,
+        bars.classIconStyle = ACH:Select(E.NewSign .. "Class Icons", nil, 5,
             { none = 'None', fabled = 'Fabled', class = 'Blizzard Class', spec = 'Blizzard Spec' }, nil, nil,
             function() return winGet(i, 'classIconStyle') or 'none' end,
             function(_, v) winSet(i, 'classIconStyle', v); winUpdate() end, winDis)
