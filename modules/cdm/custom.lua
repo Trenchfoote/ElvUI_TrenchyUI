@@ -5,7 +5,6 @@ local LSM = CDM.LSM
 local GetInventoryItemID = GetInventoryItemID
 local GetInventoryItemCooldown = GetInventoryItemCooldown
 local GetInventoryItemTexture = GetInventoryItemTexture
-local GetInventoryItemLink = GetInventoryItemLink
 local IsSpellKnown = C_SpellBook and C_SpellBook.IsSpellKnown
 
 local HEALTHSTONES = { 5512, 224464 }
@@ -247,11 +246,10 @@ local function UpdateAllIcons()
 		end
 	end
 
-	-- Belt tinker — only if an enchant is applied (belts don't take gear enchants, so any non-zero ID means a tinker is present)
+	-- Belt tinker — GetInventoryItemCooldown returns enable=1 only when the slot has an on-use (i.e. a tinker is applied)
 	if vdb.showBeltTinker then
-		local link = GetInventoryItemLink('player', BELT_SLOT)
-		local enchantID = link and tonumber(link:match('item:%d+:(%d+)'))
-		if enchantID and enchantID > 0 then
+		local _, _, enable = GetInventoryItemCooldown('player', BELT_SLOT)
+		if enable == 1 then
 			idx = idx + 1
 			if idx <= MAX_ICONS then
 				local frame = customIcons[idx]

@@ -10,13 +10,13 @@
 
 ### Bug Fixes
 - Cooldown Manager: Fixed reminder glow
+- Cooldown Manager: Belt tinker icon no longer appears when the equipped belt has no Nitro Boosts (or other engineering tinker) applied
 - Skins: BigWigs Keystones frame now skins reliably whether opened via slash, minimap, or M+ completion
 
 ### Improvements
+- General: Updated for WoW 12.0.5
 - Cooldown Manager: Reminder icons for flask, weapon enhancement, and augment rune now use the icon of the item in your bags
 - Skins: Platynator Designer preview area now has a lighter background with a pixel grid overlay
 
 ### Removals
-- General: Value color force — ElvUI will address the custom class color lookup upstream
-- Nameplates: Class Color target indicator — ElvUI will address the custom class color lookup upstream
-- General: Slug font integration — ElvUI now ships native Slug rendering, so TUI's font dropdown entries and template wrapper are no longer needed; existing Slug outline settings migrate automatically
+- General: Slug font integration: Removed — ElvUI now ships native Slug rendering
