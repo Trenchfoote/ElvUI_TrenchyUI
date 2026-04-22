@@ -361,16 +361,20 @@ local function GetOrCreateIcon(row)
 	return icon
 end
 
+local HORDE_ATLAS = 'glues-characterselect-icon-faction-horde-hover'
+local ALLIANCE_ATLAS = 'glues-characterselect-icon-faction-alliance-hover'
+
 -- Apply the faction icon to a row, or hide it when faction is unknown
 -- Re-anchors the level text so it sits after the icon when present
 local function ApplyFactionIcon(row, faction)
-	if faction == 'Horde' then
-		row.factionIcon:SetAtlas('glues-characterselect-icon-faction-horde-hover')
-		row.factionIcon:Show()
-		row.level:ClearAllPoints()
-		row.level:SetPoint('LEFT', row.factionIcon, 'RIGHT', 4, 0)
-	elseif faction == 'Alliance' then
-		row.factionIcon:SetAtlas('glues-characterselect-icon-faction-alliance-hover')
+	local atlas
+	if faction == 'Horde' and C_Texture.GetAtlasExists(HORDE_ATLAS) then
+		atlas = HORDE_ATLAS
+	elseif faction == 'Alliance' and C_Texture.GetAtlasExists(ALLIANCE_ATLAS) then
+		atlas = ALLIANCE_ATLAS
+	end
+	if atlas then
+		row.factionIcon:SetAtlas(atlas)
 		row.factionIcon:Show()
 		row.level:ClearAllPoints()
 		row.level:SetPoint('LEFT', row.factionIcon, 'RIGHT', 4, 0)

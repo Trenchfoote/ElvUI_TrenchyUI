@@ -141,7 +141,6 @@ E.PopupDialogs.TUI_METER_RESET = {
     button2      = CANCEL,
     OnAccept     = function()
         C_DamageMeter.ResetAllCombatSessions()
-        wipe(TDM.nameCache)
         wipe(TDM.guidByName)
         wipe(TDM.specIconCache)
         TDM:RefreshMeter()
@@ -160,7 +159,6 @@ TDM.flightTicker = nil
 TDM.flightFadeTimer = nil
 
 -- Caches
-TDM.nameCache  = {}
 TDM.creatureNameCache = {}
 TDM.spellCache = {}
 TDM.winDBCache = {}
@@ -181,7 +179,6 @@ function TDM.ScanRoster()
     local pg = UnitGUID('player')
     if pg and E:NotSecretValue(pg) then
         local name = UnitName('player')
-        TDM.nameCache[pg] = name
         if name then TDM.guidByName[name] = pg end
     end
     if IsInRaid() then
@@ -190,7 +187,6 @@ function TDM.ScanRoster()
             local guid = UnitGUID(unit)
             if guid and E:NotSecretValue(guid) then
                 local name = UnitName(unit)
-                TDM.nameCache[guid] = name
                 if name then TDM.guidByName[name] = guid end
             end
         end
@@ -200,7 +196,6 @@ function TDM.ScanRoster()
             local guid = UnitGUID(unit)
             if guid and E:NotSecretValue(guid) then
                 local name = UnitName(unit)
-                TDM.nameCache[guid] = name
                 if name then TDM.guidByName[name] = guid end
             end
         end
@@ -215,7 +210,7 @@ function TDM.CacheCreatureNames()
                 for _, src in ipairs(session.combatSources) do
                     local cid = src.sourceCreatureID
                     if cid and E:NotSecretValue(cid) and not TDM.creatureNameCache[cid] then
-                        if src.name and E:NotSecretValue(src.name) and src.name ~= '' then
+                        if src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
                             TDM.creatureNameCache[cid] = Ambiguate(src.name, 'short')
                         end
                     end

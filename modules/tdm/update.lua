@@ -72,7 +72,7 @@ function TDM.RefreshWindow(win)
                 local session = TDM.GetSession(win, meterType)
                 local src = session and session.combatSources and session.combatSources[ds.sourceIndex]
                 if src then
-                    if (not ds.name or ds.name == '?') and E:NotSecretValue(src.name) and src.name and src.name ~= '' then
+                    if (not ds.name or ds.name == '?') and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
                         ds.name = Ambiguate(src.name, 'short')
                     end
                     if (not ds.class) and src.classFilename and E:NotSecretValue(src.classFilename) then
@@ -399,22 +399,14 @@ function TDM.RefreshWindow(win)
                 local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', classFilename)
                 bar.background:SetVertexColor(bgR, bgG, bgB, bgA)
 
-                -- Name resolution: roster cache > GetPlayerInfoByGUID > C_DamageMeter
+                -- Name resolution: Ambiguate accepts secret src.name directly in 12.0.5+
                 local isLocal = src.isLocalPlayer
                 local plainName, sourceUnit
                 if isLocal then
-                    local pg = UnitGUID('player')
-                    plainName = (pg and TDM.nameCache[pg]) or UnitName('player') or '?'
+                    plainName = UnitName('player') or '?'
                     sourceUnit = 'player'
-                elseif guid and TDM.nameCache[guid] then
-                    plainName = TDM.nameCache[guid]
-                    sourceUnit = TDM.FindUnitByGUID(guid)
-                elseif src.name then
-                    if E:IsSecretValue(src.name) then
-                        plainName = src.name
-                    elseif src.name ~= '' then
-                        plainName = Ambiguate(src.name, 'short')
-                    end
+                elseif src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
+                    plainName = Ambiguate(src.name, 'short')
                 end
                 bar.frame.sourceName = plainName or '?'
                 if not sourceUnit and plainName and E:NotSecretValue(plainName) then
@@ -972,7 +964,6 @@ function TDM:Initialize()
                 ScheduleMeterRefresh()
                 return
             elseif event == 'GROUP_ROSTER_UPDATE' then
-                wipe(TDM.nameCache)
                 wipe(TDM.specIconCache)
                 TDM.ScanRoster()
                 return

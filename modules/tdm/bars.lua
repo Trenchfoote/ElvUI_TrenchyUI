@@ -183,14 +183,8 @@ function TDM.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretG
             if not sourceCreatureID and E:NotSecretValue(src.sourceCreatureID) then
                 sourceCreatureID = src.sourceCreatureID
             end
-            if (not safeName or safeName == '?') and E:NotSecretValue(src.name) and src.name and src.name ~= '' then
+            if (not safeName or safeName == '?') and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
                 safeName = Ambiguate(src.name, 'short')
-            end
-            if (not safeName or safeName == '?') and src.sourceGUID then
-                local secretName = select(6, GetPlayerInfoByGUID(src.sourceGUID))
-                if secretName and E:NotSecretValue(secretName) then
-                    safeName = secretName
-                end
             end
         end
     end

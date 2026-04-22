@@ -75,9 +75,13 @@ local function ShowFakes(frame)
 		local tex = C_Spell.GetSpellTexture(FAKE_SPELL_ID)
 		if tex then fake.icon:SetTexture(tex) end
 
-		fake.border:SetAtlas(BORDER_ATLAS)
-		fake.border:SetSize(borderSize, borderSize)
-		fake.border:Show()
+		if C_Texture.GetAtlasExists(BORDER_ATLAS) then
+			fake.border:SetAtlas(BORDER_ATLAS)
+			fake.border:SetSize(borderSize, borderSize)
+			fake.border:Show()
+		else
+			fake.border:Hide()
+		end
 
 		fake:Show()
 	end
