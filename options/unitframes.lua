@@ -129,7 +129,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
-    root.unitframes.args.privateAuras = ACH:Group(E.NewSign .. "Private Aura Preview", nil, 4)
+    root.unitframes.args.privateAuras = ACH:Group("Private Aura Preview", nil, 4)
     root.unitframes.args.privateAuras.inline = true
     local pa = root.unitframes.args.privateAuras.args
 

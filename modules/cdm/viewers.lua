@@ -1,8 +1,6 @@
 local E = unpack(ElvUI)
 local CDM = E:GetModule('TUI_CDM')
 
-local hooksecurefunc = hooksecurefunc
-
 local function AnchorOptionPanel(panel, spellID, hookKey)
 	local spellInfo = C_Spell.GetSpellInfo(spellID)
 	local name = spellInfo and spellInfo.name or ('Spell ' .. spellID)
@@ -319,13 +317,13 @@ function CDM.IsConfigOpen()
 end
 
 function CDM.OpenCDMConfig()
-	if not CDM.IsConfigOpen() then
-		E:ToggleOptions('TrenchyUI')
+	local ACD = E.Libs.AceConfigDialog
+	if not ACD then return end
+
+	if not (ACD.OpenFrames and ACD.OpenFrames.ElvUI) then
+		E:ToggleOptions()
 	end
-	C_Timer.After(0.1, function()
-		local configGroup = E.Options and E.Options.args and E.Options.args.TrenchyUI
-		if configGroup and configGroup.args and configGroup.args.cooldownManager then
-			E.Libs.AceConfigDialog:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager')
-		end
-	end)
+
+	C_Timer.After(0, function() ACD:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager') end)
+	C_Timer.After(0.2, function() ACD:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager') end)
 end

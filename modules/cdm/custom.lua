@@ -333,7 +333,7 @@ function CDM.LayoutCustomViewer()
 
 	-- Determine icon anchor based on growth direction
 	local anchor
-	if grow == 'LEFT' then anchor = 'TOPRIGHT'
+	if grow == 'LEFT' then anchor = 'RIGHT'
 	elseif grow == 'UP' then anchor = 'BOTTOMLEFT'
 	else anchor = 'TOPLEFT' end
 
@@ -362,6 +362,7 @@ function CDM.LayoutCustomViewer()
 			if not InCombatLockdown() then mover:SetSize(totalW, totalH) end
 			container:SetAllPoints(mover)
 		else
+			if not InCombatLockdown() then mover:SetSize(iconW, iconH) end
 			container:SetPoint(anchor, mover, anchor)
 		end
 	end
@@ -393,7 +394,9 @@ local function OnEvent(event, ...)
 	end
 end
 
--- Create custom container (ignoreSizeChanged: we manage mover size manually)
+local function CDMDisabled() local d = CDM.GetDB(); return not (d and d.enabled) end
+local function IgnoreQuadrant() end
+
 local function CreateCustomContainer()
 	local info = CDM.VIEWER_KEYS['custom']
 	local vdb = CDM.GetViewerDB('custom')
@@ -407,7 +410,7 @@ local function CreateCustomContainer()
 	frame:SetFrameLevel(5)
 
 	local configStr = 'TrenchyUI,cooldownManager,custom'
-	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
+	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, IgnoreQuadrant, 'ALL,TRENCHYUI', CDMDisabled, configStr, true)
 	CDM.containers['custom'] = frame
 end
 

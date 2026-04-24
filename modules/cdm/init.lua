@@ -408,15 +408,17 @@ function CDM:Initialize()
 			end
 		end)
 
-		SLASH_TUICDM1 = '/cdm'
-		SlashCmdList['TUICDM'] = function()
-			if cdmDisabledByCVar then
-				E:Print('|cffff2f3dTrenchyUI|r: Cooldown Manager requires Blizzard\'s Cooldown Viewer. Re-enable it in Options > Gameplay Enhancements > Enable Cooldown Manager.')
-				return
-			end
-			CDM.OpenCDMConfig()
-		end
 	end)
+end
+
+-- Slash command (registered at load time so it survives if CDM module bails)
+SLASH_TUICDM1 = '/cdm'
+SlashCmdList['TUICDM'] = function()
+	if cdmDisabledByCVar then
+		E:Print('|cffff2f3dTrenchyUI|r: Cooldown Manager requires Blizzard\'s Cooldown Viewer. Re-enable it in Options > Gameplay Enhancements > Enable Cooldown Manager.')
+		return
+	end
+	if CDM.OpenCDMConfig then CDM.OpenCDMConfig() end
 end
 
 -- Config hooks

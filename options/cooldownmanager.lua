@@ -474,7 +474,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         "Remind you to grab a healthstone when in a group and you don't have one.", 2, nil, nil, nil,
         function() return remDB().healthstone end,
         function(_, v) remDB().healthstone = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)
-    ro.repair = ACH:Toggle(E.NewSign .. "Repair",
+    ro.repair = ACH:Toggle("Repair",
         "Remind you when average gear durability drops below 30%. Glow indicates you have a repair hammer or bot available.", 3, nil, nil, nil,
         function() return remDB().repair end,
         function(_, v) remDB().repair = v; local CDM = getCDM(); if CDM then CDM.RefreshReminders() end end)

@@ -57,7 +57,8 @@ local function CreateDifficultyText()
 	local yOff = iconDb and iconDb.yOffset or 1
 	diffTextFrame:SetPoint(position, Minimap, position, xOff, yOff)
 
-	E:CreateMover(diffTextFrame, 'TUI_DifficultyTextMover', 'Difficulty Text', nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,qol')
+	local function DiffDisabled() return not (TUI.db and TUI.db.profile and TUI.db.profile.qol and TUI.db.profile.qol.difficultyText) end
+	E:CreateMover(diffTextFrame, 'TUI_DifficultyTextMover', 'TUI Difficulty', nil, nil, nil, 'ALL,TRENCHYUI', DiffDisabled, 'TrenchyUI,qol')
 
 	local db = TUI.db.profile.qol
 	local fontPath = LSM:Fetch('font', db.difficultyFont or 'Expressway')

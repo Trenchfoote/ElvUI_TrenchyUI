@@ -606,6 +606,9 @@ function CDM.LayoutReminders()
 end
 
 -- Container creation
+local function CDMDisabled() local d = CDM.GetDB(); return not (d and d.enabled) end
+local function IgnoreQuadrant() end
+
 local function CreateRemindersContainer()
 	local rdb = TUI.db and TUI.db.profile and TUI.db.profile.cooldownManager and TUI.db.profile.cooldownManager.reminders
 	local iconSize = rdb and rdb.iconSize or 32
@@ -616,7 +619,7 @@ local function CreateRemindersContainer()
 	frame:SetFrameStrata('MEDIUM')
 	frame:SetFrameLevel(5)
 
-	E:CreateMover(frame, 'TUI_CDM_RemindersMover', 'TUI Reminders', nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,cooldownManager,reminders')
+	E:CreateMover(frame, 'TUI_CDM_RemindersMover', 'TUI Reminders', nil, nil, IgnoreQuadrant, 'ALL,TRENCHYUI', CDMDisabled, 'TrenchyUI,cooldownManager,reminders')
 	CDM.containers['reminders'] = frame
 end
 

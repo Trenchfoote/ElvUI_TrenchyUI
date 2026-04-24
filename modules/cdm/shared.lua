@@ -15,6 +15,9 @@ local math_min = math.min
 local math_floor = math.floor
 local CDM_CONFIG_STRING = 'TrenchyUI,cooldownManager'
 
+local function CDMDisabled() local d = CDM.GetDB(); return not (d and d.enabled) end
+local function IgnoreQuadrant() end
+
 -- Container creation
 function CDM.CreateContainer(viewerKey)
 	local info = CDM.VIEWER_KEYS[viewerKey]
@@ -43,7 +46,7 @@ function CDM.CreateContainer(viewerKey)
 	frame:SetFrameStrata('MEDIUM')
 	frame:SetFrameLevel(5)
 
-	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, nil, 'ALL,TRENCHYUI', nil, configStr)
+	E:CreateMover(frame, info.mover .. 'Mover', 'TUI ' .. info.label, nil, nil, IgnoreQuadrant, 'ALL,TRENCHYUI', CDMDisabled, configStr)
 
 	CDM.containers[viewerKey] = frame
 	return frame

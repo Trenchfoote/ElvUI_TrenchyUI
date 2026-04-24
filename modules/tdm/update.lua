@@ -1013,11 +1013,7 @@ end
 
 SLASH_TUITDM1 = '/tdm'
 SlashCmdList['TUITDM'] = function()
-    local open = E.Libs.AceConfigDialog and E.Libs.AceConfigDialog.OpenFrames and E.Libs.AceConfigDialog.OpenFrames['ElvUI']
-    if not open then E:ToggleOptions('TrenchyUI') end
-    C_Timer.After(0.1, function()
-        E.Libs.AceConfigDialog:SelectGroup('ElvUI', 'TrenchyUI', 'damageMeter')
-    end)
+    E:ToggleOptions('TrenchyUI,damageMeter')
 end
 
 E:RegisterModule(TDM:GetName())

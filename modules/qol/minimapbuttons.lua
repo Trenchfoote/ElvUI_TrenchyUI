@@ -306,7 +306,8 @@ function QOL:InitMinimapButtonBar()
 		QOL:RegisterEvent('PET_BATTLE_OPENING_START', UpdateVisibility)
 		QOL:RegisterEvent('PET_BATTLE_CLOSE', UpdateVisibility)
 
-		E:CreateMover(mbbBar, 'TrenchyUIMinimapButtonBarMover', 'TUI Minimap Buttons', nil, nil, LayoutBar, 'ALL,TRENCHYUI', nil, 'TrenchyUI,qol')
+		local function MBBDisabled() return not (TUI.db and TUI.db.profile and TUI.db.profile.qol and TUI.db.profile.qol.minimapButtonBar and TUI.db.profile.qol.minimapButtonBar.enabled) end
+		E:CreateMover(mbbBar, 'TrenchyUIMinimapButtonBarMover', 'TUI Minimap Buttons', nil, nil, LayoutBar, 'ALL,TRENCHYUI', MBBDisabled, 'TrenchyUI,qol')
 		QOL:UpdateMinimapButtonBar()
 		C_Timer.After(5, function() QOL:UpdateMinimapButtonBar() end)
 

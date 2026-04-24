@@ -457,7 +457,8 @@ function TDM.CreateMeterFrame(win, isEmbedded)
         TDM.ResizeStandalone(win)
 
         local moverLabel = i == 1 and "TDM" or ("TDM " .. i)
-        E:CreateMover(window, winName, moverLabel, nil, nil, nil, 'ALL,TRENCHYUI', nil, 'TrenchyUI,damageMeter,window' .. i)
+        local function TDMDisabled() return not (TUI.db and TUI.db.profile and TUI.db.profile.damageMeter and TUI.db.profile.damageMeter.enabled) end
+        E:CreateMover(window, winName, moverLabel, nil, nil, nil, 'ALL,TRENCHYUI', TDMDisabled, 'TrenchyUI,damageMeter,window' .. i)
 
     end
 end

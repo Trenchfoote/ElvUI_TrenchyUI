@@ -1,22 +1,13 @@
 # TrenchyUI Changelog
 
-## v1.6
+## v1.6.1
 
 ### New Features
-- Damage Meter: Class icon style selector — choose between Fabled (Jiberish), Blizzard Class, or Blizzard Spec icons on bars
-- Friends Datatext: Faction icons (Horde/Alliance) now display on WoW friend rows
-- Unit Frames: Private Aura preview — fake private aura icons appear on frames during ElvUI's Show/Hide Auras preview, mirroring the configured icon size, slot count, and border scale
-- Cooldown Manager: Repair reminder — fires when average gear durability drops below 30%, glows when an auto-hammer or repair bot is available
+- Unit Frames: New `[tui-staggerpct]` tag — displays Brewmaster Monk staggered damage as a percentage of max health in any text field that accepts tags. Values above 100 indicate stagger that would exceed your health pool (something the stagger bar alone cannot show).
 
 ### Bug Fixes
-- Cooldown Manager: Fixed reminder glow
-- Cooldown Manager: Belt tinker icon no longer appears when the equipped belt has no Nitro Boosts (or other engineering tinker) applied
-- Skins: BigWigs Keystones frame now skins reliably whether opened via slash, minimap, or M+ completion
+- Cooldown Manager: Custom viewer — Left, Right, Up, and Down growth directions now grow from the correct edge when icons are added or removed, instead of appearing to recenter. Center growth is unchanged.
+- General: `/cdm` and `/tdm` slash commands now reliably open to the Cooldown Manager and Damage Meter config tabs.
 
 ### Improvements
-- General: Updated for WoW 12.0.5
-- Cooldown Manager: Reminder icons for flask, weapon enhancement, and augment rune now use the icon of the item in your bags
-- Skins: Platynator Designer preview area now has a lighter background with a pixel grid overlay
-
-### Removals
-- General: Slug font integration: Removed — ElvUI now ships native Slug rendering
+- General: Movers for disabled modules are now greyed out in ElvUI's config mode, matching how ElvUI handles its own movers.
