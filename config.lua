@@ -49,6 +49,7 @@ TUI.defaults = {
             skinOPie        = false,
             skinBugSack     = false,
             skinPlatynator  = false,
+            skinTalentLoadoutManager = false,
         },
         nameplates = {
             interruptCastbarColors      = false,

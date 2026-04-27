@@ -260,6 +260,7 @@ if not ABBREV_SHORT and AbbreviateNumbers then
         { breakpoint = 1000000,    abbreviation = 'NUMBER_ABBREVIATION_MILLIONS',  significandDivisor = 1000000,    fractionDivisor = 1 },
         { breakpoint = 10000,      abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 1000,       fractionDivisor = 1 },
         { breakpoint = 1000,       abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 100,        fractionDivisor = 1, abbreviationIsGlobal = true },
+        { breakpoint = 1,          abbreviation = '',                              significandDivisor = 1,          fractionDivisor = 1, abbreviationIsGlobal = false },
     }
     if CreateAbbreviateConfig then
         ABBREV_SHORT = { config = CreateAbbreviateConfig(breakpoints) }
@@ -284,15 +285,16 @@ function TDM.FormatCombinedText(totalFS, dpsFS, total, perSec)
         if dpsFS then dpsFS:SetText('') end
         return
     end
-    if E:IsSecretValue(total) or E:IsSecretValue(perSec) then
-        totalFS:SetFormattedText('(%s)', AbbreviateNumbers(total or 0, ABBREV_SHORT))
-        if dpsFS then dpsFS:SetFormattedText('%s', AbbreviateNumbers(perSec or 0, ABBREV_SHORT)) end
+    if E:IsSecretValue(total) then
+        totalFS:SetFormattedText('(%s)', AbbreviateNumbers(total, ABBREV_SHORT))
     else
-        local t = total and AbbreviateNumbers(floor(total + 0.5), ABBREV_SHORT) or '0'
-        totalFS:SetText('(' .. t .. ')')
-        if dpsFS then
-            local p = perSec and AbbreviateNumbers(floor(perSec + 0.5), ABBREV_SHORT) or '0'
-            dpsFS:SetText(p)
+        totalFS:SetText('(' .. AbbreviateNumbers(floor((total or 0) + 0.5), ABBREV_SHORT) .. ')')
+    end
+    if dpsFS then
+        if E:IsSecretValue(perSec) then
+            dpsFS:SetFormattedText('%s', AbbreviateNumbers(perSec, ABBREV_SHORT))
+        else
+            dpsFS:SetText(AbbreviateNumbers(floor((perSec or 0) + 0.5), ABBREV_SHORT))
         end
     end
 end

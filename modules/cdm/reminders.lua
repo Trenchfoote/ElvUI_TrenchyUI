@@ -101,6 +101,11 @@ local PET_SPECS = {
 	[252] = true, [64] = true,
 }
 
+-- Pet summon spell per spec (drives the click-to-cast binding on the reminder icon)
+local PET_SUMMON_SPELLS = {
+	[252] = 46584, -- Unholy DK: Raise Dead
+}
+
 -- Raid buff set for scan lookup
 local RAID_BUFF_SET = {}
 for _, info in ipairs(RAID_BUFFS) do RAID_BUFF_SET[info.buffID] = true end
@@ -226,7 +231,7 @@ local function ShouldHavePet()
 	if not specID or not PET_SPECS[specID] then return false end
 	if specID == 254 and IsPlayerSpell(LONE_WOLF) then return false end
 	if specID == 64 and IsPlayerSpell(LONELY_WINTER) then return false end
-	return true
+	return true, specID
 end
 
 local function HasHealthstone()
@@ -504,8 +509,12 @@ local function UpdateReminders()
 	end
 
 	-- Pet
-	if rdb.pet and ShouldHavePet() and not UnitExists('pet') then
-		AddReminder(PET_ICON, 'No pet summoned')
+	if rdb.pet and not UnitExists('pet') then
+		local hasPetSpec, specID = ShouldHavePet()
+		if hasPetSpec then
+			local summonSpell = PET_SUMMON_SPELLS[specID]
+			AddReminder(PET_ICON, 'No pet summoned', nil, summonSpell and 'spell' or nil, summonSpell)
+		end
 	end
 
 	-- Healthstone

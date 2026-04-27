@@ -241,6 +241,7 @@ function SKN:Initialize()
 	if self.InitSkinOPie then self:InitSkinOPie() end
 	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
 	if self.InitSkinPremadeGroupsFilter then self:InitSkinPremadeGroupsFilter() end
+	if self.InitSkinTalentLoadoutManager then self:InitSkinTalentLoadoutManager() end
 end
 
 E:RegisterModule(SKN:GetName())

@@ -12,6 +12,7 @@
 	<Script file="skins\cooldownviewer.lua"/>
 	<Script file="skins\platynator.lua"/>
 	<Script file="skins\premadegroupsfilter.lua"/>
+	<Script file="skins\talentloadoutmanager.lua"/>
 
 	<!-- QoL -->
 	<Script file="qol\talkinghead.lua"/>
@@ -34,6 +35,7 @@
 	<Script file="nameplates\friendlyrealm.lua"/>
 	<Script file="nameplates\questcolor.lua"/>
 	<Script file="nameplates\platynator.lua"/>
+	<Script file="nameplates\init.lua"/>
 
 	<!-- Unit Frames -->
 	<Script file="unitframes\colormode.lua"/>

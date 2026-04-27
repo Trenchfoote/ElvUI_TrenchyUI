@@ -3,124 +3,75 @@ local E = unpack(ElvUI)
 local TUI = E:GetModule('TrenchyUI')
 local NPS = E:GetModule('TUI_Nameplates')
 
-local UnitIsPlayer = UnitIsPlayer
-local UnitClassBase = UnitClassBase
-local C_Timer_After = C_Timer.After
 local C_NamePlate = C_NamePlate
+local C_Timer_After = C_Timer.After
 
-local hookedWidgets = {}
+local processedDisplays = {}
 
-local function HookWidget(widget, hookName, callback)
-	local key = widget[hookName]
-	if not key then return end
-	if hookedWidgets[widget] and hookedWidgets[widget][hookName] then return end
-	if not hookedWidgets[widget] then hookedWidgets[widget] = {} end
-	hookedWidgets[widget][hookName] = true
-	hooksecurefunc(widget, hookName, callback)
-end
+-- Overwrite the highlight texture with the player's class color. Hook SetVertexColor
+-- as a safety net so a picker re-apply won't undo us.
+local function ApplyClassColor(highlight)
+	if highlight._tuiHooked then return end
+	highlight._tuiHooked = true
 
-local function HasClassColors(widget)
-	local ac = widget.details and widget.details.autoColors
-	if not ac then return false end
-	for _, entry in ipairs(ac) do
-		if entry.kind == 'classColors' then return true end
+	local cc = E.myClassColor
+	if cc then
+		local a = select(4, highlight:GetVertexColor())
+		highlight:SetVertexColor(cc.r, cc.g, cc.b, a)
 	end
-	return false
+
+	hooksecurefunc(highlight, 'SetVertexColor', function(self, r, g, b, a)
+		local color = E.myClassColor
+		if not color or (r == color.r and g == color.g and b == color.b) then return end
+		self:SetVertexColor(color.r, color.g, color.b, a)
+	end)
 end
 
 local function ProcessDisplay(display)
-	local db = TUI.db.profile.platynator
-	if not db or not display.widgets then return end
+	if processedDisplays[display] then return end
+	processedDisplays[display] = true
 
+	local db = TUI.db.profile.platynator
 	for _, w in ipairs(display.widgets) do
-		if db.classColorTarget and w.ApplyTarget and w.highlight and w.details and w.details.kind == 'target' then
-			HookWidget(w, 'ApplyTarget', function(self)
-				if not self:IsShown() or not self.highlight then return end
-				local cc = E:ClassColor(E.myclass)
-				if cc then self.highlight:SetVertexColor(cc.r, cc.g, cc.b, self.highlight:GetAlpha()) end
-			end)
-		end
-		if db.classColorNames and w.SetColor and w.text and w.details and w.details.kind == 'creatureName' and HasClassColors(w) then
-			HookWidget(w, 'SetColor', function(self)
-				if not self.unit or not UnitIsPlayer(self.unit) then return end
-				local class = UnitClassBase(self.unit)
-				if not class then return end
-				local cc = E:ClassColor(class)
-				if cc then self.text:SetTextColor(cc.r, cc.g, cc.b) end
-			end)
-		end
-		if db.classColorMouseover and w.ApplyMouseover and w.highlight and w.details and w.details.kind == 'mouseover' then
-			HookWidget(w, 'ApplyMouseover', function(self)
-				if not self:IsShown() or not self.highlight then return end
-				local cc = E:ClassColor(E.myclass)
-				if cc then self.highlight:SetVertexColor(cc.r, cc.g, cc.b, self.highlight:GetAlpha()) end
-			end)
+		local kind = w.details and w.details.kind
+		if w.highlight and ((kind == 'target' and db.classColorTarget) or (kind == 'mouseover' and db.classColorMouseover)) then
+			ApplyClassColor(w.highlight)
 		end
 	end
 end
 
--- Find a Platynator display on a nameplate by scanning children
 local function FindDisplay(nameplate)
 	for _, child in pairs({ nameplate:GetChildren() }) do
 		if child.widgets then return child end
 	end
 end
 
--- Retry finding and processing a display with exponential backoff
+-- Retry with backoff because Platynator may not have built the display yet
 local function ProcessWithRetry(nameplate, attempt)
 	local display = FindDisplay(nameplate)
-	if display then
-		ProcessDisplay(display)
-		return
-	end
+	if display then ProcessDisplay(display) return end
 	if attempt < 4 then
 		C_Timer_After(0.1 * attempt, function()
-			if nameplate:IsShown() then
-				ProcessWithRetry(nameplate, attempt + 1)
-			end
+			if nameplate:IsShown() then ProcessWithRetry(nameplate, attempt + 1) end
 		end)
 	end
 end
-
-function NPS:Initialize()
-	local np = TUI.db.profile.nameplates
-	if np and E.private.nameplates.enable then
-		if np.hideFriendlyRealm then self:InitHideFriendlyRealm() end
-		if np.interruptCastbarColors then self:HookCastbarInterrupt() end
-		if np.focusGlow and np.focusGlow.enabled then self:InitFocusGlow() end
-		if np.importantCast and np.importantCast.enabled then self:HookImportantCast() end
-		if np.hoverHighlight and np.hoverHighlight.enabled then self:HookHoverHighlight() end
-		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
-		if np.questColor and np.questColor.enabled then self:HookQuestColor() end
-	end
-	-- Platynator tweaks are independent of ElvUI nameplates
-	if E:IsAddOnEnabled('Platynator') then self:InitPlatynatorTweaks() end
-end
-
-E:RegisterModule(NPS:GetName())
 
 local eventFrame = CreateFrame('Frame')
 
 function NPS:InitPlatynatorTweaks()
 	if self._hookedPlatynator then return end
-	self._hookedPlatynator = true
-
 	local db = TUI.db.profile.platynator
-	if not db then return end
+	if not db or not (db.classColorTarget or db.classColorMouseover) then return end
+	self._hookedPlatynator = true
 
 	eventFrame:RegisterEvent('NAME_PLATE_UNIT_ADDED')
 	eventFrame:SetScript('OnEvent', function(_, _, unit)
-		C_Timer_After(0, function()
-			local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
-			if not nameplate then return end
-			ProcessWithRetry(nameplate, 1)
-		end)
+		local nameplate = C_NamePlate.GetNamePlateForUnit(unit)
+		if nameplate then ProcessWithRetry(nameplate, 1) end
 	end)
 
-	-- Hook any displays already visible
-	C_Timer_After(0.5, function()
-		for _, nameplate in pairs(C_NamePlate.GetNamePlates()) do
-			ProcessWithRetry(nameplate, 1)
-		end
-	end)
+	for _, nameplate in pairs(C_NamePlate.GetNamePlates()) do
+		ProcessWithRetry(nameplate, 1)
+	end
 end
