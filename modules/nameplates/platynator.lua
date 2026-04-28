@@ -21,6 +21,7 @@ local function ApplyClassColor(highlight)
 	end
 
 	hooksecurefunc(highlight, 'SetVertexColor', function(self, r, g, b, a)
+		if r == nil or E:IsSecretValue(r) then return end
 		local color = E.myClassColor
 		if not color or (r == color.r and g == color.g and b == color.b) then return end
 		self:SetVertexColor(color.r, color.g, color.b, a)
