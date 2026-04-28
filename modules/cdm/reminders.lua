@@ -30,13 +30,15 @@ local GLOW_COLOR = { 0.95, 0.95, 0.32, 1 }
 local GLOW_KEY = 'TUI_Reminder'
 local DEFAULT_EXPIRATION_THRESHOLD = 600
 
--- Raid buff data
+-- Raid buffs: buffID drives the reminder icon, auraIDs covers per-class variants on the player
 local RAID_BUFFS = {
 	{ key = 'intellect',   buffID = 1459,   provider = 'MAGE' },
 	{ key = 'fortitude',   buffID = 21562,  provider = 'PRIEST' },
 	{ key = 'attackPower', buffID = 6673,   provider = 'WARRIOR' },
 	{ key = 'markOfWild',  buffID = 1126,   provider = 'DRUID' },
-	{ key = 'bronze',      buffID = 381732, provider = 'EVOKER' },
+	{ key = 'bronze',      buffID = 381732, provider = 'EVOKER',
+	  auraIDs = { 381732, 381748, 381749, 381750, 381751, 381752, 381753, 381754,
+	              381755, 381756, 381757, 381758, 381759, 381760 } },
 	{ key = 'skyfury',     buffID = 462854, provider = 'SHAMAN' },
 }
 
@@ -106,9 +108,12 @@ local PET_SUMMON_SPELLS = {
 	[252] = 46584, -- Unholy DK: Raise Dead
 }
 
--- Raid buff set for scan lookup
-local RAID_BUFF_SET = {}
-for _, info in ipairs(RAID_BUFFS) do RAID_BUFF_SET[info.buffID] = true end
+-- Map from any aura variant ID -> canonical raid buff key
+local RAID_BUFF_BY_AURA = {}
+for _, info in ipairs(RAID_BUFFS) do
+	local ids = info.auraIDs or { info.buffID }
+	for _, id in ipairs(ids) do RAID_BUFF_BY_AURA[id] = info.key end
+end
 
 -- State
 local reminderIcons = {}
@@ -176,9 +181,10 @@ local function ScanPlayerBuffs()
 				end
 			end
 
-			-- Raid buffs: mark present by spell ID
-			if id and RAID_BUFF_SET[id] then
-				scan.raidBuffs[id] = true
+			-- Raid buffs: mark present by canonical key (auras may have per-class IDs)
+			if id then
+				local key = RAID_BUFF_BY_AURA[id]
+				if key then scan.raidBuffs[key] = true end
 			end
 		end)
 
@@ -458,7 +464,7 @@ local function UpdateReminders()
 	-- Raid buffs
 	if rdb.raidBuffs and IsInGroup() then
 		for _, info in ipairs(RAID_BUFFS) do
-			if groupClasses[info.provider] and not scan.raidBuffs[info.buffID] then
+			if groupClasses[info.provider] and not scan.raidBuffs[info.key] then
 				local isProvider = (info.provider == playerClass)
 				if isProvider then
 					AddReminder(info.buffID, 'Cast your raid buff', nil, 'spell', info.buffID)
