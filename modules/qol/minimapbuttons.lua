@@ -267,6 +267,12 @@ local function CollectButtons()
 		mbbButtons[#mbbButtons + 1] = zygorBtn
 	end
 
+	-- BtWQuests creates its own button outside LibDBIcon
+	local btwBtn = _G['BtWQuestsMinimapButton']
+	if btwBtn and btwBtn:IsObjectType('Frame') and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
+		mbbButtons[#mbbButtons + 1] = btwBtn
+	end
+
 	sort(mbbButtons, function(a, b)
 		return (a:GetName() or '') < (b:GetName() or '')
 	end)
