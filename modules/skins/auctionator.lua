@@ -65,6 +65,13 @@ local function SkinMoneyInput(frame)
 	for _, key in ipairs({ 'GoldBox', 'SilverBox', 'CopperBox' }) do
 		if mi[key] then S:HandleEditBox(mi[key]) end
 	end
+	-- LargeMoneyInputFrame: crop coin-denomination Icon textures
+	for _, child in pairs({ mi:GetChildren() }) do
+		if child.Icon and not child.TUI_IconCropped then
+			child.TUI_IconCropped = true
+			S:HandleIcon(child.Icon, true)
+		end
+	end
 end
 
 local function SkinMinMaxInput(frame)
@@ -85,6 +92,34 @@ local function SkinDropDownContainer(container)
 	local dd = container.DropDown
 	if dd and dd.DropDown then S:HandleDropDownBox(dd.DropDown)
 	elseif dd then S:HandleDropDownBox(dd) end
+end
+
+-- SquareIconButtonTemplate / RefreshButtonTemplate: clear Up/Down/Disabled/Highlight, keep centered Icon
+local function SkinIconButton(btn)
+	if not btn or btn.TUI_IconBtn then return end
+	btn.TUI_IconBtn = true
+	btn:SetNormalTexture(0)
+	btn:SetPushedTexture(0)
+	btn:SetHighlightTexture(0)
+	btn:SetDisabledTexture(0)
+	if not btn.backdrop then btn:CreateBackdrop('Transparent') end
+	btn.backdrop:SetInside(btn, 1, 1)
+	if btn.Icon then
+		btn.Icon:ClearAllPoints()
+		btn.Icon:SetPoint('CENTER')
+	end
+end
+
+-- AuctionCategoryButtonTemplate: Normal/Highlight/Pushed need explicit clears, StripTextures misses them
+local function SkinGroupTitle(btn)
+	if not btn or btn.TUI_GroupSkinned then return end
+	btn.TUI_GroupSkinned = true
+	btn:StripTextures()
+	btn:SetNormalTexture(0)
+	btn:SetHighlightTexture(0)
+	btn:SetPushedTexture(0)
+	btn:SetDisabledTexture(0)
+	if not btn.backdrop then btn:CreateBackdrop('Transparent') end
 end
 
 local function SkinDialog(dialog)
@@ -125,12 +160,14 @@ local function SkinSearchOptions(dialog)
 	if sc then
 		if sc.SearchString then S:HandleEditBox(sc.SearchString) end
 		if sc.IsExact then S:HandleCheckBox(sc.IsExact) end
+		if sc.ResetSearchStringButton then S:HandleButton(sc.ResetSearchStringButton) end
 	end
 
-	if dialog.FilterKeySelector then
-		for _, child in pairs({ dialog.FilterKeySelector:GetChildren() }) do
-			if child.IsObjectType and child:IsObjectType('DropdownButton') then S:HandleDropDownBox(child) end
-		end
+	-- FilterKeySelector: DropDown built lazily in mixin OnLoad, ResetButton sits beside it
+	local fks = dialog.FilterKeySelector
+	if fks then
+		if fks.DropDown then S:HandleDropDownBox(fks.DropDown) end
+		if fks.ResetButton then S:HandleButton(fks.ResetButton) end
 	end
 
 	for _, key in ipairs({ 'LevelRange', 'ItemLevelRange', 'PriceRange', 'CraftedLevelRange' }) do
@@ -160,6 +197,9 @@ local function SkinConfigWidgets(frame, depth)
 			elseif child:IsObjectType('EditBox') then
 				child.TUI_Skinned = true
 				S:HandleEditBox(child)
+			elseif child:IsObjectType('DropdownButton') then
+				child.TUI_Skinned = true
+				S:HandleDropDownBox(child)
 			elseif child:IsObjectType('Button') and not child:GetName() then
 				child.TUI_Skinned = true
 				S:HandleButton(child)
@@ -256,6 +296,9 @@ local function SkinAll()
 					if w and w <= 30 then
 						S:HandleButton(child)
 						child:Size(22)
+					elseif child.Icon and not child.TUI_IconBtn then
+						-- RefreshButtonTemplate (SquareIconButton, 32x32)
+						SkinIconButton(child)
 					end
 				end
 			end
@@ -271,17 +314,24 @@ local function SkinAll()
 				itemMixin.TUI_Hooked = true
 				hooksecurefunc(itemMixin, 'SetItemInfo', function(self) SkinItemButton(self) end)
 			end
+
+			-- Skin groups already in the pool; UpdateFromExisting hook below covers future ones
+			if bagView.groupPool and bagView.groupPool.EnumerateActive then
+				for group in bagView.groupPool:EnumerateActive() do
+					if group.GroupTitle then SkinGroupTitle(group.GroupTitle) end
+				end
+			end
 		end
 
-		local groupMixin = _G.AuctionatorGroupsViewGroupMixin
-		if groupMixin and not groupMixin.TUI_Hooked then
-			groupMixin.TUI_Hooked = true
-			hooksecurefunc(groupMixin, 'SetName', function(self)
-				local btn = self.GroupTitle
-				if btn and not btn.TUI_Skinned then
-					btn.TUI_Skinned = true
-					btn:StripTextures()
-					btn:CreateBackdrop('Transparent')
+		-- Catch GroupTitles for any groups acquired after first AH open
+		local viewMixin = _G.AuctionatorGroupsViewMixin
+		if viewMixin and not viewMixin.TUI_Hooked then
+			viewMixin.TUI_Hooked = true
+			hooksecurefunc(viewMixin, 'UpdateFromExisting', function(self)
+				if self.groupPool and self.groupPool.EnumerateActive then
+					for group in self.groupPool:EnumerateActive() do
+						if group.GroupTitle then SkinGroupTitle(group.GroupTitle) end
+					end
 				end
 			end)
 		end
@@ -311,9 +361,26 @@ local function SkinAll()
 				if usc[key] then S:HandleButton(usc[key]) end
 			end
 		end
+
+		-- Cancelling tab's RefreshButton is an unnamed child Button
+		for _, child in pairs({ cancel:GetChildren() }) do
+			if child:IsObjectType('Button') and not child:GetName() and child.Icon then
+				SkinIconButton(child)
+			end
+		end
 	end
 
-	SkinConfigWidgets(_G.AuctionatorConfigFrame)
+	-- Strip the config frame's outer chrome before walking its widgets
+	local cfg = _G.AuctionatorConfigFrame
+	if cfg then
+		if cfg.NineSlice then cfg.NineSlice:StripTextures() end
+		if cfg.Bg then cfg.Bg:Hide() end
+		if not cfg.TUI_BgSkinned then
+			cfg.TUI_BgSkinned = true
+			cfg:SetTemplate('Transparent')
+		end
+	end
+	SkinConfigWidgets(cfg)
 
 	local ikcMixin = _G.AuctionatorItemKeyCellTemplateMixin
 	if ikcMixin and not ikcMixin.TUI_Hooked then
@@ -379,6 +446,34 @@ local function SkinAll()
 	end
 end
 
+local function SkinObjectiveTrackerSearch()
+	local frame = _G.AuctionatorCraftingInfoObjectiveTrackerFrame
+	if frame and frame.SearchButton and not frame.SearchButton._tuiSkinned then
+		frame.SearchButton._tuiSkinned = true
+		S:HandleButton(frame.SearchButton)
+	end
+end
+
+-- Blizzard-Settings option panels: instance names from InternalInitializeFrames (Modern AH uses ShoppingAlt)
+local function SkinConfigPanels()
+	local names = {
+		'AuctionatorConfigBasicOptionsFrame',
+		'AuctionatorConfigTooltipsFrame',
+		'AuctionatorConfigShoppingAltFrame',
+		'AuctionatorConfigSellingFrame',
+		'AuctionatorConfigSellingShortcutsFrame',
+		'AuctionatorConfigSellingAllItemsFrame',
+		'AuctionatorConfigQuantitiesFrame',
+		'AuctionatorConfigCancellingFrame',
+		'AuctionatorConfigProfileFrame',
+		'AuctionatorConfigAdvancedFrame',
+	}
+	for _, name in ipairs(names) do
+		local panel = _G[name]
+		if panel then SkinConfigWidgets(panel) end
+	end
+end
+
 function SKN:InitSkinAuctionator()
 	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinAuctionator then return end
 	if not E:IsAddOnEnabled('Auctionator') then return end
@@ -390,5 +485,21 @@ function SKN:InitSkinAuctionator()
 		if not _G.AuctionatorShoppingFrame then return end
 		skinned = true
 		SkinAll()
+	end)
+
+	-- Crafting-info objective tracker Search button: post-hook its creator and try once now
+	if Auctionator and Auctionator.CraftingInfo and Auctionator.CraftingInfo.InitializeObjectiveTrackerFrame then
+		hooksecurefunc(Auctionator.CraftingInfo, 'InitializeObjectiveTrackerFrame', SkinObjectiveTrackerSearch)
+	end
+	SkinObjectiveTrackerSearch()
+
+	-- Settings panels: try now, retry on PEW
+	SkinConfigPanels()
+	local pew = CreateFrame('Frame')
+	pew:RegisterEvent('PLAYER_ENTERING_WORLD')
+	pew:SetScript('OnEvent', function(frame)
+		SkinConfigPanels()
+		frame:UnregisterAllEvents()
+		frame:SetScript('OnEvent', nil)
 	end)
 end
