@@ -17,6 +17,10 @@ local function LightenAndGridify(frame)
 	if frame.tuiGridified then return end
 	frame.tuiGridified = true
 
+	-- Strip NineSlice, apply ElvUI 1px border; .Bg renders above the backdrop
+	if frame.NineSlice then frame.NineSlice:StripTextures() end
+	if frame.SetTemplate then frame:SetTemplate('Transparent') end
+
 	if frame.Bg then
 		frame.Bg:SetColorTexture(BG_COLOR[1], BG_COLOR[2], BG_COLOR[3], BG_COLOR[4])
 	end
@@ -92,8 +96,6 @@ local function SkinChildren(parent, depth)
 			if objType == 'Button' or objType == 'DropdownButton' then
 				if child.SetupMenu then
 					S:HandleDropDownBox(child)
-				elseif child.Left and child.Middle and child.Right then
-					S:HandleTab(child)
 				elseif child.GetText and child:GetText() and child:GetText() ~= '' and child:GetWidth() > 40 then
 					S:HandleButton(child)
 				end
@@ -103,6 +105,16 @@ local function SkinChildren(parent, depth)
 				S:HandleSliderFrame(child)
 			elseif objType == 'EditBox' then
 				S:HandleEditBox(child)
+			elseif objType == 'Frame' and (child.NineSlice or child.Bg) then
+				-- InsetFrameTemplate container; skip the designer preview (LightenAndGridify owns it)
+				local w, h = child:GetSize()
+				local isPreview = (w or 0) >= 200 and (h or 0) >= 150 and child.Bg and child.NineSlice
+				if not isPreview then
+					if child.NineSlice then child.NineSlice:StripTextures() end
+					if child.Bg then child.Bg:Hide() end
+					if child.SetTemplate then child:SetTemplate('Transparent') end
+					child.isSkinned = true
+				end
 			end
 		end
 
@@ -162,11 +174,31 @@ local function SkinImportDialog()
 	end
 end
 
+-- PlatynatorDialog<N> popups (Copy, EditBox, export-choice) are created lazily on first use
+local function SkinPopupDialog(dialog)
+	if not dialog or skinnedFrames[dialog] then return end
+	skinnedFrames[dialog] = true
+
+	if dialog.NineSlice then dialog.NineSlice:StripTextures() end
+	dialog:StripTextures()
+	dialog:SetTemplate('Transparent')
+
+	for _, child in pairs({ dialog:GetChildren() }) do
+		local objType = child:GetObjectType()
+		if objType == 'Button' then
+			S:HandleButton(child)
+		elseif objType == 'EditBox' then
+			S:HandleEditBox(child)
+		end
+	end
+	if dialog.editBox then S:HandleEditBox(dialog.editBox) end
+end
+
 function SKN:InitSkinPlatynator()
 	if not E:IsAddOnEnabled('Platynator') then return end
 	if not TUI.db or not TUI.db.profile.addons or not TUI.db.profile.addons.skinPlatynator then return end
 
-	-- Hook frame creation to catch the dialog when it's first opened
+	-- Defer skinning by one tick: children aren't attached inside Platy's CreateFrame call
 	hooksecurefunc('CreateFrame', function(_, name)
 		if type(name) ~= 'string' then return end
 		if name:find('^PlatynatorCustomiseDialog') and name ~= 'PlatynatorCustomiseDialogImportDialog' then
@@ -176,16 +208,25 @@ function SKN:InitSkinPlatynator()
 			end)
 		elseif name == 'PlatynatorCustomiseDialogImportDialog' then
 			C_Timer.After(0, SkinImportDialog)
+		elseif name:find('^PlatynatorDialog%d+$') then
+			C_Timer.After(0, function()
+				local frame = _G[name]
+				if frame then SkinPopupDialog(frame) end
+			end)
 		end
 	end)
 
-	-- Skin if already created
+	-- Skin existing dialogs; filter by name before indexing frame methods to avoid taint on protected globals
 	for name, frame in pairs(_G) do
-		if type(name) == 'string' and name:find('^PlatynatorCustomiseDialog') and type(frame) == 'table' and frame.GetObjectType then
-			if name == 'PlatynatorCustomiseDialogImportDialog' then
-				SkinImportDialog()
-			else
-				SkinDialog(frame)
+		if type(name) == 'string' then
+			local isMain = name:find('^PlatynatorCustomiseDialog') ~= nil
+				and name ~= 'PlatynatorCustomiseDialogImportDialog'
+			local isImport = name == 'PlatynatorCustomiseDialogImportDialog'
+			local isPopup = name:find('^PlatynatorDialog%d+$') ~= nil
+			if (isMain or isImport or isPopup) and type(frame) == 'table' and frame.GetObjectType then
+				if isImport then SkinImportDialog()
+				elseif isMain then SkinDialog(frame)
+				elseif isPopup then SkinPopupDialog(frame) end
 			end
 		end
 	end
