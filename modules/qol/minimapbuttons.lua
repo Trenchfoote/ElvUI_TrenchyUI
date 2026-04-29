@@ -267,9 +267,10 @@ local function CollectButtons()
 		mbbButtons[#mbbButtons + 1] = zygorBtn
 	end
 
-	-- BtWQuests creates its own button outside LibDBIcon
+	-- BtWQuests: skip the standalone button when disabled (LibDBIcon variant takes over)
 	local btwBtn = _G['BtWQuestsMinimapButton']
-	if btwBtn and btwBtn:IsObjectType('Frame') and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
+	if btwBtn and btwBtn:IsObjectType('Frame') and btwBtn:IsEnabled()
+		and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
 		mbbButtons[#mbbButtons + 1] = btwBtn
 	end
 
