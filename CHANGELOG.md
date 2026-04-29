@@ -7,7 +7,12 @@
 - Skins: Talent Loadout Manager.
 
 ### Bug Fixes
-- Numerous bug fixes.
+- Cooldown Manager: Fixed Blessing of the Bronze reminder
+- Nameplates: Fixed an occasional combat error tied to the Platynator target/mouseover class color override.
+- Skins: Fixed a taint error that could fire when opening the Platynator configuration window for the first time.
 
 ### Improvements
 - Cooldown Manager: Pet reminder on Unholy Death Knight now click-casts Raise Dead.
+- QoL: Trenchy minimap button bar now picks up the BtWQuests minimap button alongside the rest.
+- Skins: Auctionator — skin improved
+- Skins: Platynator — skin improved
