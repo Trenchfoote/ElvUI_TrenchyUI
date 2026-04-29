@@ -329,7 +329,7 @@ function CDM.LayoutCustomViewer()
 	local rows = math.ceil(count / perRow)
 	local totalW = cols * iconW + (cols - 1) * spacing
 	local totalH = rows * iconH + (rows - 1) * spacing
-	container:SetSize(totalW, totalH)
+	CDM.SetContainerSize(container, totalW, totalH)
 
 	-- Determine icon anchor based on growth direction
 	local anchor

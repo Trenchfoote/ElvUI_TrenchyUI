@@ -52,6 +52,14 @@ function CDM.CreateContainer(viewerKey)
 	return frame
 end
 
+-- Skip no-op SetSize calls; combat-time mover-hook chains can hit a protected callback
+function CDM.SetContainerSize(container, w, h)
+	if not container then return end
+	if container.tuiLastW == w and container.tuiLastH == h then return end
+	container:SetSize(w, h)
+	container.tuiLastW, container.tuiLastH = w, h
+end
+
 function CDM.AnchorToMover(viewerKey, growDirection)
 	local container = CDM.containers[viewerKey]
 	if not container then return end
@@ -134,7 +142,7 @@ function CDM.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 	local count = #icons
 	if count == 0 then
 		local minW = perRow * iconW + (perRow - 1) * spacing
-		container:SetSize(minW, iconH)
+		CDM.SetContainerSize(container, minW, iconH)
 		CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 		return
 	end
@@ -170,7 +178,7 @@ function CDM.LayoutIconViewer(viewerKey, isCapture, perIconCallback)
 	local rows = math_ceil(count / perRow)
 	local totalW = cols * iconW + (cols - 1) * spacing
 	local totalH = rows * iconH + (rows - 1) * spacing
-	container:SetSize(totalW, totalH)
+	CDM.SetContainerSize(container, totalW, totalH)
 
 	for i, icon in ipairs(icons) do
 		local row = math_floor((i - 1) / perRow)

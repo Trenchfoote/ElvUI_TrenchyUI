@@ -593,7 +593,7 @@ function CDM.LayoutReminders()
 		totalW = count * iconSize + (count - 1) * spacing
 		totalH = iconSize
 	end
-	container:SetSize(totalW, totalH)
+	CDM.SetContainerSize(container, totalW, totalH)
 
 	local anchor, xDir, yDir
 	if grow == 'LEFT' then

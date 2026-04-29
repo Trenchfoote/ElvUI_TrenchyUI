@@ -191,7 +191,7 @@ function CDM.LayoutBuffBar(viewerKey, isCapture)
 	end
 
 	if count == 0 then
-		container:SetSize(barW, barH)
+		CDM.SetContainerSize(container, barW, barH)
 		CDM.AnchorToMover(viewerKey, vdb.growthDirection)
 		return
 	end
@@ -204,7 +204,7 @@ function CDM.LayoutBuffBar(viewerKey, isCapture)
 	if mirroredColumns then
 		local colW = (barW - columnGap) / 2
 		local rows = math_ceil(count / 2)
-		container:SetSize(barW, rows * barH + (rows - 1) * spacing)
+		CDM.SetContainerSize(container, barW, rows * barH + (rows - 1) * spacing)
 
 		for row = 0, rows - 1 do
 			local li = row * 2 + 1
@@ -237,7 +237,7 @@ function CDM.LayoutBuffBar(viewerKey, isCapture)
 			end
 		end
 	else
-		container:SetSize(barW, count * barH + (count - 1) * spacing)
+		CDM.SetContainerSize(container, barW, count * barH + (count - 1) * spacing)
 
 		for i, frame in ipairs(bars) do
 			frame:SetScale(1)
