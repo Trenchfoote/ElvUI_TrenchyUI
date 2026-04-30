@@ -24,6 +24,7 @@
 	<Script file="qol\minimapbuttons.lua"/>
 	<Script file="qol\cursorcircle.lua"/>
 	<Script file="qol\aurafader.lua"/>
+	<Script file="qol\sounds.lua"/>
 	<Script file="qol\enchantstrings.lua"/>
 
 	<!-- Nameplates -->

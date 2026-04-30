@@ -171,6 +171,7 @@ function QOL:Initialize()
 	if db.cursorCircle then self:InitCursorCircle() end
 	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
 	if self.InitAuraFader then self:InitAuraFader() end
+	if self.InitMutedSounds then self:InitMutedSounds() end
 end
 
 E:RegisterModule(QOL:GetName())

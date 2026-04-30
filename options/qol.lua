@@ -231,4 +231,23 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.debuffMouseoverAlpha end,
         function(_, v) TUI.db.profile.qol.debuffMouseoverAlpha = v; E:StaticPopup_Show('CONFIG_RL') end,
         function() return not TUI.db.profile.qol.debuffMouseover end)
+
+    -- Mute Annoying Sounds
+    root.qol.args.muteSounds = ACH:Group("Mute Annoying Sounds", nil, 6)
+    local ms = root.qol.args.muteSounds.args
+    local function msDB() return TUI.db.profile.qol.muteSounds end
+
+    ms.desc = ACH:Description("Mute specific item proc / loop sounds. Toggling takes effect immediately.", 0, "medium")
+
+    if QOL and QOL.MUTE_SOUND_ENTRIES then
+        for i, entry in ipairs(QOL.MUTE_SOUND_ENTRIES) do
+            local key = entry.key
+            ms[key] = ACH:Toggle(entry.label, nil, i, nil, nil, nil,
+                function() return msDB()[key] end,
+                function(_, v)
+                    msDB()[key] = v
+                    if QOL and QOL.RefreshMutedSounds then QOL:RefreshMutedSounds() end
+                end)
+        end
+    end
 end
