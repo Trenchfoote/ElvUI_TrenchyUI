@@ -3,7 +3,7 @@
 ## v1.6.1
 
 ### New Features
-- QoL: New "Mute Annoying Sounds" section under Buff/Debuff Mouseover. Toggle muting of specific item proc / loop sounds; takes effect immediately. Ships with Gaze of the Alnseer enabled by default.
+- QoL: New "Mute Annoying Sounds" section. Toggle muting of specific item proc / loop sounds; takes effect immediately. Gaze of the Alnseer is the first...more sounds coming soon.
 - Unit Frames: New `[tui-stagger]` tag — displays Brewmaster Monk staggered damage as a percentage of max health.
 - Skins: Talent Loadout Manager.
 
