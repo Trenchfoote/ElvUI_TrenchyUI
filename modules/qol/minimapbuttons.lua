@@ -10,6 +10,8 @@ local mbbBar
 local mbbButtons = {}
 local mbbInCombat = false
 local mbbSkinned = {}
+-- Track adopted buttons so a later CollectButtons pass can hide any that drop out
+local mbbAdopted = {}
 
 local UpdateVisibility
 local MBB_PADDING = 4
@@ -72,9 +74,11 @@ local function SkinButton(btn, size)
 
 	if not btn.tuiBackdrop then
 		local bd = CreateFrame('Frame', nil, btn, 'BackdropTemplate')
-		bd:SetFrameLevel(btn:GetFrameLevel())
 		btn.tuiBackdrop = bd
 	end
+	-- Drop the backdrop a level below the button so it renders behind the icon
+	local btnLevel = btn:GetFrameLevel() or 0
+	btn.tuiBackdrop:SetFrameLevel(btnLevel > 0 and btnLevel - 1 or 0)
 
 	local bd = btn.tuiBackdrop
 	local bSize = db.buttonBorderSize or 1
@@ -174,9 +178,20 @@ local function LayoutBar()
 		mbbBar:SetPoint(anchorPoint, mover, anchorPoint, 0, 0)
 	end
 
+	-- Hide and release any button we previously adopted but is no longer collected
+	local active = {}
+	for _, btn in ipairs(mbbButtons) do active[btn] = true end
+	for btn in pairs(mbbAdopted) do
+		if not active[btn] then
+			btn:Hide()
+			mbbAdopted[btn] = nil
+		end
+	end
+
 	for i, btn in ipairs(mbbButtons) do
 		btn:ClearAllPoints()
 		SkinButton(btn, size)
+		mbbAdopted[btn] = true
 
 		local idx = i - 1
 		local primaryIdx = idx % perRow
@@ -247,16 +262,17 @@ end
 local function CollectButtons()
 	mbbButtons = {}
 	local LDB = LibStub and LibStub('LibDBIcon-1.0', true)
-	if not LDB then return end
 
-	local objects = LDB:GetButtonList()
-	if objects then
-		for _, obj in ipairs(objects) do
-			local btn = type(obj) == 'string' and LDB:GetMinimapButton(obj) or obj
-			if btn and btn:IsObjectType('Frame') then
-				-- Respect addon's own hide setting from LibDBIcon
-				if not (btn.db and btn.db.hide) then
-					mbbButtons[#mbbButtons + 1] = btn
+	if LDB then
+		local objects = LDB:GetButtonList()
+		if objects then
+			for _, obj in ipairs(objects) do
+				local btn = type(obj) == 'string' and LDB:GetMinimapButton(obj) or obj
+				if btn and btn:IsObjectType('Frame') then
+					-- Respect addon's own hide setting from LibDBIcon
+					if not (btn.db and btn.db.hide) then
+						mbbButtons[#mbbButtons + 1] = btn
+					end
 				end
 			end
 		end
@@ -267,11 +283,13 @@ local function CollectButtons()
 		mbbButtons[#mbbButtons + 1] = zygorBtn
 	end
 
-	-- BtWQuests: skip the standalone button when disabled (LibDBIcon variant takes over)
-	local btwBtn = _G['BtWQuestsMinimapButton']
-	if btwBtn and btwBtn:IsObjectType('Frame') and btwBtn:IsEnabled()
-		and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
-		mbbButtons[#mbbButtons + 1] = btwBtn
+	-- BtWQuests fallback: standalone button when no LibDBIcon entry exists (no LibDataBroker-1.1)
+	if not (LDB and LDB.IsRegistered and LDB:IsRegistered('BtWQuests')) then
+		local btwBtn = _G['BtWQuestsMinimapButton']
+		if btwBtn and btwBtn:IsObjectType('Frame') and btwBtn:IsEnabled()
+			and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
+			mbbButtons[#mbbButtons + 1] = btwBtn
+		end
 	end
 
 	sort(mbbButtons, function(a, b)
