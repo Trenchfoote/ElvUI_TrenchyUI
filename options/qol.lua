@@ -233,7 +233,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return not TUI.db.profile.qol.debuffMouseover end)
 
     -- Mute Annoying Sounds
-    root.qol.args.muteSounds = ACH:Group("Mute Annoying Sounds", nil, 6)
+    root.qol.args.muteSounds = ACH:Group(E.NewSign .. "Mute Annoying Sounds", nil, 6)
     local ms = root.qol.args.muteSounds.args
     local function msDB() return TUI.db.profile.qol.muteSounds end
 
