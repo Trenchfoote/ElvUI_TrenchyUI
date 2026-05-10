@@ -6,7 +6,7 @@ local hooksecurefunc = hooksecurefunc
 local CurveConstants = _G['CurveConstants']
 local ScaleTo100 = CurveConstants and CurveConstants.ScaleTo100
 
-local tuiGradient = E:TextGradient('TrenchyUI', 1.00,0.18,0.24, 0.80,0.10,0.20)
+local tuiCategory = E:TextGradient('TrenchyUI', 1.00,0.18,0.24, 0.80,0.10,0.20)
 
 -- Smart Power tag: shows percentage for mana users, current value otherwise
 E:AddTag('tui-smartpower', 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
@@ -17,7 +17,7 @@ E:AddTag('tui-smartpower', 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER'
 		return UnitPower(unit)
 	end
 end)
-E:AddTagInfo('tui-smartpower', tuiGradient, 'Shows power percentage for mana specs, current power for others')
+E:AddTagInfo('tui-smartpower', tuiCategory, 'Shows power percentage for mana specs, current power for others')
 
 -- Stagger as % of max health; cached from oUF's non-tainted PostUpdateStagger call
 local cachedStaggerPct
@@ -36,4 +36,23 @@ E:AddTag('tui-stagger', 0.1, function()
 	if not cachedStaggerPct then return end
 	return format('%d', cachedStaggerPct)
 end)
-E:AddTagInfo('tui-stagger', tuiGradient, 'Stagger amount as a percentage of max health (Brewmaster Monk)')
+E:AddTagInfo('tui-stagger', tuiCategory, 'Stagger amount as a percentage of max health (Brewmaster Monk)')
+
+-- M+ forces % per mob (12.0.5+). Returns percentString so secret values pass through oUF's WrapString rather than dying in format().
+local NP = E:GetModule('NamePlates', true)
+local IsChallengeModeActive = C_PartyInfo and C_PartyInfo.IsChallengeModeActive
+local GetUnitCriteriaProgressValues = C_ScenarioInfo and C_ScenarioInfo.GetUnitCriteriaProgressValues
+local UnitIsPlayer, UnitCanAttack, UnitTreatAsPlayerForDisplay = UnitIsPlayer, UnitCanAttack, UnitTreatAsPlayerForDisplay
+
+E:AddTag('tui-mplusforces', 'SCENARIO_CRITERIA_UPDATE SCENARIO_UPDATE UNIT_NAME_UPDATE', function(unit)
+	-- Placement aid for ElvUI's NP test frame. _FRAME is injected by oUF into the tag's setfenv env.
+	---@diagnostic disable-next-line: undefined-global
+	if NP and _FRAME == NP.TestFrame then return '2.3' end
+	if not (GetUnitCriteriaProgressValues and IsChallengeModeActive and IsChallengeModeActive()) then return end
+	if not unit or UnitIsPlayer(unit) or not UnitCanAttack('player', unit) then return end
+	if UnitTreatAsPlayerForDisplay and UnitTreatAsPlayerForDisplay(unit) then return end
+	local actual, _, percentString = GetUnitCriteriaProgressValues(unit)
+	if not actual then return end
+	return percentString
+end)
+E:AddTagInfo('tui-mplusforces', tuiCategory, "Percent of M+ forces this enemy is worth (12.0.5+; only shows on attackable enemies during an active key)")
