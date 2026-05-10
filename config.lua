@@ -21,6 +21,7 @@ TUI.defaults = {
             debuffMouseoverAlpha = 0,
             muteSounds = {
                 gazeOfAlnseer = true,
+                banLu         = true,
             },
             cursorCircle    = false,
             cursorCircleSize = 64,
