@@ -109,10 +109,26 @@ local function SkinButton(btn, size)
 
 	local icon = btn.tuiIcon
 	if icon then
+		-- Detect sprite-atlas icons (non-default TexCoord) once and remember the
+		-- decision. These need CENTER anchoring with original TexCoord preserved;
+		-- regular full-texture icons get the standard 5% inset crop.
+		if icon.tuiSpriteAtlas == nil then
+			-- Sprite atlas detection by texCoord range. Default/inset icons span
+			-- ~1.0 (full or 5% crop both sides); a half-atlas spans ~0.5.
+			local ULx, ULy, _, LLy, URx = icon:GetTexCoord()
+			icon.tuiSpriteAtlas = (URx - ULx < 0.8) or (LLy - ULy < 0.8)
+		end
 		icon:ClearAllPoints()
-		icon:SetPoint('TOPLEFT', btn, 'TOPLEFT', 0, 0)
-		icon:SetPoint('BOTTOMRIGHT', btn, 'BOTTOMRIGHT', 0, 0)
-		icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+		if icon.tuiSpriteAtlas then
+			icon:SetPoint('CENTER', btn, 'CENTER')
+			-- Sprite atlases typically anchor with overflow (e.g. Narcissus 42 in 36 button)
+			local s = btn:GetWidth() * 1.2
+			icon:SetSize(s, s)
+		else
+			icon:SetPoint('TOPLEFT', btn, 'TOPLEFT', 0, 0)
+			icon:SetPoint('BOTTOMRIGHT', btn, 'BOTTOMRIGHT', 0, 0)
+			icon:SetTexCoord(0.05, 0.95, 0.05, 0.95)
+		end
 	end
 end
 
@@ -289,6 +305,15 @@ local function CollectButtons()
 		if btwBtn and btwBtn:IsObjectType('Frame') and btwBtn:IsEnabled()
 			and (not BtWQuests or not BtWQuests.Settings or BtWQuests.Settings.minimapShown ~= false) then
 			mbbButtons[#mbbButtons + 1] = btwBtn
+		end
+	end
+
+	-- Narcissus fallback: only registers with LibDBIcon when Leatrix_Plus is loaded
+	if not (LDB and LDB.IsRegistered and LDB:IsRegistered('Narcissus')) then
+		local narciBtn = _G['Narci_MinimapButton']
+		if narciBtn and narciBtn:IsObjectType('Frame')
+			and (not NarcissusDB or NarcissusDB.ShowMinimapButton ~= false) then
+			mbbButtons[#mbbButtons + 1] = narciBtn
 		end
 	end
 
