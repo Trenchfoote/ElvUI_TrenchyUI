@@ -16,7 +16,8 @@ local IsInInstance = IsInInstance
 local GetNumGroupMembers = GetNumGroupMembers
 local GetSpecialization = GetSpecialization
 local GetSpecializationInfo = GetSpecializationInfo
-local IsPlayerSpell = IsPlayerSpell
+local IsSpellKnown = C_SpellBook.IsSpellKnown
+local PlayerBank = Enum.SpellBookSpellBank.Player
 local InCombatLockdown = InCombatLockdown
 local GetItemCount = C_Item.GetItemCount
 local GetWeaponEnchantInfo = GetWeaponEnchantInfo
@@ -235,8 +236,8 @@ local function ShouldHavePet()
 	if not specIndex then return false end
 	local specID = GetSpecializationInfo(specIndex)
 	if not specID or not PET_SPECS[specID] then return false end
-	if specID == 254 and IsPlayerSpell(LONE_WOLF) then return false end
-	if specID == 64 and IsPlayerSpell(LONELY_WINTER) then return false end
+	if specID == 254 and IsSpellKnown(LONE_WOLF, PlayerBank) then return false end
+	if specID == 64 and IsSpellKnown(LONELY_WINTER, PlayerBank) then return false end
 	return true, specID
 end
 
@@ -283,7 +284,7 @@ local function FormatDuration(seconds)
 end
 
 local function SoulwellOffCooldown()
-	if not IsPlayerSpell(CREATE_SOULWELL) then return false end
+	if not IsSpellKnown(CREATE_SOULWELL, PlayerBank) then return false end
 	local dur = C_Spell.GetSpellCooldownDuration(CREATE_SOULWELL)
 	if not dur then return true end
 	return dur:IsZero()

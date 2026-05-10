@@ -8,7 +8,8 @@ local UF = E:GetModule('UnitFrames')
 local GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
 local EvalColorBool = C_CurveUtil.EvaluateColorValueFromBoolean
 local EvalColor = C_CurveUtil.EvaluateColorFromBoolean
-local IsPlayerSpell = IsPlayerSpell
+local IsSpellKnown = C_SpellBook.IsSpellKnown
+local PlayerBank = Enum.SpellBookSpellBank.Player
 
 local INTERRUPT_BY_SPEC = {
 	-- Warrior
@@ -47,7 +48,7 @@ local function UpdateInterruptSpell()
 
 	if E.myclass == 'WARLOCK' then
 		for _, spellId in ipairs({ 89766, 212619, 119914 }) do
-			if IsPlayerSpell(spellId) then
+			if IsSpellKnown(spellId, PlayerBank) then
 				INTERRUPT_BY_SPEC[specId] = spellId
 				break
 			end
