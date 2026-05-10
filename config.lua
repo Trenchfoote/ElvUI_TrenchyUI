@@ -84,11 +84,6 @@ TUI.defaults = {
                 texture = 'TrenchyFocus',
             },
         },
-        platynator = {
-            classColorTarget   = false,
-            classColorMouseover = false,
-            classColorNames = false,
-        },
         pixelGlow = {
             enabled   = false,
             lines     = 8,

@@ -14,7 +14,6 @@ function NPS:Initialize()
 		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
 		if np.questColor and np.questColor.enabled then self:HookQuestColor() end
 	end
-	if E:IsAddOnEnabled('Platynator') then self:InitPlatynatorTweaks() end
 end
 
 E:RegisterModule(NPS:GetName())

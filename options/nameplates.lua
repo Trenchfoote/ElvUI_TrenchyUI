@@ -3,7 +3,6 @@ local TUI = E:GetModule('TrenchyUI')
 local ACH = E.Libs.ACH
 
 local elvEnabled = E.private.nameplates.enable
-local platyEnabled = E:IsAddOnEnabled('Platynator')
 
 function TUI:BuildNameplatesConfig(root, tuiName)
     root.nameplates = ACH:Group("Nameplates", nil, 4, "tree")
@@ -281,47 +280,4 @@ function TUI:BuildNameplatesConfig(root, tuiName)
         focusDisabled
     )
 
-    -- Platynator sub-group
-    root.nameplates.args.platynator = ACH:Group("Platynator", nil, 2)
-    root.nameplates.args.platynator.disabled = not platyEnabled
-    local platy = root.nameplates.args.platynator.args
-
-    platy.highlights = ACH:Group("Highlights", nil, 1)
-    platy.highlights.inline = true
-    platy.highlights.args.classColorTarget = ACH:Toggle(
-        "Class Color Target",
-        "Color the target highlight with your class color instead of the design default.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.platynator.classColorTarget end,
-        function(_, value)
-            TUI.db.profile.platynator.classColorTarget = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-    platy.highlights.args.classColorTarget.customWidth = 250
-    platy.highlights.args.classColorMouseover = ACH:Toggle(
-        "Class Color Mouseover",
-        "Color the mouseover highlight with your class color instead of the design default.",
-        2, nil, nil, nil,
-        function() return TUI.db.profile.platynator.classColorMouseover end,
-        function(_, value)
-            TUI.db.profile.platynator.classColorMouseover = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-    platy.highlights.args.classColorMouseover.customWidth = 250
-
-    platy.playerNames = ACH:Group("Player Names", nil, 2)
-    platy.playerNames.inline = true
-    platy.playerNames.args.classColorNames = ACH:Toggle(
-        "Custom Class Color Names",
-        "Use ElvUI custom class colors for friendly player names instead of Blizzard defaults.",
-        1, nil, nil, nil,
-        function() return TUI.db.profile.platynator.classColorNames end,
-        function(_, value)
-            TUI.db.profile.platynator.classColorNames = value
-            E:StaticPopup_Show('CONFIG_RL')
-        end
-    )
-    platy.playerNames.args.classColorNames.customWidth = 250
 end
