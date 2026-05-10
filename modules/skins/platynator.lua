@@ -140,10 +140,13 @@ local function SkinDialog(frame)
 	-- Main frame: ButtonFrameTemplate
 	S:HandleFrame(frame)
 
-	-- Tabs (stored in frame.Tabs array)
+	-- Tabs (stored in frame.Tabs array). PanelTopTabButtonTemplate has Active/Highlight/Center subregions that S:HandleTab does not strip.
 	if frame.Tabs then
 		for _, tab in ipairs(frame.Tabs) do
 			S:HandleTab(tab)
+			for _, region in ipairs({ 'Center', 'MiddleActive', 'MiddleHighlight', 'LeftActive', 'RightActive', 'LeftHighlight', 'RightHighlight' }) do
+				if tab[region] and tab[region].SetTexture then tab[region]:SetTexture() end
+			end
 		end
 	end
 
