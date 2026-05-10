@@ -223,7 +223,7 @@ do
 		local sbc = CDM.GetOrCreateSpellBarColorDB(barColorSpellID)
 		if not sbc then return end
 		bcWidgets.enable:SetValue(sbc.enabled)
-		bcWidgets.fgColor:SetColor(sbc.fgColor.r, sbc.fgColor.g, sbc.fgColor.b)
+		bcWidgets.fgColor:SetColor(sbc.fgColor.r, sbc.fgColor.g, sbc.fgColor.b, 1)
 		bcWidgets.bgColor:SetColor(sbc.bgColor.r, sbc.bgColor.g, sbc.bgColor.b, sbc.bgColor.a or 0.5)
 	end
 
