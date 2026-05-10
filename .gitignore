@@ -4,4 +4,8 @@ CLAUDE.md
 TODO.md
 CODE_ORIGINALITY_AUDIT.txt
 CHANGELOG(old).md
+.luarc.json
+.luarc-types/
+.vscode/
+.wowluarc.json
 
