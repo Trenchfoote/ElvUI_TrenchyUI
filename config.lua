@@ -102,6 +102,25 @@ TUI.defaults = {
         privateAuras = {
             enabled = false,
         },
+        ironfurBar = {
+            enabled          = false,
+            counterMode      = 'stacks', -- 'off' | 'stacks' | 'seconds' | 'both'
+            counterFontSize  = 14,
+            counterOffsetX   = 0,
+            counterOffsetY   = 0,
+            showWhenInactive = false,
+            tickWidth        = 2,
+            tickColor        = { r = 1,    g = 1,    b = 1,    a = 1 },
+            bgColor          = { r = 0,    g = 0,    b = 0,    a = 0.4 },
+            useStackColors   = true,
+            stackColors = {
+                [1] = { r = 0,    g = 0.56, b = 1,    a = 1 },
+                [2] = { r = 0.2,  g = 0.9,  b = 0.2,  a = 1 },
+                [3] = { r = 1,    g = 0.55, b = 0,    a = 1 },
+                [4] = { r = 0.95, g = 0.2,  b = 0.15, a = 1 }, -- 4+
+            },
+            uniformTickSpeed = false,
+        },
         cooldownManager = {
             enabled = false,
             hideSwipe = false,

@@ -151,4 +151,132 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     )
 
+    -- Ironfur Bar (Druid only)
+    if E.myclass == 'DRUID' then
+        local function refreshIronfur()
+            local UFC = E:GetModule('TUI_UnitFrames', true)
+            if UFC and UFC.RefreshIronfurBar then UFC:RefreshIronfurBar() end
+        end
+        local function ifDB() return TUI.db.profile.ironfurBar end
+        local function ifDisabled() return not ifDB().enabled end
+        local function ifStacksDisabled() return not ifDB().enabled or not ifDB().useStackColors end
+
+        root.unitframes.args.ironfur = ACH:Group("Ironfur Bar", nil, 5)
+        root.unitframes.args.ironfur.inline = true
+        local ifg = root.unitframes.args.ironfur.args
+
+        ifg.desc = ACH:Description(
+            "Guardian Druid only. A multi-tick bar showing each active Ironfur stack. "
+            .. "Each cast spawns its own tick that drains right-to-left; stack count drives the leading bar color. "
+            .. "Talent-aware: Ursoc's Endurance (9s base), Guardian of Elune (+3s after Mangle, consumed by next Ironfur or Frenzied Regeneration).",
+            1, "medium"
+        )
+
+        ifg.enabled = ACH:Toggle(
+            function() return ifDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
+            "Enable the Ironfur tracker bar (Guardian spec only).",
+            2, nil, nil, nil,
+            function() return ifDB().enabled end,
+            function(_, value)
+                ifDB().enabled = value
+                if value then
+                    local UFC = E:GetModule('TUI_UnitFrames', true)
+                    if UFC and UFC.InitIronfurBar then UFC:InitIronfurBar() end
+                end
+                E:StaticPopup_Show('CONFIG_RL')
+            end
+        )
+
+        ifg.counterMode = ACH:Select(
+            "Counter Text", "What to display in the center of the bar.", 3, {
+                off     = "Off",
+                stacks  = "Stack Count",
+                seconds = "Seconds Remaining",
+                both    = "Both (e.g. 3x 4s)",
+            }, nil, nil,
+            function() return ifDB().counterMode end,
+            function(_, value) ifDB().counterMode = value; refreshIronfur() end,
+            ifDisabled
+        )
+
+        ifg.counterFontSize = ACH:Range(
+            "Counter Font Size", "Font size for the center counter text.", 4,
+            { min = 8, max = 32, step = 1 }, nil,
+            function() return ifDB().counterFontSize end,
+            function(_, value) ifDB().counterFontSize = value; refreshIronfur() end,
+            ifDisabled
+        )
+
+        ifg.showWhenInactive = ACH:Toggle(
+            "Show When Inactive",
+            "Keep the bar visible (empty) even when no Ironfur stacks are up.",
+            5, nil, nil, nil,
+            function() return ifDB().showWhenInactive end,
+            function(_, value) ifDB().showWhenInactive = value; refreshIronfur() end,
+            ifDisabled
+        )
+
+        ifg.uniformTickSpeed = ACH:Toggle(
+            "Uniform Tick Speed",
+            "All ticks drain at the same visual rate (based on max possible duration). "
+            .. "Off: each tick drains at its own rate (so a Guardian-of-Elune-bonused tick visibly moves slower).",
+            6, nil, nil, nil,
+            function() return ifDB().uniformTickSpeed end,
+            function(_, value) ifDB().uniformTickSpeed = value end,
+            ifDisabled
+        )
+
+        ifg.tickColor = ACH:Color(
+            "Tick Color", "Color of Ironfur cast ticks.", 7, true, nil,
+            function()
+                local c = ifDB().tickColor
+                return c.r, c.g, c.b, c.a
+            end,
+            function(_, r, g, b, a)
+                local c = ifDB().tickColor
+                c.r, c.g, c.b, c.a = r, g, b, a
+                refreshIronfur()
+            end,
+            ifDisabled
+        )
+
+        ifg.bgColor = ACH:Color(
+            "Background Color", "Color of the bar background fill.", 10, true, nil,
+            function()
+                local c = ifDB().bgColor
+                return c.r, c.g, c.b, c.a
+            end,
+            function(_, r, g, b, a)
+                local c = ifDB().bgColor
+                c.r, c.g, c.b, c.a = r, g, b, a
+                refreshIronfur()
+            end,
+            ifDisabled
+        )
+
+        ifg.useStackColors = ACH:Toggle(
+            "Color Leading Bar by Stack Count",
+            "Color the leading-tick fill bar by current stack count. Off: uses the tick color.",
+            11, nil, nil, nil,
+            function() return ifDB().useStackColors end,
+            function(_, value) ifDB().useStackColors = value end,
+            ifDisabled
+        )
+
+        for i, label in ipairs({ "1 Stack", "2 Stacks", "3 Stacks", "4+ Stacks" }) do
+            ifg['stack' .. i] = ACH:Color(
+                label, "Leading-bar color when " .. label:lower() .. " of Ironfur are active.", 11 + i, true, nil,
+                function()
+                    local c = ifDB().stackColors[i]
+                    return c.r, c.g, c.b, c.a
+                end,
+                function(_, r, g, b, a)
+                    local c = ifDB().stackColors[i]
+                    c.r, c.g, c.b, c.a = r, g, b, a
+                end,
+                ifStacksDisabled
+            )
+        end
+    end
+
 end
