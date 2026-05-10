@@ -170,7 +170,6 @@ local IsInGroup = IsInGroup
 local IsInRaid = IsInRaid
 local GetNumGroupMembers = GetNumGroupMembers
 local UnitGUID = UnitGUID
-local floor = math.floor
 
 TDM.guidByName = {}
 
@@ -252,15 +251,16 @@ function TDM.FindUnitByName(name)
 end
 
 
--- Abbreviation config: no decimals (fractionDivisor = 1 at all breakpoints)
-local ABBREV_SHORT = E.Abbreviate and E.Abbreviate.short
-if not ABBREV_SHORT and AbbreviateNumbers then
+-- One-decimal abbreviation via Blizzard's AbbreviateNumbers (C-side, secret-safe).
+-- Formula: finalValue = floor(value / significandDivisor) / fractionDivisor.
+-- sd one order less than the magnitude + fd=10 yields one-decimal precision (Details! ToK style).
+local ABBREV_SHORT
+if AbbreviateNumbers then
     local breakpoints = {
-        { breakpoint = 1000000000, abbreviation = 'NUMBER_ABBREVIATION_BILLIONS',  significandDivisor = 1000000000, fractionDivisor = 1 },
-        { breakpoint = 1000000,    abbreviation = 'NUMBER_ABBREVIATION_MILLIONS',  significandDivisor = 1000000,    fractionDivisor = 1 },
-        { breakpoint = 10000,      abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 1000,       fractionDivisor = 1 },
-        { breakpoint = 1000,       abbreviation = 'NUMBER_ABBREVIATION_THOUSANDS', significandDivisor = 100,        fractionDivisor = 1, abbreviationIsGlobal = true },
-        { breakpoint = 1,          abbreviation = '',                              significandDivisor = 1,          fractionDivisor = 1, abbreviationIsGlobal = false },
+        { breakpoint = 1e9, abbreviation = 'THIRD_NUMBER_CAP_NO_SPACE',  significandDivisor = 1e8, fractionDivisor = 10, abbreviationIsGlobal = true },
+        { breakpoint = 1e6, abbreviation = 'SECOND_NUMBER_CAP_NO_SPACE', significandDivisor = 1e5, fractionDivisor = 10, abbreviationIsGlobal = true },
+        { breakpoint = 1e3, abbreviation = 'FIRST_NUMBER_CAP_NO_SPACE',  significandDivisor = 1e2, fractionDivisor = 10, abbreviationIsGlobal = true },
+        { breakpoint = 1,   abbreviation = '',                           significandDivisor = 1,   fractionDivisor = 1,  abbreviationIsGlobal = false },
     }
     if CreateAbbreviateConfig then
         ABBREV_SHORT = { config = CreateAbbreviateConfig(breakpoints) }
@@ -270,13 +270,14 @@ if not ABBREV_SHORT and AbbreviateNumbers then
 end
 TDM.ABBREV_SHORT = ABBREV_SHORT
 
+local function FormatShort(value)
+    return AbbreviateNumbers(value, ABBREV_SHORT)
+end
+TDM.FormatShort = FormatShort
+
 function TDM.FormatValueText(fontString, val)
     if not val then fontString:SetText('0'); return end
-    if E:IsSecretValue(val) then
-        fontString:SetFormattedText('%s', AbbreviateNumbers(val, ABBREV_SHORT))
-    else
-        fontString:SetText(AbbreviateNumbers(floor(val + 0.5), ABBREV_SHORT))
-    end
+    fontString:SetFormattedText('%s', FormatShort(val))
 end
 
 function TDM.FormatCombinedText(totalFS, dpsFS, total, perSec)
@@ -285,17 +286,9 @@ function TDM.FormatCombinedText(totalFS, dpsFS, total, perSec)
         if dpsFS then dpsFS:SetText('') end
         return
     end
-    if E:IsSecretValue(total) then
-        totalFS:SetFormattedText('(%s)', AbbreviateNumbers(total, ABBREV_SHORT))
-    else
-        totalFS:SetText('(' .. AbbreviateNumbers(floor((total or 0) + 0.5), ABBREV_SHORT) .. ')')
-    end
+    totalFS:SetFormattedText('(%s)', FormatShort(total or 0))
     if dpsFS then
-        if E:IsSecretValue(perSec) then
-            dpsFS:SetFormattedText('%s', AbbreviateNumbers(perSec, ABBREV_SHORT))
-        else
-            dpsFS:SetText(AbbreviateNumbers(floor((perSec or 0) + 0.5), ABBREV_SHORT))
-        end
+        dpsFS:SetFormattedText('%s', FormatShort(perSec or 0))
     end
 end
 
@@ -410,7 +403,7 @@ function TDM.GetSessionLabel(win)
             local sessions = C_DamageMeter.GetAvailableCombatSessions()
             if sessions then
                 for i, sess in ipairs(sessions) do
-                    local sid = sess.sessionId or sess.combatSessionId or sess.id or sess.sessionID
+                    local sid = sess.sessionID
                     if sid == win.sessionId then
                         local label = sess.name or 'Encounter'
                         if label == 'Encounter' then label = 'Encounter ' .. i end

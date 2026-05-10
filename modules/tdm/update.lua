@@ -218,11 +218,7 @@ function TDM.RefreshWindow(win)
                 bar.statusbar:SetValue(amt, SMOOTH)
 
                 -- Value in parens
-                if E:IsSecretValue(amt) then
-                    bar.rightText:SetFormattedText('(%s)', AbbreviateNumbers(amt, TDM.ABBREV_SHORT))
-                else
-                    bar.rightText:SetText('(' .. AbbreviateNumbers(floor(amt + 0.5), TDM.ABBREV_SHORT) .. ')')
-                end
+                bar.rightText:SetFormattedText('(%s)', TDM.FormatShort(amt))
 
                 -- DPS
                 local dps = s.amountPerSecond
@@ -905,7 +901,7 @@ function TDM.RenderDeathRecap(win, ds, db)
                 bar.rightText:SetText(floor(hp / maxHealth * 100 + 0.5) .. '%')
                 local amt = ev.amount
                 if amt and E:NotSecretValue(amt) and amt > 0 then
-                    bar.dpsText:SetText('(-' .. AbbreviateNumbers(floor(amt + 0.5), TDM.ABBREV_SHORT) .. ')')
+                    bar.dpsText:SetText('(-' .. TDM.FormatShort(amt) .. ')')
                 else
                     bar.dpsText:SetText('')
                 end
