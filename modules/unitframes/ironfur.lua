@@ -232,12 +232,27 @@ local function UpdateVisibility()
 		return
 	end
 	if GetShapeshiftForm() == BEAR_FORM then
+		-- Drop ticks that silently expired while we were out of Bear (OnUpdate was
+		-- gated by IsShown so didn't release them). Survivors are still accurate
+		-- since Ironfur can only be cast in Bear — no missed casts to recover.
+		if #activeTicks > 0 then
+			local now = GetTime()
+			for i = #activeTicks, 1, -1 do
+				if activeTicks[i].endTime <= now then
+					ReleaseTick(activeTicks[i])
+					tremove(activeTicks, i)
+				end
+			end
+		end
 		if #activeTicks > 0 or db.showWhenInactive then
 			holder:Show()
+			if #activeTicks > 0 then bar:SetScript('OnUpdate', UFC.IronfurOnUpdate) end
 		end
 	else
+		-- Hide visually but keep activeTicks intact. Ironfur can't be cast outside
+		-- Bear, so our predictive state remains accurate; OnUpdate stays stopped
+		-- to save CPU, and surviving ticks are re-shown on Bear return above.
 		holder:Hide()
-		ReleaseAllTicks()
 		StopTicker()
 	end
 end
