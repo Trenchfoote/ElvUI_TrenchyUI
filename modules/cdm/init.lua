@@ -221,7 +221,6 @@ function CDM:RefreshCDM()
 	end
 
 	CDM.RefreshCustomViewer()
-	CDM.RefreshReminders()
 	self:UpdateCDMVisibility()
 
 	if CDM.previewActive then
@@ -289,7 +288,6 @@ function CDM:Initialize()
 		end
 
 		CDM.InitCustomViewer()
-		CDM.InitReminders()
 
 		-- Resolve viewerKey from a frame or its parents via styledFrames/tuiViewerKey
 		local function ResolveViewerKey(frame)

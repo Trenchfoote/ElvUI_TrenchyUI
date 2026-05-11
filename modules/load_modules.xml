@@ -68,7 +68,6 @@
 	<Script file="cdm\bufficons.lua"/>
 	<Script file="cdm\buffbars.lua"/>
 	<Script file="cdm\custom.lua"/>
-	<Script file="cdm\reminders.lua"/>
 	<Script file="cdm\viewers.lua"/>
 	<Script file="cdm\init.lua"/>
 </Ui>
