@@ -240,20 +240,6 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
             ifDisabled
         )
 
-        ifg.bgColor = ACH:Color(
-            "Background Color", "Color of the bar background fill.", 10, true, nil,
-            function()
-                local c = ifDB().bgColor
-                return c.r, c.g, c.b, c.a
-            end,
-            function(_, r, g, b, a)
-                local c = ifDB().bgColor
-                c.r, c.g, c.b, c.a = r, g, b, a
-                refreshIronfur()
-            end,
-            ifDisabled
-        )
-
         ifg.useStackColors = ACH:Toggle(
             "Color Leading Bar by Stack Count",
             "Color the leading-tick fill bar by current stack count. Off: uses the tick color.",

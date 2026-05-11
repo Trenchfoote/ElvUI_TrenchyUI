@@ -122,6 +122,7 @@ end
 
 -- OnUpdate: drain active ticks; update leading bar + counter text
 function UFC.IronfurOnUpdate()
+	if not holder:IsShown() then return end
 	local now = GetTime()
 	local db = GetDB()
 	local maxDur = currentBaseDuration + GOE_BONUS
@@ -142,9 +143,14 @@ function UFC.IronfurOnUpdate()
 			else
 				progress = remaining / (tick.duration or currentBaseDuration)
 			end
-			tick:SetSize(db.tickWidth or 2, barH)
+			local tickW = db.tickWidth or 2
+			tick:SetSize(tickW, barH)
 			tick:ClearAllPoints()
-			tick:SetPoint('LEFT', bar, 'LEFT', progress * width, 0)
+			-- Clamp the LEFT anchor so the tick stays fully inside the bar at both edges.
+			local x = progress * width
+			if x > width - tickW then x = width - tickW end
+			if x < 0 then x = 0 end
+			tick:SetPoint('LEFT', bar, 'LEFT', x, 0)
 			if not maxProgress or progress > maxProgress then
 				maxProgress = progress
 				maxRemaining = remaining
@@ -267,11 +273,6 @@ local function CreateBar()
 	bar:CreateBackdrop(nil, nil, nil, nil, true)
 
 	local tex = LSM:Fetch('statusbar', E.db.unitframe and E.db.unitframe.statusbar or 'ElvUI Norm')
-	bar.bg = bar:CreateTexture(nil, 'BACKGROUND')
-	bar.bg:SetAllPoints()
-	bar.bg:SetTexture(tex)
-	bar.bg:SetVertexColor(db.bgColor.r, db.bgColor.g, db.bgColor.b, db.bgColor.a or 0.3)
-
 	leftBG = bar:CreateTexture(nil, 'BORDER')
 	leftBG:SetTexture(tex)
 	leftBG:SetPoint('LEFT', bar, 'LEFT', 0, 0)
@@ -317,10 +318,6 @@ function UFC:RefreshIronfurBar()
 	if not holder then return end
 	local db = GetDB()
 	local tex = LSM:Fetch('statusbar', E.db.unitframe and E.db.unitframe.statusbar or 'ElvUI Norm')
-	if bar.bg then
-		bar.bg:SetTexture(tex)
-		bar.bg:SetVertexColor(db.bgColor.r, db.bgColor.g, db.bgColor.b, db.bgColor.a or 0.3)
-	end
 	if leftBG then leftBG:SetTexture(tex) end
 	if counterText then
 		counterText:FontTemplate(LSM:Fetch('font', 'Expressway'), db.counterFontSize or 14, 'OUTLINE')
@@ -339,11 +336,12 @@ function UFC:InitIronfurBar()
 	if not db or not db.enabled then return end
 	self._hookedIronfur = true
 
-	-- Defer one tick: ElvUI player frame and classbar may not be assembled yet
+	currentBaseDuration = BaseDuration()
+	-- Register events eagerly so casts fired before deferred CreateBar still update state.
+	RegisterEvents()
+	-- Defer frame creation: ElvUI player frame and classbar may not be assembled yet.
 	C_Timer_After(0, function()
-		currentBaseDuration = BaseDuration()
 		CreateBar()
-		RegisterEvents()
 		UpdateVisibility()
 	end)
 end

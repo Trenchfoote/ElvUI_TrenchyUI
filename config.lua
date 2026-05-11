@@ -111,7 +111,6 @@ TUI.defaults = {
             showWhenInactive = false,
             tickWidth        = 2,
             tickColor        = { r = 1,    g = 1,    b = 1,    a = 1 },
-            bgColor          = { r = 0,    g = 0,    b = 0,    a = 0.4 },
             useStackColors   = true,
             stackColors = {
                 [1] = { r = 0,    g = 0.56, b = 1,    a = 1 },
