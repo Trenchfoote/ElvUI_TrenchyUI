@@ -84,6 +84,13 @@ local function StopTicker()
 	if bar then bar:SetScript('OnUpdate', nil) end
 end
 
+-- Reset the leading-bar fill and counter to empty. Used when there are no
+-- active ticks and OnUpdate isn't running to clear them itself.
+local function ClearLeadingBar()
+	if leftBG then leftBG:Hide() end
+	if counterText then counterText:SetText('') end
+end
+
 local function CreateTick(duration)
 	if not bar then return end
 	local tick = AcquireTick()
@@ -244,9 +251,15 @@ local function UpdateVisibility()
 				end
 			end
 		end
-		if #activeTicks > 0 or db.showWhenInactive then
+		if #activeTicks > 0 then
 			holder:Show()
-			if #activeTicks > 0 then bar:SetScript('OnUpdate', UFC.IronfurOnUpdate) end
+			bar:SetScript('OnUpdate', UFC.IronfurOnUpdate)
+			UFC.IronfurOnUpdate() -- redraw now so survivors aren't a frame behind
+		elseif db.showWhenInactive then
+			holder:Show()
+			ClearLeadingBar() -- nothing to show; clear any stale pre-exit fill/count
+		else
+			holder:Hide()
 		end
 	else
 		-- Hide visually but keep activeTicks intact. Ironfur can't be cast outside
@@ -254,6 +267,7 @@ local function UpdateVisibility()
 		-- to save CPU, and surviving ticks are re-shown on Bear return above.
 		holder:Hide()
 		StopTicker()
+		ClearLeadingBar() -- so a re-show via any path starts clean
 	end
 end
 
