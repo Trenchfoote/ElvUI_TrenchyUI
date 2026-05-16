@@ -29,7 +29,10 @@ function TDM.RefreshWindow(win)
         local modeLabel = TDM.MODE_SHORT[modeEntry] or TDM.MODE_LABELS[modeEntry] or "?"
         local sessLabel = TDM.GetSessionLabel(win)
         local drillName = ds.name
-        if (not drillName or drillName == '?') and (ds.secretGUID or ds.guid) then
+        -- Only test for the literal '?' placeholder on non-secret names; comparing a
+        -- secret string to '?' with == taints execution in 12.x.
+        local needsResolve = (not drillName) or (E:NotSecretValue(drillName) and drillName == '?')
+        if needsResolve and (ds.secretGUID or ds.guid) then
             local resolved = select(6, GetPlayerInfoByGUID(ds.secretGUID or ds.guid))
             if resolved and E:NotSecretValue(resolved) and resolved ~= '' then
                 drillName = Ambiguate(resolved, 'short')
@@ -72,7 +75,9 @@ function TDM.RefreshWindow(win)
                 local session = TDM.GetSession(win, meterType)
                 local src = session and session.combatSources and session.combatSources[ds.sourceIndex]
                 if src then
-                    if (not ds.name or ds.name == '?') and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
+                    -- Avoid `ds.name == '?'` when ds.name is a secret string (taints in 12.x).
+                    local nameNeedsResolve = (not ds.name) or (E:NotSecretValue(ds.name) and ds.name == '?')
+                    if nameNeedsResolve and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
                         ds.name = Ambiguate(src.name, 'short')
                     end
                     if (not ds.class) and src.classFilename and E:NotSecretValue(src.classFilename) then
@@ -132,6 +137,7 @@ function TDM.RefreshWindow(win)
             if i > numVisible or not s then
                 bar.frame:Hide()
                 bar.frame.drillSpellID = nil
+                bar.frame.drillData    = nil
             else
                 bar.frame:Show()
                 local rawSpellID = s.spellID or (type(s[1]) == "number" and s[1]) or nil
@@ -155,9 +161,47 @@ function TDM.RefreshWindow(win)
                     spellName = C_Spell.GetSpellName(rawSpellID)
                     iconID = C_Spell.GetSpellTexture(rawSpellID)
                 end
-                if not spellName then spellName = "?" end
+                -- Fallback chain when no spell name resolved. For "generic" rows
+                -- (spellID 0/1/6603 — Blizzard's catchall for melee/auto/unresolved
+                -- ability damage), the target name carries the meaningful distinction
+                -- so we use it as the label outright instead of misleadingly prefixing
+                -- with "Auto Attack". For non-zero unresolved spell IDs we keep the
+                -- "Spell #N" prefix and append the target so the ID is still searchable.
+                local function readTargetName()
+                    local d = s.combatSpellDetails
+                    local tname = d and d.unitName
+                    if tname and E:NotSecretValue(tname) and tname ~= '' then
+                        return Ambiguate(tname, 'short')
+                    end
+                end
+                if not spellName then
+                    if s.creatureName and E:NotSecretValue(s.creatureName) and s.creatureName ~= '' then
+                        spellName = s.creatureName
+                    elseif rawSpellID == 0 or rawSpellID == 1 or rawSpellID == 6603 then
+                        spellName = readTargetName() or "Auto Attack"
+                    elseif rawSpellID and E:NotSecretValue(rawSpellID) then
+                        local tn = readTargetName()
+                        spellName = tn
+                            and format("Spell #%d \226\134\146 %s", rawSpellID, tn)
+                            or format("Spell #%d", rawSpellID)
+                    else
+                        spellName = readTargetName() or "?"
+                    end
+                end
 
                 bar.frame.drillSpellID = spellID
+                local dt = s.combatSpellDetails
+                local tgt = dt and dt.unitName
+                bar.frame.drillData = {
+                    name     = spellName,
+                    amt      = amt,
+                    total    = totalAmt,
+                    dps      = s.amountPerSecond,
+                    overkill = s.overkillAmount,
+                    avoidable = s.isAvoidable,
+                    deadly   = s.isDeadly,
+                    target   = (tgt and E:NotSecretValue(tgt) and tgt ~= '') and Ambiguate(tgt, 'short') or nil,
+                }
                 bar.frame.sourceGUID   = nil
                 bar.frame.testIndex    = nil
 
@@ -169,6 +213,7 @@ function TDM.RefreshWindow(win)
                     bar.classIcon:Hide()
                 end
 
+                local hasIcon = iconID and true or false
                 if not bar._isDrill then
                     bar._isDrill = true
                     if not bar.dpsText then
@@ -188,26 +233,22 @@ function TDM.RefreshWindow(win)
                     bar.pctText:SetPoint('RIGHT', bar.dpsText, 'LEFT', -4, 0)
                     bar.pctText:Show()
                     bar.leftText:ClearAllPoints()
-                    if iconID then
+                    if hasIcon then
                         bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
                     else
                         bar.leftText:SetPoint("LEFT", 4, 0)
                     end
                     bar.leftText:SetPoint("RIGHT", bar.pctText, "LEFT", -4, 0)
-                elseif iconID then
-                    if bar._drillHasIcon ~= spellID then
-                        bar.leftText:ClearAllPoints()
+                elseif bar._drillHasIcon ~= hasIcon then
+                    bar.leftText:ClearAllPoints()
+                    if hasIcon then
                         bar.leftText:SetPoint("LEFT", bar.classIcon, "RIGHT", 2, 0)
-                        bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
-                    end
-                else
-                    if bar._drillHasIcon then
-                        bar.leftText:ClearAllPoints()
+                    else
                         bar.leftText:SetPoint("LEFT", 4, 0)
-                        bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
                     end
+                    bar.leftText:SetPoint("RIGHT", bar.rightText, "LEFT", -4, 0)
                 end
-                bar._drillHasIcon = iconID and spellID or nil
+                bar._drillHasIcon = hasIcon
 
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 bar.statusbar:SetMinMaxValues(0, topVal)
@@ -320,6 +361,7 @@ function TDM.RefreshWindow(win)
                 bar.frame.sourceName   = td.name
                 bar.frame.testIndex    = srcIdx
                 bar.frame.drillSpellID = nil
+                bar.frame.drillData    = nil
             end
         end
         return
@@ -377,6 +419,7 @@ function TDM.RefreshWindow(win)
                 bar.frame.sourceIndex  = srcIdx
                 bar.frame.testIndex    = nil
                 bar.frame.drillSpellID = nil
+                bar.frame.drillData    = nil
 
                 local classFilename = src.classFilename
                 bar.frame.sourceClass = classFilename
@@ -812,6 +855,7 @@ function TDM.RenderDeathRecap(win, ds, db)
         if i > numVisible or not ev then
             bar.frame:Hide()
             bar.frame.drillSpellID = nil
+            bar.frame.drillData    = nil
         else
             bar.frame:Show()
             TDM.StyleBarTexts(bar, fontPath, fontSize, flags)
@@ -819,6 +863,7 @@ function TDM.RenderDeathRecap(win, ds, db)
             local spellID = ev.spellId
             local spellName = ev.spellName
             local iconID
+            bar.frame.drillData = nil
             if spellID and E:NotSecretValue(spellID) then
                 iconID = C_Spell.GetSpellTexture(spellID)
                 if not spellName then spellName = C_Spell.GetSpellName(spellID) end

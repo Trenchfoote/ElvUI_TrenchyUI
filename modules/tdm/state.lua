@@ -35,7 +35,6 @@ TDM.MODE_ORDER = {
     Enum.DamageMeterType.AvoidableDamageTaken,
 }
 if Enum.DamageMeterType.Deaths           then TDM.MODE_ORDER[#TDM.MODE_ORDER + 1] = Enum.DamageMeterType.Deaths           end
-if Enum.DamageMeterType.EnemyDamageTaken then TDM.MODE_ORDER[#TDM.MODE_ORDER + 1] = Enum.DamageMeterType.EnemyDamageTaken end
 
 function TDM.ResolveMeterType(modeEntry)
     return TDM.COMBINED_DATA_TYPE[modeEntry] or modeEntry
@@ -55,7 +54,6 @@ TDM.MODE_LABELS = {
     [Enum.DamageMeterType.AvoidableDamageTaken] = "Avoidable Damage Taken",
 }
 if Enum.DamageMeterType.Deaths           then TDM.MODE_LABELS[Enum.DamageMeterType.Deaths]           = "|cffF48CBAJib's|r"   end
-if Enum.DamageMeterType.EnemyDamageTaken then TDM.MODE_LABELS[Enum.DamageMeterType.EnemyDamageTaken] = "Enemy Damage Taken"   end
 
 TDM.MODE_SHORT = {
     [Enum.DamageMeterType.DamageDone]           = "Damage",
@@ -71,7 +69,6 @@ TDM.MODE_SHORT = {
     [Enum.DamageMeterType.AvoidableDamageTaken] = "Avoidable",
 }
 if Enum.DamageMeterType.Deaths           then TDM.MODE_SHORT[Enum.DamageMeterType.Deaths]           = "|cffF48CBAJib's|r" end
-if Enum.DamageMeterType.EnemyDamageTaken then TDM.MODE_SHORT[Enum.DamageMeterType.EnemyDamageTaken] = "Enemy Dmg" end
 
 -- 8-value texcoords: ULx, ULy, LLx, LLy, URx, URy, LRx, LRy
 TDM.FABLED_COORDS = {

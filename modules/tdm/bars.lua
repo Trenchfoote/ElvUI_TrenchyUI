@@ -183,7 +183,9 @@ function TDM.EnterDrillDown(win, guid, name, classFilename, sourceIndex, secretG
             if not sourceCreatureID and E:NotSecretValue(src.sourceCreatureID) then
                 sourceCreatureID = src.sourceCreatureID
             end
-            if (not safeName or safeName == '?') and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
+            -- Avoid `safeName == '?'` when safeName is a secret string (taints in 12.x).
+            local nameNeedsResolve = (not safeName) or (E:NotSecretValue(safeName) and safeName == '?')
+            if nameNeedsResolve and src.name and (E:IsSecretValue(src.name) or src.name ~= '') then
                 safeName = Ambiguate(src.name, 'short')
             end
         end
@@ -242,57 +244,148 @@ function TDM.GetDrillSpellCount(win)
     return (sourceData and sourceData.combatSpells) and #sourceData.combatSpells or 0
 end
 
+-- Resolve a spell row's display name (mirrors the drilldown label logic)
+local function ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
+    if spellID then
+        local cached = TDM.spellCache[spellID]
+        if cached and cached.name then return cached.name end
+        local n = C_Spell.GetSpellName(spellID)
+        if n then return n end
+    elseif isSecretID and rawSpellID then
+        local n = C_Spell.GetSpellName(rawSpellID)
+        if n and E:NotSecretValue(n) then return n end
+    end
+    if s.creatureName and E:NotSecretValue(s.creatureName) and s.creatureName ~= '' then
+        return s.creatureName
+    end
+    local d = s.combatSpellDetails
+    local tname = d and d.unitName
+    if tname and E:NotSecretValue(tname) and tname ~= '' then return Ambiguate(tname, 'short') end
+    if rawSpellID == 0 or rawSpellID == 1 or rawSpellID == 6603 then return "Auto Attack" end
+    if rawSpellID and E:NotSecretValue(rawSpellID) then return format("Spell #%d", rawSpellID) end
+    return "?"
+end
+
+local TOP_SPELLS = 5
+
+-- Rich source-bar hover from C_DamageMeter data (no SetUnit; combat-safe)
+local function BuildSourceHover(self, win)
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+
+    local name = self.sourceName
+    if (not name or (not E:IsSecretValue(name) and name == '?')) and self.secretName then name = self.secretName end
+    local cls = self.sourceClass or (self.testIndex and TDM.GetTestData(win)[self.testIndex] and TDM.GetTestData(win)[self.testIndex].class)
+    local cr, cg, cb = 1, 1, 1
+    if cls then
+        local r, g, b = TUI:GetClassColor(cls)
+        if r then cr, cg, cb = r, g, b end
+    end
+    if name and not E:IsSecretValue(name) then
+        GameTooltip:AddLine(name, cr, cg, cb)
+    else
+        GameTooltip:AddLine(name or '?', 1, 1, 1)
+    end
+
+    local modeEntry = TDM.MODE_ORDER[win.modeIndex]
+    local isDeaths = Enum.DamageMeterType.Deaths and modeEntry == Enum.DamageMeterType.Deaths
+    local src = self.sourceData
+
+    if not isDeaths and src then
+        local total = src.totalAmount
+        if total and E:NotSecretValue(total) then
+            GameTooltip:AddDoubleLine("Total", TDM.FormatShort(total), 0.8, 0.8, 0.8, 1, 1, 1)
+        end
+        local dps = src.amountPerSecond
+        if dps and E:NotSecretValue(dps) then
+            GameTooltip:AddDoubleLine("Per second", TDM.FormatShort(dps), 0.8, 0.8, 0.8, 1, 1, 1)
+        end
+        local meterType = TDM.ResolveMeterType(modeEntry)
+        local session = TDM.GetSession(win, meterType)
+        local raidTotal = session and session.totalAmount
+        if total and raidTotal and E:NotSecretValue(total) and E:NotSecretValue(raidTotal) and raidTotal > 0 then
+            GameTooltip:AddDoubleLine("Share", format('%.1f%%', (total / raidTotal) * 100), 0.8, 0.8, 0.8, 1, 1, 1)
+        end
+
+        local lookupGUID = self.sourceGUID or TDM.ResolveGUID(self.secretGUID, self.specIconID)
+        local full = (lookupGUID or self.sourceCreatureID) and TDM.GetSessionSource(win, meterType, lookupGUID, self.sourceCreatureID)
+        local spells = full and full.combatSpells
+        if spells and #spells > 0 then
+            GameTooltip:AddLine(' ')
+            GameTooltip:AddLine("Top spells", 1, 0.82, 0)
+            local srcTotal = full.totalAmount
+            for i = 1, min(TOP_SPELLS, #spells) do
+                local s = spells[i]
+                local rawSpellID = s.spellID or (type(s[1]) == "number" and s[1]) or nil
+                local isSecretID = rawSpellID and E:IsSecretValue(rawSpellID)
+                local spellID = (rawSpellID and not isSecretID) and rawSpellID or nil
+                local label = (type(s[1]) == "string" and s[1]) or ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
+                local amt = s.totalAmount or s[2] or 0
+                local right = TDM.FormatShort(amt)
+                if srcTotal and E:NotSecretValue(amt) and E:NotSecretValue(srcTotal) and srcTotal > 0 then
+                    right = format('%s  (%.1f%%)', right, (amt / srcTotal) * 100)
+                end
+                GameTooltip:AddDoubleLine(label, right, cr, cg, cb, 1, 1, 1)
+            end
+        end
+    end
+
+    GameTooltip:AddLine(' ')
+    if isDeaths then
+        GameTooltip:AddLine("Click for death recap", 0.7, 0.7, 0.7)
+    else
+        GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
+    end
+    GameTooltip:Show()
+end
+
+-- Rich drilldown spell hover from render-time stats; Shift = Blizzard spell tooltip
+local function BuildDrillHover(self)
+    local d = self.drillData
+    -- Death-recap rows (no drillData) and explicit Shift use the Blizzard spell tooltip
+    if self.drillSpellID and (not d or IsShiftKeyDown()) then
+        GameTooltip_SetDefaultAnchor(GameTooltip, self)
+        GameTooltip:SetSpellByID(self.drillSpellID)
+        GameTooltip:Show()
+        return
+    end
+    if not d then return end
+
+    GameTooltip_SetDefaultAnchor(GameTooltip, self)
+    GameTooltip:AddLine(d.name or '?', 1, 0.82, 0)
+    if d.amt and E:NotSecretValue(d.amt) then
+        GameTooltip:AddDoubleLine("Total", TDM.FormatShort(d.amt), 0.8, 0.8, 0.8, 1, 1, 1)
+    end
+    if d.total and d.amt and E:NotSecretValue(d.amt) and E:NotSecretValue(d.total) and d.total > 0 then
+        GameTooltip:AddDoubleLine("Share", format('%.1f%%', (d.amt / d.total) * 100), 0.8, 0.8, 0.8, 1, 1, 1)
+    end
+    if d.dps and E:NotSecretValue(d.dps) then
+        GameTooltip:AddDoubleLine("Per second", TDM.FormatShort(d.dps), 0.8, 0.8, 0.8, 1, 1, 1)
+    end
+    if d.overkill and E:NotSecretValue(d.overkill) and d.overkill > 0 then
+        GameTooltip:AddDoubleLine("Overkill", TDM.FormatShort(d.overkill), 0.8, 0.8, 0.8, 1, 0.5, 0.5)
+    end
+    if d.target then
+        GameTooltip:AddDoubleLine("Target", d.target, 0.8, 0.8, 0.8, 1, 1, 1)
+    end
+    if d.deadly then
+        GameTooltip:AddLine("Deadly", 1, 0.3, 0.3)
+    elseif d.avoidable then
+        GameTooltip:AddLine("Avoidable", 1, 0.7, 0.2)
+    end
+    if self.drillSpellID then
+        GameTooltip:AddLine(' ')
+        GameTooltip:AddLine("Hold Shift for spell tooltip", 0.5, 0.5, 0.5)
+    end
+    GameTooltip:Show()
+end
+
 function TDM.SetupBarInteraction(bar, win)
     bar.frame:SetScript("OnEnter", function(self)
         if win.drillSource then
-            if self.drillSpellID then
-                GameTooltip_SetDefaultAnchor(GameTooltip, self)
-                GameTooltip:SetSpellByID(self.drillSpellID)
-                GameTooltip:Show()
-            end
+            BuildDrillHover(self)
             return
         end
-
-        -- Try full unit tooltip: cached unit > GUID lookup > name lookup > secret GUID match
-        local unit = self.sourceUnit
-        if not unit and self.sourceGUID then
-            unit = TDM.FindUnitByGUID(self.sourceGUID)
-        end
-        if not unit and self.sourceName and not E:IsSecretValue(self.sourceName) and self.sourceName ~= '?' then
-            unit = TDM.FindUnitByName(self.sourceName)
-        end
-        if not unit and self.sourceGUID then
-            for i = 1, 4 do
-                local token = 'party' .. i
-                if UnitGUID(token) == self.sourceGUID then unit = token; break end
-            end
-        end
-
-        GameTooltip_SetDefaultAnchor(GameTooltip, self)
-        if unit then
-            GameTooltip:SetUnit(unit)
-        else
-            local name = self.sourceName
-            if (not name or (not E:IsSecretValue(name) and name == '?')) and self.secretName then name = self.secretName end
-            if name and not E:IsSecretValue(name) then
-                local cls = self.sourceClass or (self.testIndex and TDM.GetTestData(win)[self.testIndex] and TDM.GetTestData(win)[self.testIndex].class)
-                local cr, cg, cb = 1, 1, 1
-                if cls then
-                    local r, g, b = TUI:GetClassColor(cls)
-                    if r then cr, cg, cb = r, g, b end
-                end
-                GameTooltip:AddLine(name, cr, cg, cb)
-            elseif name then
-                GameTooltip:AddDoubleLine(name, '', 1, 1, 1)
-            end
-        end
-        local modeEntry = TDM.MODE_ORDER[win.modeIndex]
-        if Enum.DamageMeterType.Deaths and modeEntry == Enum.DamageMeterType.Deaths then
-            GameTooltip:AddLine("Click for death recap", 0.7, 0.7, 0.7)
-        else
-            GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
-        end
-        GameTooltip:Show()
+        BuildSourceHover(self, win)
     end)
 
     bar.frame:SetScript("OnLeave", GameTooltip_Hide)
