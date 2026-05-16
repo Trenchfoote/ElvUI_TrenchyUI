@@ -72,7 +72,7 @@ local function BuildGuildTable()
 	wipe(guildTable)
 	local totalMembers = GetNumGuildMembers()
 	for i = 1, totalMembers do
-		local name, rank, rankIndex, level, _, zone, _, _, connected, memberstatus, className, _, _, isMobile, _, _, guid = GetGuildRosterInfo(i)
+		local name, rank, rankIndex, level, _, zone, note, _, connected, memberstatus, className, achievementPoints, _, isMobile, _, _, guid = GetGuildRosterInfo(i)
 		if not name then break end
 		if connected or isMobile then
 			local displayName = E:StripMyRealm(name)
@@ -91,6 +91,8 @@ local function BuildGuildTable()
 				isMobile = isMobile,
 				status = onlinestatus[memberstatus] or '',
 				guid = guid,
+				note = (note and note ~= '') and note or nil,
+				achievementPoints = achievementPoints,
 			}
 		end
 	end
@@ -173,6 +175,18 @@ local function GetOrCreateRow(index)
 				GameTooltip:AddLine(self.memberName, 1, 1, 1)
 			end
 			if self.memberRank then GameTooltip:AddLine(self.memberRank, 0.5, 0.5, 0.5) end
+			if self.memberLevel and self.memberZone and self.memberZone ~= '' then
+				GameTooltip:AddDoubleLine(format('Level %s', self.memberLevel), self.memberZone, 0.8, 0.8, 0.8, 1, 1, 1)
+			elseif self.memberLevel then
+				GameTooltip:AddDoubleLine('Level', tostring(self.memberLevel), 0.8, 0.8, 0.8, 1, 1, 1)
+			end
+			if self.memberAch and self.memberAch > 0 then
+				GameTooltip:AddDoubleLine('Achievement Points', tostring(self.memberAch), 0.8, 0.8, 0.8, 1, 0.82, 0)
+			end
+			if self.memberNote then
+				GameTooltip:AddLine(' ')
+				GameTooltip:AddLine(self.memberNote, 0.6, 0.8, 1, true)
+			end
 			GameTooltip:AddLine(' ')
 			GameTooltip:AddLine('Left-click: Whisper', 0.7, 0.7, 0.7)
 			GameTooltip:AddLine('Right-click: Invite', 0.7, 0.7, 0.7)
@@ -269,6 +283,10 @@ local function ShowTooltip(panel)
 		row.memberName = info.fullName
 		row.memberRank = info.rank
 		row.memberClass = info.class
+		row.memberLevel = info.level
+		row.memberZone = info.zone
+		row.memberNote = info.note
+		row.memberAch = info.achievementPoints
 
 		if shown == 1 then
 			row:SetPoint('TOPLEFT', contentTop, 'BOTTOMLEFT', 0, -6)
@@ -297,6 +315,10 @@ local function ShowTooltip(panel)
 		row.memberName = nil
 		row.memberRank = nil
 		row.memberClass = nil
+		row.memberLevel = nil
+		row.memberZone = nil
+		row.memberNote = nil
+		row.memberAch = nil
 		row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
 		row:SetPoint('RIGHT', tooltip, 'RIGHT', -TOOLTIP_PAD, 0)
 		row:Show()

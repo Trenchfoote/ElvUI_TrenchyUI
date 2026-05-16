@@ -126,6 +126,7 @@ local function BuildFriendTable(total)
 				status = statusKey and statusText[statusKey] or '',
 				statusKey = statusKey,
 				faction = E.myfaction,
+				note = (info.notes and info.notes ~= '') and info.notes or nil,
 			}
 		end
 	end
@@ -208,6 +209,7 @@ local function BuildBNTable(total)
 				isFavorite = accountInfo.isFavorite or false,
 				showChar = showChar,
 				faction = gameInfo.factionName,
+				richPresence = (gameInfo.richPresence and gameInfo.richPresence ~= '') and gameInfo.richPresence or nil,
 			}
 
 			bnTable[#bnTable + 1] = entry
@@ -307,6 +309,23 @@ local function GetOrCreateRow(index)
 					GameTooltip:AddLine(self.friendName, 1, 1, 1)
 				end
 			end
+			if self.friendLevel and self.friendZone then
+				GameTooltip:AddDoubleLine(format('Level %s', self.friendLevel), self.friendZone, 0.8, 0.8, 0.8, 1, 1, 1)
+			elseif self.friendLevel then
+				GameTooltip:AddDoubleLine('Level', tostring(self.friendLevel), 0.8, 0.8, 0.8, 1, 1, 1)
+			elseif self.friendZone then
+				GameTooltip:AddDoubleLine('Zone', self.friendZone, 0.8, 0.8, 0.8, 1, 1, 1)
+			end
+			if self.friendRealm then
+				GameTooltip:AddDoubleLine('Realm', self.friendRealm, 0.8, 0.8, 0.8, 1, 1, 1)
+			end
+			if self.friendRich then
+				GameTooltip:AddLine(self.friendRich, 0.6, 0.8, 1, true)
+			end
+			if self.friendNote then
+				GameTooltip:AddLine(' ')
+				GameTooltip:AddLine(self.friendNote, 0.6, 0.8, 1, true)
+			end
 			GameTooltip:AddLine(' ')
 			GameTooltip:AddLine('Left-click: Whisper', 0.7, 0.7, 0.7)
 			if self.canInvite then
@@ -394,6 +413,11 @@ local function SetupHeaderRow(row, text, prevRow, client)
 	row.friendClass = nil
 	row.canInvite = false
 	row.friendGameID = nil
+	row.friendLevel = nil
+	row.friendZone = nil
+	row.friendNote = nil
+	row.friendRealm = nil
+	row.friendRich = nil
 
 	row.factionIcon:Hide()
 	local icon = GetOrCreateIcon(row)
@@ -478,6 +502,11 @@ local function ShowTooltip(panel)
 		row.friendClass = info.class
 		row.canInvite = groupTag == ''
 		row.friendGameID = nil
+		row.friendLevel = info.level
+		row.friendZone = (info.zone ~= '') and info.zone or nil
+		row.friendNote = info.note
+		row.friendRealm = nil
+		row.friendRich = nil
 
 		row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
 		row:Show()
@@ -555,6 +584,11 @@ local function ShowTooltip(panel)
 				row.friendClass = info.class ~= '' and info.class or nil
 				row.canInvite = info.isWoW and info.wowProjectID == WOW_PROJECT_ID and groupTag == ''
 				row.friendGameID = info.gameID
+				row.friendLevel = (info.isWoW and info.level and info.level > 0) and info.level or nil
+				row.friendZone = (info.isWoW and info.zone ~= '') and info.zone or nil
+				row.friendRealm = (info.realmName ~= '') and info.realmName or nil
+				row.friendRich = info.richPresence
+				row.friendNote = nil
 
 				row:SetPoint('TOPLEFT', rows[shown - 1], 'BOTTOMLEFT', 0, -ROW_PAD)
 				row:Show()
