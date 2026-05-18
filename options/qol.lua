@@ -177,13 +177,17 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return brlDB().iconZoom end,
         function(_, v) brlDB().iconZoom = v; brlRefresh() end, brlDisabled)
 
-    brl.bresIcon = ACH:Select("Battle Rez Icon", "Which battle rez spell icon to show. Auto follows your class.", 9,
+    brl.cooldownSwipe = ACH:Toggle("Cooldown Swipe", "Show the radial cooldown sweep on the icons. The timer text already shows the countdown.", 9, nil, nil, nil,
+        function() return brlDB().cooldownSwipe end,
+        function(_, v) brlDB().cooldownSwipe = v; brlRefresh() end, brlDisabled)
+
+    brl.bresIcon = ACH:Select("Battle Rez Icon", "Which battle rez spell icon to show. Auto follows your class.", 10,
         { auto = "Auto (Class)", rebirth = "Rebirth", soulstone = "Soulstone", raiseally = "Raise Ally", intercession = "Intercession" }, nil, nil,
         function() return brlDB().bresIcon end,
         function(_, v) brlDB().bresIcon = v; brlRefresh() end, brlDisabled)
     brl.bresIcon.sorting = { 'auto', 'rebirth', 'soulstone', 'raiseally', 'intercession' }
 
-    brl.lustIcon = ACH:Select("Bloodlust Icon", "Which lust spell icon to show when idle. Auto follows your class. An active lust always shows the real spell's icon.", 10,
+    brl.lustIcon = ACH:Select("Bloodlust Icon", "Which lust spell icon to show when idle. Auto follows your class. An active lust always shows the real spell's icon.", 11,
         { auto = "Auto (Class)", bloodlust = "Bloodlust", heroism = "Heroism", timewarp = "Time Warp", primalrage = "Primal Rage", furyofaspects = "Fury of the Aspects" }, nil, nil,
         function() return brlDB().lustIcon end,
         function(_, v) brlDB().lustIcon = v; brlRefresh() end, brlDisabled)
@@ -204,7 +208,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         return gl
     end
     local glowOff = function() return not (brlDB().enabled and brlGlow().enabled) end
-    brl.glow = ACH:Group("Pixel Glow", nil, 11)
+    brl.glow = ACH:Group("Pixel Glow", nil, 12)
     brl.glow.inline = true
     brl.glow.args.enabled = ACH:Toggle(
         function() return brlGlow().enabled and "|cff00ff00Glow Lust Icon When Active|r" or "Glow Lust Icon When Active" end,
@@ -228,11 +232,11 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return brlGlow().thickness end,
         function(_, v) brlGlow().thickness = v; brlRefresh() end, glowOff)
 
-    brl.font = ACH:SharedMediaFont("Font", nil, 12, nil,
+    brl.font = ACH:SharedMediaFont("Font", nil, 13, nil,
         function() return brlDB().font end,
         function(_, v) brlDB().font = v; brlRefresh() end, brlDisabled)
 
-    brl.fontOutline = ACH:FontFlags("Font Outline", nil, 13, nil,
+    brl.fontOutline = ACH:FontFlags("Font Outline", nil, 14, nil,
         function() return brlDB().fontOutline end,
         function(_, v) brlDB().fontOutline = v; brlRefresh() end, brlDisabled)
 
@@ -249,12 +253,12 @@ function TUI:BuildQoLConfig(root, tuiName)
             function(_, v) brlText(key).y = v; brlRefresh() end, brlDisabled)
     end
 
-    brl.rezText = ACH:Group("Battle Rez Text", nil, 14)
+    brl.rezText = ACH:Group("Battle Rez Text", nil, 15)
     brl.rezText.inline = true
     addTextOpts(brl.rezText.args, 'bresCount', 'count', 'Stack', 1, 14)
     addTextOpts(brl.rezText.args, 'bresTimer', 'timer', 'Timer', 4, 16)
 
-    brl.lustText = ACH:Group("Bloodlust Text", nil, 15)
+    brl.lustText = ACH:Group("Bloodlust Text", nil, 16)
     brl.lustText.inline = true
     addTextOpts(brl.lustText.args, 'lustTimer', 'timer', 'Timer', 1, 16)
 

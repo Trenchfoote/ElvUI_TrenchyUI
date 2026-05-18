@@ -73,6 +73,11 @@ local function SetIcon(tex, fileOrID)
 	tex:SetTexCoord(z, 1 - z, z, 1 - z)
 end
 
+-- Cooldown swipe is optional; the timer text already conveys the countdown
+local function ShowSwipe(cd, start, dur)
+	if GetDB().cooldownSwipe then cd:SetCooldown(start, dur) else cd:Clear() end
+end
+
 local function FmtTime(sec)
 	if sec <= 0 then return '' end
 	if sec >= 60 then return format('%d:%02d', sec / 60, sec % 60) end
@@ -177,7 +182,7 @@ local function UpdateBRes()
 	end
 
 	if info.isActive and info.cooldownStartTime and info.cooldownDuration then
-		bres.cd:SetCooldown(info.cooldownStartTime, info.cooldownDuration)
+		ShowSwipe(bres.cd, info.cooldownStartTime, info.cooldownDuration)
 		if E:NotSecretValue(info.cooldownStartTime) and E:NotSecretValue(info.cooldownDuration) then
 			bres.timer:SetText(FmtTime((info.cooldownStartTime + info.cooldownDuration) - GetTime()))
 		else
@@ -253,13 +258,13 @@ local function UpdateLust()
 	if active then
 		lust.icon:SetDesaturated(false)
 		SetIcon(lust.icon, (buff and buff.icon) or ResolveLustTexture())
-		if cdStart then lust.cd:SetCooldown(cdStart, cdDur) else lust.cd:Clear() end
+		if cdStart then ShowSwipe(lust.cd, cdStart, cdDur) else lust.cd:Clear() end
 		lust.timer:SetText(remaining and FmtTime(remaining) or '')
 		lust.timer:SetTextColor(0, 1, 0)
 	elseif sated and sated.expirationTime and sated.duration and sated.duration > 0 then
 		lust.icon:SetDesaturated(true)
 		SetIcon(lust.icon, ResolveLustTexture())
-		lust.cd:SetCooldown(sated.expirationTime - sated.duration, sated.duration)
+		ShowSwipe(lust.cd, sated.expirationTime - sated.duration, sated.duration)
 		lust.timer:SetText(FmtTime(sated.expirationTime - now))
 		lust.timer:SetTextColor(1, 0.2, 0.2)
 	else
@@ -314,8 +319,8 @@ function QOL:ToggleBResLustPreview(v)
 	if not (holder and bres and lust) then return end
 	if v then
 		local now = GetTime()
-		bres.cd:SetCooldown(now, 120)
-		lust.cd:SetCooldown(now, 40)
+		ShowSwipe(bres.cd, now, 120)
+		ShowSwipe(lust.cd, now, 40)
 	else
 		bres.cd:Clear()
 		lust.cd:Clear()

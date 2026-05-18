@@ -52,6 +52,7 @@ TUI.defaults = {
                 iconZoom      = 0.08,
                 bresIcon      = 'auto',
                 lustIcon      = 'auto',
+                cooldownSwipe = false,
                 glow = {
                     enabled    = true,
                     classColor = false,
