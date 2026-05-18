@@ -252,8 +252,9 @@ local function ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
         local n = C_Spell.GetSpellName(spellID)
         if n then return n end
     elseif isSecretID and rawSpellID then
+        -- Secret spell name is fine: the tooltip renders it C-side like the bars
         local n = C_Spell.GetSpellName(rawSpellID)
-        if n and E:NotSecretValue(n) then return n end
+        if n then return n end
     end
     if s.creatureName and E:NotSecretValue(s.creatureName) and s.creatureName ~= '' then
         return s.creatureName
@@ -261,9 +262,12 @@ local function ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
     local d = s.combatSpellDetails
     local tname = d and d.unitName
     if tname and E:NotSecretValue(tname) and tname ~= '' then return Ambiguate(tname, 'short') end
-    if rawSpellID == 0 or rawSpellID == 1 or rawSpellID == 6603 then return "Auto Attack" end
-    if rawSpellID and E:NotSecretValue(rawSpellID) then return format("Spell #%d", rawSpellID) end
-    return "?"
+    if rawSpellID and E:NotSecretValue(rawSpellID) then
+        if rawSpellID == 0 or rawSpellID == 1 or rawSpellID == 6603 then return "Auto Attack" end
+        return format("Spell #%d", rawSpellID)
+    end
+    -- Real spells resolved above; the only row left is the melee/auto aggregate
+    return "Auto Attack"
 end
 
 local TOP_SPELLS = 5
@@ -292,11 +296,11 @@ local function BuildSourceHover(self, win)
 
     if not isDeaths and src then
         local total = src.totalAmount
-        if total and E:NotSecretValue(total) then
+        if total then
             GameTooltip:AddDoubleLine("Total", TDM.FormatShort(total), 0.8, 0.8, 0.8, 1, 1, 1)
         end
         local dps = src.amountPerSecond
-        if dps and E:NotSecretValue(dps) then
+        if dps then
             GameTooltip:AddDoubleLine("Per second", TDM.FormatShort(dps), 0.8, 0.8, 0.8, 1, 1, 1)
         end
         local meterType = TDM.ResolveMeterType(modeEntry)
@@ -320,6 +324,7 @@ local function BuildSourceHover(self, win)
                 local spellID = (rawSpellID and not isSecretID) and rawSpellID or nil
                 local label = (type(s[1]) == "string" and s[1]) or ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
                 local amt = s.totalAmount or s[2] or 0
+                -- FormatShort is C-side/secret-safe; only the % needs a Lua guard
                 local right = TDM.FormatShort(amt)
                 if srcTotal and E:NotSecretValue(amt) and E:NotSecretValue(srcTotal) and srcTotal > 0 then
                     right = format('%s  (%.1f%%)', right, (amt / srcTotal) * 100)
@@ -352,13 +357,13 @@ local function BuildDrillHover(self)
 
     GameTooltip_SetDefaultAnchor(GameTooltip, self)
     GameTooltip:AddLine(d.name or '?', 1, 0.82, 0)
-    if d.amt and E:NotSecretValue(d.amt) then
+    if d.amt then
         GameTooltip:AddDoubleLine("Total", TDM.FormatShort(d.amt), 0.8, 0.8, 0.8, 1, 1, 1)
     end
     if d.total and d.amt and E:NotSecretValue(d.amt) and E:NotSecretValue(d.total) and d.total > 0 then
         GameTooltip:AddDoubleLine("Share", format('%.1f%%', (d.amt / d.total) * 100), 0.8, 0.8, 0.8, 1, 1, 1)
     end
-    if d.dps and E:NotSecretValue(d.dps) then
+    if d.dps then
         GameTooltip:AddDoubleLine("Per second", TDM.FormatShort(d.dps), 0.8, 0.8, 0.8, 1, 1, 1)
     end
     if d.overkill and E:NotSecretValue(d.overkill) and d.overkill > 0 then
