@@ -42,6 +42,32 @@ TUI.defaults = {
                 delve       = { r = 0.80, g = 0.60, b = 0.20 },
                 other       = { r = 1.00, g = 1.00, b = 1.00 },
             },
+            bresLust = {
+                enabled       = false,
+                showInDungeon = true,
+                showInRaid    = true,
+                showOutdoors  = false,
+                iconSize      = 36,
+                iconSpacing   = 6,
+                iconZoom      = 0.08,
+                bresIcon      = 'auto',
+                lustIcon      = 'auto',
+                glow = {
+                    enabled    = true,
+                    classColor = false,
+                    color      = { r = 1, g = 0.4, b = 0 },
+                    lines      = 8,
+                    speed      = 0.25,
+                    thickness  = 2,
+                },
+                font          = 'Expressway',
+                fontOutline   = 'OUTLINE',
+                text = {
+                    bresCount = { size = 14, x = -2, y = 2 },
+                    bresTimer = { size = 16, x = 0, y = 0 },
+                    lustTimer = { size = 16, x = 0, y = 0 },
+                },
+            },
         },
         addons = {
             skinWarpDeplete = false,
@@ -97,9 +123,6 @@ TUI.defaults = {
         },
         fader = {
             steadyFlight = false,
-        },
-        privateAuras = {
-            enabled = false,
         },
         ironfurBar = {
             enabled          = false,

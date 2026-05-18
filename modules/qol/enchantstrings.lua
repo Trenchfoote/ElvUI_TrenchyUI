@@ -172,6 +172,7 @@ function QOL:Initialize()
 	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
 	if self.InitAuraFader then self:InitAuraFader() end
 	if self.InitMutedSounds then self:InitMutedSounds() end
+	if db.bresLust and db.bresLust.enabled and self.InitBResLust then self:InitBResLust() end
 end
 
 E:RegisterModule(QOL:GetName())

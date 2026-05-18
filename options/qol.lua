@@ -64,9 +64,14 @@ function TUI:BuildQoLConfig(root, tuiName)
         function(_, r, g, b, a) local c = TUI.db.profile.qol.cursorCircleColor; c.r, c.g, c.b, c.a = r, g, b, a; if QOL then QOL:UpdateCursorCircle() end end,
         function() return ccDisabled() or TUI.db.profile.qol.cursorCircleClassColor end)
 
-    -- Instance Difficulty
-    root.qol.args.difficulty = ACH:Group("Instance Difficulty", nil, 3)
-    local qolDiff = root.qol.args.difficulty.args
+    -- Dungeons/Raids: home for dungeon/raid-specific QoL features
+    root.qol.args.dungeonsRaids = ACH:Group("Dungeons/Raids", nil, 3)
+    local drArgs = root.qol.args.dungeonsRaids.args
+
+    -- Feature 1: Instance Difficulty
+    drArgs.instanceDifficulty = ACH:Group("Instance Difficulty", nil, 1)
+    drArgs.instanceDifficulty.inline = true
+    local qolDiff = drArgs.instanceDifficulty.args
 
     qolDiff.difficultyText = ACH:Toggle(
         function() return TUI.db.profile.qol.difficultyText and "|cff00ff00Enable|r" or "Enable" end,
@@ -115,6 +120,143 @@ function TUI:BuildQoLConfig(root, tuiName)
             function() local c = ensureDiffColor(def.key); return c.r, c.g, c.b end,
             function(_, r, g, b) local c = ensureDiffColor(def.key); c.r, c.g, c.b = r, g, b end, diffDisabled)
     end
+
+    -- Feature 2: Battle Rez & Bloodlust tracker
+    drArgs.bresLust = ACH:Group("Battle Rez & Bloodlust", nil, 2)
+    drArgs.bresLust.inline = true
+    local brl = drArgs.bresLust.args
+
+    local function brlDB() return TUI.db.profile.qol.bresLust end
+    local function brlRefresh() if QOL and QOL.RefreshBResLust then QOL:RefreshBResLust() end end
+    local brlDisabled = function() return not brlDB().enabled end
+    local function brlText(key)
+        local d = brlDB()
+        d.text = d.text or {}
+        d.text[key] = d.text[key] or {}
+        return d.text[key]
+    end
+
+    brl.enabled = ACH:Toggle(
+        function() return brlDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
+        "Show a movable tracker for the shared battle rez pool and Bloodlust/Sated state.", 1, nil, nil, nil,
+        function() return brlDB().enabled end,
+        function(_, v)
+            brlDB().enabled = v
+            if v and QOL and QOL.InitBResLust then QOL:InitBResLust() end
+            brlRefresh()
+        end)
+
+    local function brlPreview() return QOL and QOL.IsBResLustPreview and QOL:IsBResLustPreview() end
+    brl.preview = ACH:Toggle(
+        function() return brlPreview() and "|cff00ff00Preview|r" or "Preview" end,
+        "Show both trackers with example values so you can size and position the text. Not saved; clears on reload.", 2, nil, nil, nil,
+        brlPreview,
+        function(_, v) if QOL and QOL.ToggleBResLustPreview then QOL:ToggleBResLustPreview(v) end end, brlDisabled)
+
+    brl.showInDungeon = ACH:Toggle("Show in Dungeons", nil, 3, nil, nil, nil,
+        function() return brlDB().showInDungeon end,
+        function(_, v) brlDB().showInDungeon = v; brlRefresh() end, brlDisabled)
+
+    brl.showInRaid = ACH:Toggle("Show in Raids", nil, 4, nil, nil, nil,
+        function() return brlDB().showInRaid end,
+        function(_, v) brlDB().showInRaid = v; brlRefresh() end, brlDisabled)
+
+    brl.showOutdoors = ACH:Toggle("Show Outdoors", nil, 5, nil, nil, nil,
+        function() return brlDB().showOutdoors end,
+        function(_, v) brlDB().showOutdoors = v; brlRefresh() end, brlDisabled)
+
+    brl.iconSize = ACH:Range("Icon Size", nil, 6, { min = 20, max = 80, step = 1 }, nil,
+        function() return brlDB().iconSize end,
+        function(_, v) brlDB().iconSize = v; brlRefresh() end, brlDisabled)
+
+    brl.iconSpacing = ACH:Range("Icon Spacing", nil, 7, { min = 0, max = 40, step = 1 }, nil,
+        function() return brlDB().iconSpacing end,
+        function(_, v) brlDB().iconSpacing = v; brlRefresh() end, brlDisabled)
+
+    brl.iconZoom = ACH:Range("Icon Zoom", "Crop the icon edges. 0 shows the full icon.", 8, { min = 0, max = 0.25, step = 0.01 }, nil,
+        function() return brlDB().iconZoom end,
+        function(_, v) brlDB().iconZoom = v; brlRefresh() end, brlDisabled)
+
+    brl.bresIcon = ACH:Select("Battle Rez Icon", "Which battle rez spell icon to show. Auto follows your class.", 9,
+        { auto = "Auto (Class)", rebirth = "Rebirth", soulstone = "Soulstone", raiseally = "Raise Ally", intercession = "Intercession" }, nil, nil,
+        function() return brlDB().bresIcon end,
+        function(_, v) brlDB().bresIcon = v; brlRefresh() end, brlDisabled)
+    brl.bresIcon.sorting = { 'auto', 'rebirth', 'soulstone', 'raiseally', 'intercession' }
+
+    brl.lustIcon = ACH:Select("Bloodlust Icon", "Which lust spell icon to show when idle. Auto follows your class. An active lust always shows the real spell's icon.", 10,
+        { auto = "Auto (Class)", bloodlust = "Bloodlust", heroism = "Heroism", timewarp = "Time Warp", primalrage = "Primal Rage", furyofaspects = "Fury of the Aspects" }, nil, nil,
+        function() return brlDB().lustIcon end,
+        function(_, v) brlDB().lustIcon = v; brlRefresh() end, brlDisabled)
+    brl.lustIcon.sorting = { 'auto', 'bloodlust', 'heroism', 'timewarp', 'primalrage', 'furyofaspects' }
+
+    -- Ensure the glow subtable is fully populated; AceDB nested defaults are
+    -- not reliably injected into a profile that's already been written to.
+    local function brlGlow()
+        local d = brlDB()
+        if not d.glow then d.glow = {} end
+        local gl = d.glow
+        if gl.enabled == nil then gl.enabled = true end
+        if gl.classColor == nil then gl.classColor = false end
+        if not gl.color then gl.color = { r = 1, g = 0.4, b = 0 } end
+        if gl.lines == nil then gl.lines = 8 end
+        if gl.speed == nil then gl.speed = 0.25 end
+        if gl.thickness == nil then gl.thickness = 2 end
+        return gl
+    end
+    local glowOff = function() return not (brlDB().enabled and brlGlow().enabled) end
+    brl.glow = ACH:Group("Pixel Glow", nil, 11)
+    brl.glow.inline = true
+    brl.glow.args.enabled = ACH:Toggle(
+        function() return brlGlow().enabled and "|cff00ff00Glow Lust Icon When Active|r" or "Glow Lust Icon When Active" end,
+        "Pixel glow around the Bloodlust icon while a lust effect is active.", 1, nil, nil, nil,
+        function() return brlGlow().enabled end,
+        function(_, v) brlGlow().enabled = v; brlRefresh() end, brlDisabled)
+    brl.glow.args.color = ACH:Color("Color", nil, 2, nil, nil,
+        function() local c = brlGlow().color; return c.r, c.g, c.b end,
+        function(_, r, g, b) local c = brlGlow().color; c.r, c.g, c.b = r, g, b; brlRefresh() end,
+        function() return glowOff() or brlGlow().classColor end)
+    brl.glow.args.classColor = ACH:Toggle("Class Color", "Use your class color for the glow instead of the color above.", 3, nil, nil, nil,
+        function() return brlGlow().classColor end,
+        function(_, v) brlGlow().classColor = v; brlRefresh() end, glowOff)
+    brl.glow.args.lines = ACH:Range("Lines", "Number of animated glow lines.", 4, { min = 1, max = 20, step = 1 }, nil,
+        function() return brlGlow().lines end,
+        function(_, v) brlGlow().lines = v; brlRefresh() end, glowOff)
+    brl.glow.args.speed = ACH:Range("Speed", "Animation speed (cycles per second).", 5, { min = 0.05, max = 1, step = 0.05 }, nil,
+        function() return brlGlow().speed end,
+        function(_, v) brlGlow().speed = v; brlRefresh() end, glowOff)
+    brl.glow.args.thickness = ACH:Range("Thickness", "Pixel thickness of the glow lines.", 6, { min = 1, max = 5, step = 1 }, nil,
+        function() return brlGlow().thickness end,
+        function(_, v) brlGlow().thickness = v; brlRefresh() end, glowOff)
+
+    brl.font = ACH:SharedMediaFont("Font", nil, 12, nil,
+        function() return brlDB().font end,
+        function(_, v) brlDB().font = v; brlRefresh() end, brlDisabled)
+
+    brl.fontOutline = ACH:FontFlags("Font Outline", nil, 13, nil,
+        function() return brlDB().fontOutline end,
+        function(_, v) brlDB().fontOutline = v; brlRefresh() end, brlDisabled)
+
+    -- Per-text size + offset, split between Battle Rez and Bloodlust
+    local function addTextOpts(args, key, prefix, label, baseOrder, dSize)
+        args[prefix .. 'Size'] = ACH:Range(label .. " Size", nil, baseOrder, { min = 6, max = 32, step = 1 }, nil,
+            function() return brlText(key).size or dSize end,
+            function(_, v) brlText(key).size = v; brlRefresh() end, brlDisabled)
+        args[prefix .. 'X'] = ACH:Range(label .. " Offset X", nil, baseOrder + 1, { min = -50, max = 50, step = 1 }, nil,
+            function() return brlText(key).x or 0 end,
+            function(_, v) brlText(key).x = v; brlRefresh() end, brlDisabled)
+        args[prefix .. 'Y'] = ACH:Range(label .. " Offset Y", nil, baseOrder + 2, { min = -50, max = 50, step = 1 }, nil,
+            function() return brlText(key).y or 0 end,
+            function(_, v) brlText(key).y = v; brlRefresh() end, brlDisabled)
+    end
+
+    brl.rezText = ACH:Group("Battle Rez Text", nil, 14)
+    brl.rezText.inline = true
+    addTextOpts(brl.rezText.args, 'bresCount', 'count', 'Stack', 1, 14)
+    addTextOpts(brl.rezText.args, 'bresTimer', 'timer', 'Timer', 4, 16)
+
+    brl.lustText = ACH:Group("Bloodlust Text", nil, 15)
+    brl.lustText.inline = true
+    addTextOpts(brl.lustText.args, 'lustTimer', 'timer', 'Timer', 1, 16)
 
     -- Minimap Buttons
     root.qol.args.minimapButtonBar = ACH:Group("Minimap Buttons", nil, 4)
