@@ -161,6 +161,7 @@ TDM.spellCache = {}
 TDM.winDBCache = {}
 TDM.sessionLabelCache = {}
 TDM.specIconCache = {}
+TDM.deathMomentCache = {} -- deathRecapID -> max event timestamp (recap is immutable)
 
 -- Localized globals
 local IsInGroup = IsInGroup
@@ -390,6 +391,49 @@ function TDM.GetSessionSource(win, meterType, guid, sourceCreatureID)
         return C_DamageMeter.GetCombatSessionSourceFromID(win.sessionId, meterType, guid, sourceCreatureID)
     end
     return C_DamageMeter.GetCombatSessionSourceFromType(win.sessionType, meterType, guid, sourceCreatureID)
+end
+
+-- Death-time text for Deaths mode. Overall exposes a non-secret
+-- src.deathTimeSeconds; the Current session secret-tags it, so derive an
+-- equivalent "into the session" time from the (NeverSecret) death recap.
+local mfloor, GetTime = math.floor, GetTime
+
+local function FmtMMSS(s)
+    return format('%d:%02d', mfloor(s / 60), mfloor(s % 60))
+end
+
+function TDM.GetDeathTimeText(src, win)
+    local dt = src.deathTimeSeconds
+    if dt and E:NotSecretValue(dt) and dt > 0 then
+        return FmtMMSS(dt)
+    end
+
+    -- Fallback: only for the live Current session (no fixed sessionId)
+    if win.sessionId or win.sessionType ~= Enum.DamageMeterSessionType.Current then return end
+    local rid = src.deathRecapID
+    if not rid or not E:NotSecretValue(rid) or rid <= 0 then return end
+    if not (C_DeathRecap and C_DeathRecap.GetRecapEvents) then return end
+
+    local moment = TDM.deathMomentCache[rid]
+    if not moment then
+        local events = C_DeathRecap.GetRecapEvents(rid)
+        if events then
+            for _, ev in ipairs(events) do
+                local ts = ev.timestamp
+                if ts and E:NotSecretValue(ts) and (not moment or ts > moment) then
+                    moment = ts
+                end
+            end
+        end
+        if moment then TDM.deathMomentCache[rid] = moment end
+    end
+    if not moment then return end
+
+    local dur = C_DamageMeter.GetSessionDurationSeconds(win.sessionType)
+    if not dur or not E:NotSecretValue(dur) then return end
+    local into = dur - (GetTime() - moment)
+    if into < 0 or into > dur then return end
+    return FmtMMSS(into)
 end
 
 function TDM.GetSessionLabel(win)

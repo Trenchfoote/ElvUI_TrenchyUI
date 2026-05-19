@@ -517,12 +517,7 @@ function TDM.RefreshWindow(win)
 
                 local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeaths then
-                    local deathTime = src.deathTimeSeconds
-                    if deathTime and E:NotSecretValue(deathTime) and deathTime > 0 then
-                        bar.rightText:SetText(format('%d:%02d', floor(deathTime / 60), floor(deathTime % 60)))
-                    else
-                        bar.rightText:SetText('')
-                    end
+                    bar.rightText:SetText(TDM.GetDeathTimeText(src, win) or '')
                     if bar._mainCombined then
                         bar._mainCombined = nil
                         if bar.dpsText then bar.dpsText:Hide() end

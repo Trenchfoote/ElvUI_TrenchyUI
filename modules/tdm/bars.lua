@@ -271,6 +271,26 @@ local function ResolveSpellLabel(s, spellID, isSecretID, rawSpellID)
 end
 
 local TOP_SPELLS = 5
+local RECAP_LINES = 5
+
+-- Display name for a death-recap event (mirrors RenderDeathRecap's logic)
+local function ResolveRecapName(ev)
+    local n = ev.spellName
+    if (not n or (E:NotSecretValue(n) and n == '')) and ev.spellId and E:NotSecretValue(ev.spellId) then
+        n = C_Spell.GetSpellName(ev.spellId)
+    end
+    if not n or (E:NotSecretValue(n) and n == '') then
+        local et = ev.event
+        if et == 'SWING_DAMAGE' then
+            n = ACTION_SWING
+        elseif et and et:find('ENVIRONMENTAL') then
+            n = 'Environment'
+        else
+            n = '?'
+        end
+    end
+    return n
+end
 
 -- Rich source-bar hover from C_DamageMeter data (no SetUnit; combat-safe)
 local function BuildSourceHover(self, win)
@@ -334,9 +354,38 @@ local function BuildSourceHover(self, win)
         end
     end
 
+    if isDeaths and src then
+        local rid = src.deathRecapID
+        local events = rid and E:NotSecretValue(rid) and C_DeathRecap
+            and C_DeathRecap.GetRecapEvents and C_DeathRecap.GetRecapEvents(rid)
+        if events and #events > 0 then
+            local when = TDM.GetDeathTimeText(src, win)
+            if when then
+                GameTooltip:AddDoubleLine("Time of death", when, 0.8, 0.8, 0.8, 1, 1, 1)
+            end
+            GameTooltip:AddLine(' ')
+            GameTooltip:AddLine("Final hits", 1, 0.82, 0)
+            for i = 1, min(RECAP_LINES, #events) do
+                local ev = events[i]
+                local amt = ev.amount
+                local right = ''
+                if amt and E:NotSecretValue(amt) and amt > 0 then
+                    right = '-' .. TDM.FormatShort(amt)
+                end
+                local rr, rg, rb = 1, 1, 1
+                if i == 1 then
+                    rr, rg, rb = 1, 0.3, 0.3
+                elseif ev.avoidable then
+                    rr, rg, rb = 1, 0.8, 0
+                end
+                GameTooltip:AddDoubleLine(ResolveRecapName(ev), right, cr, cg, cb, rr, rg, rb)
+            end
+        end
+    end
+
     GameTooltip:AddLine(' ')
     if isDeaths then
-        GameTooltip:AddLine("Click for death recap", 0.7, 0.7, 0.7)
+        GameTooltip:AddLine("Click for full death recap", 0.7, 0.7, 0.7)
     else
         GameTooltip:AddLine("Click for spell breakdown", 0.7, 0.7, 0.7)
     end
