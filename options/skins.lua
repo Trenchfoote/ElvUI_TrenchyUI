@@ -18,6 +18,7 @@ function TUI:BuildSkinsConfig(root, tuiName)
         { key = "skinWarpDeplete",    addon = "WarpDeplete",    label = "WarpDeplete",      order = 6 },
         { key = "skinPremadeGroupsFilter", addon = "PremadeGroupsFilter", label = "Premade Groups Filter", order = 7 },
         { key = "skinTalentLoadoutManager", addon = "TalentLoadoutManager", label = "Talent Loadout Manager", order = 8 },
+        { key = "skinKeystoneLoot", addon = "KeystoneLoot", label = "KeystoneLoot", order = 9 },
     }
 
     for _, def in ipairs(skinDefs) do

@@ -240,6 +240,7 @@ function SKN:Initialize()
 	if self.InitSkinBugSack then self:InitSkinBugSack() end
 	if self.InitSkinOPie then self:InitSkinOPie() end
 	if self.InitSkinPlatynator then self:InitSkinPlatynator() end
+	if self.InitSkinKeystoneLoot then self:InitSkinKeystoneLoot() end
 	if self.InitSkinPremadeGroupsFilter then self:InitSkinPremadeGroupsFilter() end
 	if self.InitSkinTalentLoadoutManager then self:InitSkinTalentLoadoutManager() end
 end
