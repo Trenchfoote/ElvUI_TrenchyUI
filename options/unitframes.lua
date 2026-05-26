@@ -139,7 +139,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         local function ifDisabled() return not ifDB().enabled end
         local function ifStacksDisabled() return not ifDB().enabled or not ifDB().useStackColors end
 
-        root.unitframes.args.ironfur = ACH:Group(E.NewSign .. "Ironfur Bar", nil, 5)
+        root.unitframes.args.ironfur = ACH:Group("Ironfur Bar", nil, 5)
         root.unitframes.args.ironfur.inline = true
         local ifg = root.unitframes.args.ironfur.args
 

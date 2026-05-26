@@ -283,7 +283,7 @@ function TUI:BuildNameplatesConfig(root, tuiName)
     )
 
     -- Platynator sub-group (sibling of ElvUI). Disabled when Platynator isn't installed.
-    root.nameplates.args.platynator = ACH:Group("Platynator", nil, 2)
+    root.nameplates.args.platynator = ACH:Group(E.NewSign .. "Platynator", nil, 2)
     root.nameplates.args.platynator.disabled = function() return not platyEnabled() end
     local platy = root.nameplates.args.platynator.args
 

@@ -122,7 +122,7 @@ function TUI:BuildQoLConfig(root, tuiName)
     end
 
     -- Feature 2: Battle Rez & Bloodlust tracker
-    drArgs.bresLust = ACH:Group("Battle Rez & Bloodlust", nil, 2)
+    drArgs.bresLust = ACH:Group(E.NewSign .. "Battle Rez & Bloodlust", nil, 2)
     drArgs.bresLust.inline = true
     local brl = drArgs.bresLust.args
 
