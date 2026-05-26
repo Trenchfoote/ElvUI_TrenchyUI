@@ -4,11 +4,12 @@
 
 ### New Features
 - QoL: Battle Rez & Bloodlust tracker — movable display for the shared battle rez pool and lust/Sated status, with icon, glow, and text options.
+- Nameplates: Platynator target and mouseover highlights can be recolored to your class color, with a toggle for each.
 - Skins: KeystoneLoot is now skinned to match ElvUI.
 
 ### Improvements
 - Damage Meter: Bar tooltips now show totals, per-second, raid share, and top spells (Shift for the normal spell tooltip).
-- Damage Meter: Hovering a death shows time of death and the final hits; death time now also appears in the Current view.
+- Damage Meter: Hovering a death shows time of death and the final hits; time of death also appears in the Current view once combat ends.
 
 ### Bug Fixes
 - Unit Frames: Ironfur stacks no longer reset when swapping forms and back to Bear.
