@@ -3,6 +3,8 @@ local TUI = E:GetModule('TrenchyUI')
 local ACH = E.Libs.ACH
 
 local elvEnabled = E.private.nameplates.enable
+local function platyEnabled() return E:IsAddOnEnabled('Platynator') end
+local function getNPS() return E:GetModule('TUI_Nameplates', true) end
 
 function TUI:BuildNameplatesConfig(root, tuiName)
     root.nameplates = ACH:Group("Nameplates", nil, 4, "tree")
@@ -278,6 +280,64 @@ function TUI:BuildNameplatesConfig(root, tuiName)
             c.r, c.g, c.b, c.a = r, g, b, a
         end,
         focusDisabled
+    )
+
+    -- Platynator sub-group (sibling of ElvUI). Disabled when Platynator isn't installed.
+    root.nameplates.args.platynator = ACH:Group("Platynator", nil, 2)
+    root.nameplates.args.platynator.disabled = function() return not platyEnabled() end
+    local platy = root.nameplates.args.platynator.args
+
+    platy.highlight = ACH:Group("Class-Colored Highlights", nil, 1)
+    platy.highlight.inline = true
+    local npPH = platy.highlight.args
+
+    npPH.desc = ACH:Description(
+        "Recolor Platynator's Target and Mouseover highlights to your class color."
+        .. " Replaces the color chosen in Platynator's own settings while enabled; turn off to restore Platynator's color.",
+        1, "medium"
+    )
+
+    local function refreshPlaty()
+        local NPS = getNPS()
+        if NPS and NPS.RefreshPlatyHighlight then NPS:RefreshPlatyHighlight() end
+    end
+
+    npPH.enabled = ACH:Toggle(
+        function() return TUI.db.profile.nameplates.platyHighlight.enabled and "|cff00ff00Enable|r" or "Enable" end,
+        nil, 2, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.platyHighlight.enabled end,
+        function(_, value)
+            TUI.db.profile.nameplates.platyHighlight.enabled = value
+            local NPS = getNPS()
+            if value and NPS and NPS.InitPlatyHighlight then NPS:InitPlatyHighlight() end
+            refreshPlaty()
+        end
+    )
+
+    local phDisabled = function() return not TUI.db.profile.nameplates.platyHighlight.enabled end
+
+    npPH.classColorTarget = ACH:Toggle(
+        "Targeted Highlight",
+        "Apply your class color to the highlight on your current target.",
+        3, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.platyHighlight.classColorTarget end,
+        function(_, value)
+            TUI.db.profile.nameplates.platyHighlight.classColorTarget = value
+            refreshPlaty()
+        end,
+        phDisabled
+    )
+
+    npPH.classColorMouseover = ACH:Toggle(
+        "Mouseover Highlight",
+        "Apply your class color to the highlight under your mouse cursor.",
+        4, nil, nil, nil,
+        function() return TUI.db.profile.nameplates.platyHighlight.classColorMouseover end,
+        function(_, value)
+            TUI.db.profile.nameplates.platyHighlight.classColorMouseover = value
+            refreshPlaty()
+        end,
+        phDisabled
     )
 
 end

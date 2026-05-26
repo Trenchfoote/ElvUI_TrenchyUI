@@ -110,6 +110,11 @@ TUI.defaults = {
                 color   = { r = 0.5, g = 0.3, b = 0.9, a = 0.3 },
                 texture = 'TrenchyFocus',
             },
+            platyHighlight = {
+                enabled              = true,
+                classColorTarget     = true,
+                classColorMouseover  = true,
+            },
         },
         pixelGlow = {
             enabled   = false,
