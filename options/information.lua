@@ -12,7 +12,7 @@ function TUI:BuildInformationConfig(root, tuiName)
 
     info.links = ACH:Group("Links", nil, 2)
     info.links.inline = true
-    info.links.args.discord = ACH:Input(E:TextGradient('The Igloo Community Discord', 0.89,0.99,1.00, 0.84,1.00,1.00, 0.45,0.66,0.67, 0.42,0.72,0.95, 0.15,0.49,0.64, 0.04,0.37,0.57), nil, 1, nil, 255, function() return 'https://discord.gg/24wXBTPD' end)
+    info.links.args.discord = ACH:Input(E:TextGradient('The Igloo Community Discord', 0.89,0.99,1.00, 0.84,1.00,1.00, 0.45,0.66,0.67, 0.42,0.72,0.95, 0.15,0.49,0.64, 0.04,0.37,0.57), nil, 1, nil, 255, function() return 'https://discord.gg/W2TGEhPx3Y' end)
     info.links.args.discord.focusSelect = true
 
     info.credits = ACH:Group("Credits", nil, 3)
