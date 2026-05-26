@@ -8,8 +8,10 @@
 - Skins: KeystoneLoot is now skinned to match ElvUI.
 
 ### Improvements
+- Cooldown Manager: Custom tracker icons now dim while on cooldown, matching the other cooldown manager icons.
 - Damage Meter: Bar tooltips now show totals, per-second, raid share, and top spells (Shift for the normal spell tooltip).
 - Damage Meter: Hovering a death shows time of death and the final hits; time of death also appears in the Current view once combat ends.
 
 ### Bug Fixes
+- Cooldown Manager: Custom tracker cooldown text now uses your configured font instead of a default.
 - Unit Frames: Ironfur stacks no longer reset when swapping forms and back to Bear.

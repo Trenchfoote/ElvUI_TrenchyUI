@@ -79,13 +79,14 @@ local function CreateCustomIcon(parent, index)
 	cooldown:SetDrawEdge(false)
 	cooldown:SetHideCountdownNumbers(false)
 
-	local cdText = cooldown:CreateFontString(nil, 'OVERLAY')
-	cdText:SetPoint('CENTER', 0, 0)
-	cdText:FontTemplate(LSM:Fetch('font', 'Expressway'), 14, 'OUTLINE')
-	cooldown.Text = cdText
-
+	-- No own FontString: let ApplyCooldownText style the native countdown region, like the other viewers
 	E:RegisterCooldown(cooldown, 'cdmanager')
 	frame.Cooldown = cooldown
+
+	-- Re-saturate when the cooldown ends naturally; no event fires on expiry
+	cooldown:HookScript('OnCooldownDone', function()
+		frame.icon:SetDesaturated(false)
+	end)
 
 	local countText = frame:CreateFontString(nil, 'OVERLAY')
 	countText:FontTemplate(LSM:Fetch('font', 'Expressway'), 11, 'OUTLINE')
@@ -139,6 +140,10 @@ local function UpdateRacialIcon(frame, spellID)
 	else
 		frame.Cooldown:Clear()
 	end
+
+	-- isActive is NeverSecret; desaturate when on its own cooldown but not just the GCD
+	local info = C_Spell.GetSpellCooldown(spellID)
+	frame.icon:SetDesaturated(info and info.isActive and not info.isOnGCD or false)
 end
 
 local function UpdateTrinketIcon(frame, slot)
@@ -159,6 +164,7 @@ local function UpdateTrinketIcon(frame, slot)
 	else
 		frame.Cooldown:Clear()
 	end
+	frame.icon:SetDesaturated(enable ~= 0 and duration > 0)
 	frame:Show()
 	return true
 end
@@ -183,6 +189,7 @@ local function UpdateItemIcon(frame, itemID, trackType)
 	else
 		frame.Cooldown:Clear()
 	end
+	frame.icon:SetDesaturated(enable ~= 0 and duration > 0)
 	frame:Show()
 	return true
 end
