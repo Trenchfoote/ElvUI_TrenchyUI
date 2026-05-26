@@ -517,7 +517,7 @@ function TDM.RefreshWindow(win)
 
                 local isDeaths = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeaths then
-                    bar.rightText:SetText(TDM.GetDeathTimeText(src, win) or '')
+                    bar.rightText:SetText(TDM.GetDeathTimeText(src) or '')
                     if bar._mainCombined then
                         bar._mainCombined = nil
                         if bar.dpsText then bar.dpsText:Hide() end

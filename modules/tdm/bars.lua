@@ -355,14 +355,16 @@ local function BuildSourceHover(self, win)
     end
 
     if isDeaths and src then
+        -- Time of death works for any member (session-snapshot)
+        local when = TDM.GetDeathTimeText(src)
+        if when then
+            GameTooltip:AddDoubleLine("Time of death", when, 0.8, 0.8, 0.8, 1, 1, 1)
+        end
+        -- Final-hits detail only exists for the local player's own death (C_DeathRecap)
         local rid = src.deathRecapID
         local events = rid and E:NotSecretValue(rid) and C_DeathRecap
             and C_DeathRecap.GetRecapEvents and C_DeathRecap.GetRecapEvents(rid)
         if events and #events > 0 then
-            local when = TDM.GetDeathTimeText(src, win)
-            if when then
-                GameTooltip:AddDoubleLine("Time of death", when, 0.8, 0.8, 0.8, 1, 1, 1)
-            end
             GameTooltip:AddLine(' ')
             GameTooltip:AddLine("Final hits", 1, 0.82, 0)
             for i = 1, min(RECAP_LINES, #events) do
