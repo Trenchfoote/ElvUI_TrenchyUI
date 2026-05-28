@@ -195,6 +195,7 @@ TUI.defaults = {
                     showCombatPotions = true,
                     showBeltTinker = false,
                     trinketMode = 'both',
+                    onUseTrinketsOnly = true,
                     keepSizeRatio = true,
                     iconWidth = 36, iconHeight = 36,
                     iconZoom = 0,

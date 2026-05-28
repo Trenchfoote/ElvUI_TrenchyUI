@@ -344,6 +344,12 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function() return customVDB().trinketMode end,
         function(_, v) customVDB().trinketMode = v; cdmRefresh() end, ctDis)
     ct.trinketMode.sorting = { 'both', 'slot1', 'slot2', 'none' }
+    ct.onUseTrinketsOnly = ACH:Toggle(E.NewSign .. "On-Use Only",
+        "Only show trinkets with an on-use ability. Hides passive and proc trinkets that have no activatable cooldown.",
+        8, nil, nil, nil,
+        function() return customVDB().onUseTrinketsOnly end,
+        function(_, v) customVDB().onUseTrinketsOnly = v; cdmRefresh() end,
+        function() return ctDis() or customVDB().trinketMode == 'none' end)
 
     -- Custom: Layout
     customTab.args.layout = ACH:Group("Layout", nil, 2)

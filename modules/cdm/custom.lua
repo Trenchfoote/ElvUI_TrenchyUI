@@ -146,6 +146,13 @@ local function UpdateRacialIcon(frame, spellID)
 	frame.icon:SetDesaturated(info and info.isActive and not info.isOnGCD or false)
 end
 
+-- On-use trinkets expose a Use: effect; passive/proc trinkets return no spell
+local function IsOnUseTrinket(slot)
+	local itemID = GetInventoryItemID('player', slot)
+	if not itemID then return false end
+	return C_Item.GetItemSpell(itemID) ~= nil
+end
+
 local function UpdateTrinketIcon(frame, slot)
 	local itemID = GetInventoryItemID('player', slot)
 	if not itemID then
@@ -277,9 +284,10 @@ local function UpdateAllIcons()
 		end
 
 		if slots then
+			local onUseOnly = vdb.onUseTrinketsOnly
 			for _, slot in ipairs(slots) do
-				idx = idx + 1
-				if idx <= MAX_ICONS then
+				if (not onUseOnly or IsOnUseTrinket(slot)) and idx < MAX_ICONS then
+					idx = idx + 1
 					local frame = customIcons[idx]
 					if UpdateTrinketIcon(frame, slot) then
 						activeIcons[#activeIcons + 1] = frame
