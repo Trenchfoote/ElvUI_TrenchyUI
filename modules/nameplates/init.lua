@@ -14,10 +14,6 @@ function NPS:Initialize()
 		if np.disableFriendlyHighlight then self:HookDisableFriendlyHighlight() end
 		if np.questColor and np.questColor.enabled then self:HookQuestColor() end
 	end
-	-- Platynator features are independent of ElvUI nameplates (the two are mutually exclusive)
-	if np and E:IsAddOnEnabled('Platynator') then
-		if np.platyHighlight and np.platyHighlight.enabled then self:InitPlatyHighlight() end
-	end
 end
 
 E:RegisterModule(NPS:GetName())

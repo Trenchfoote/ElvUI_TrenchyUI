@@ -7,3 +7,4 @@
 
 ### Bug Fixes
 - General: Updated the community Discord invite link.
+- Nameplates: Removed the Platynator class-color highlight option; it could cause inconsistent nameplate performance.
