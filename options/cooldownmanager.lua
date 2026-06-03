@@ -336,17 +336,21 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     ct.showCombatPotions = ACH:Toggle("Show Combat Potions", nil, 5, nil, nil, nil,
         function() return customVDB().showCombatPotions end,
         function(_, v) customVDB().showCombatPotions = v; cdmRefresh() end, ctDis)
-    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track belt on-use tinker cooldown.", 6, nil, nil, nil,
+    ct.showWeyrnstone = ACH:Toggle(E.NewSign .. "Show Weyrnstone",
+        "Track the cooldown of the Augmentation Evoker Weyrnstone while it is in your bags.", 6, nil, nil, nil,
+        function() return customVDB().showWeyrnstone end,
+        function(_, v) customVDB().showWeyrnstone = v; cdmRefresh() end, ctDis)
+    ct.showBeltTinker = ACH:Toggle("Show Belt Tinker", "Track belt on-use tinker cooldown.", 7, nil, nil, nil,
         function() return customVDB().showBeltTinker end,
         function(_, v) customVDB().showBeltTinker = v; cdmRefresh() end, ctDis)
-    ct.trinketMode = ACH:Select("Trinkets", nil, 7,
+    ct.trinketMode = ACH:Select("Trinkets", nil, 8,
         { both = 'Both', slot1 = 'Trinket 1', slot2 = 'Trinket 2', none = 'None' }, nil, nil,
         function() return customVDB().trinketMode end,
         function(_, v) customVDB().trinketMode = v; cdmRefresh() end, ctDis)
     ct.trinketMode.sorting = { 'both', 'slot1', 'slot2', 'none' }
     ct.onUseTrinketsOnly = ACH:Toggle(E.NewSign .. "On-Use Only",
         "Only show trinkets with an on-use ability. Hides passive and proc trinkets that have no activatable cooldown.",
-        8, nil, nil, nil,
+        9, nil, nil, nil,
         function() return customVDB().onUseTrinketsOnly end,
         function(_, v) customVDB().onUseTrinketsOnly = v; cdmRefresh() end,
         function() return ctDis() or customVDB().trinketMode == 'none' end)

@@ -188,6 +188,7 @@ TUI.defaults = {
                     showHealthstone = true,
                     showPotions = true,
                     showCombatPotions = true,
+                    showWeyrnstone = true,
                     showBeltTinker = false,
                     trinketMode = 'both',
                     onUseTrinketsOnly = true,

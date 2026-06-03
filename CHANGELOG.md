@@ -4,6 +4,7 @@
 
 ### New Features
 - Cooldown Manager: Custom tracker can now show only on-use trinkets, hiding passive and proc trinkets.
+- Cooldown Manager: Custom tracker can now track the Augmentation Evoker Weyrnstone cooldown while it is in your bags.
 
 ### Bug Fixes
 - General: Updated the community Discord invite link.

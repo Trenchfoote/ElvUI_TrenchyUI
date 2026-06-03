@@ -28,6 +28,9 @@ local COMBAT_POTIONS = {
 	241303, -- Void-Shrouded Tincture
 }
 
+-- Weyrnstone (Augmentation Evoker Bestow Weyrnstone) — both copies share this ID
+local WEYRNSTONES = { 205146 }
+
 -- Racial abilities with cooldowns, keyed by raceEng from UnitRace
 -- Multiple candidates per race handle class-specific variants (filtered by IsPlayerSpell at init)
 local RACIAL_SPELLS = {
@@ -250,6 +253,19 @@ local function UpdateAllIcons()
 	-- Combat Potions
 	if vdb.showCombatPotions then
 		for _, itemID in ipairs(COMBAT_POTIONS) do
+			if C_Item.GetItemCount(itemID) > 0 then
+				idx = idx + 1
+				if idx > MAX_ICONS then break end
+				local frame = customIcons[idx]
+				UpdateItemIcon(frame, itemID, 'item')
+				activeIcons[#activeIcons + 1] = frame
+			end
+		end
+	end
+
+	-- Weyrnstone (in bags) — same item ID for both the Aug and the bestow target
+	if vdb.showWeyrnstone then
+		for _, itemID in ipairs(WEYRNSTONES) do
 			if C_Item.GetItemCount(itemID) > 0 then
 				idx = idx + 1
 				if idx > MAX_ICONS then break end
