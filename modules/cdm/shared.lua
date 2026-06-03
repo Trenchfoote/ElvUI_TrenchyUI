@@ -361,7 +361,10 @@ end
 function CDM.ApplySwipeOverride(cooldown, db)
 	if not cooldown then return end
 	if db.hideSwipe then
+		-- Suppress both the swipe pie and its leading edge; the native cooldown
+		-- machinery re-enables each when a cooldown starts, so re-assert via hooks.
 		cooldown:SetDrawSwipe(false)
+		cooldown:SetDrawEdge(false)
 		if not CDM.hookedSwipes[cooldown] then
 			CDM.hookedSwipes[cooldown] = true
 			hooksecurefunc(cooldown, 'SetDrawSwipe', function(self, draw)
@@ -369,6 +372,14 @@ function CDM.ApplySwipeOverride(cooldown, db)
 					local cdb = CDM.GetDB()
 					if cdb and cdb.enabled and cdb.hideSwipe then
 						self:SetDrawSwipe(false)
+					end
+				end
+			end)
+			hooksecurefunc(cooldown, 'SetDrawEdge', function(self, draw)
+				if draw then
+					local cdb = CDM.GetDB()
+					if cdb and cdb.enabled and cdb.hideSwipe then
+						self:SetDrawEdge(false)
 					end
 				end
 			end)
