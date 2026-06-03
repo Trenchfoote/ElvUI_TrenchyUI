@@ -2,11 +2,22 @@ local E = unpack(ElvUI)
 local UF = E:GetModule('UnitFrames')
 
 local UnitPower, UnitPowerType, UnitPowerPercent, format = UnitPower, UnitPowerType, UnitPowerPercent, format
+local UnitGroupRolesAssigned = UnitGroupRolesAssigned
 local hooksecurefunc = hooksecurefunc
 local CurveConstants = _G['CurveConstants']
 local ScaleTo100 = CurveConstants and CurveConstants.ScaleTo100
 
 local tuiCategory = E:TextGradient('TrenchyUI', 1.00,0.18,0.24, 0.80,0.10,0.20)
+
+-- Single-letter role prefix: T for tanks, H for healers; nothing for DPS/no role.
+-- Letter is class-of-role colored (tank orange, healer green); trailing space is baked
+-- in so [tui-role][name] reads "T Trenchy" with no leading space for DPS. Place directly
+-- before [name] with no literal space between them.
+local ROLE_LETTER = { TANK = '|cffffa56eT|r ', HEALER = '|cff49ff45H|r ' }
+E:AddTag('tui-role', 'GROUP_ROSTER_UPDATE PLAYER_ROLES_ASSIGNED', function(unit)
+	return ROLE_LETTER[UnitGroupRolesAssigned(unit)]
+end)
+E:AddTagInfo('tui-role', tuiCategory, 'Role prefix for the name: "T " for tanks, "H " for healers (nothing for DPS). Use directly before [name], e.g. [tui-role][name].')
 
 -- Smart Power tag: shows percentage for mana users, current value otherwise
 E:AddTag('tui-smartpower', 'UNIT_DISPLAYPOWER UNIT_POWER_FREQUENT UNIT_MAXPOWER', function(unit)
