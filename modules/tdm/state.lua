@@ -98,11 +98,16 @@ function TDM.SetBarClassIcon(bar, style, classFilename, specIconID)
         return false
     end
 
-    if style == 'spec' and specIconID and E:NotSecretValue(specIconID) and specIconID > 0 then
-        bar.classIcon:SetTexture(specIconID)
-        bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-        bar.classIcon:Show()
-        return true
+    if style == 'spec' then
+        if specIconID and E:NotSecretValue(specIconID) and specIconID > 0 then
+            bar.classIcon:SetTexture(specIconID)
+            bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+            bar.classIcon:Show()
+            return true
+        end
+        -- Spec icon unavailable (nil/secret/unresolved): fall back to the Blizzard class
+        -- icon, not the fabled default, so a spec-style selection never shows fabled icons.
+        style = 'class'
     end
 
     if style == 'class' then
