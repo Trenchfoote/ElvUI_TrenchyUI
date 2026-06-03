@@ -9,6 +9,12 @@ local GetPlayerInfoByGUID = GetPlayerInfoByGUID
 local SMOOTH = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut
 local refreshPending = false
 
+-- Enemy Damage Taken: enemies have no class, render foreground bars in hostile red
+local ENEMY_BAR_R, ENEMY_BAR_G, ENEMY_BAR_B = 0.78, 0.20, 0.20
+local function IsEnemyMode(meterType)
+    return Enum.DamageMeterType.EnemyDamageTaken and meterType == Enum.DamageMeterType.EnemyDamageTaken
+end
+
 local function ScheduleMeterRefresh()
     if refreshPending then return end
     refreshPending = true
@@ -123,10 +129,14 @@ function TDM.RefreshWindow(win)
         local topVal = sourceMaxAmount or 1
         local totalAmt = sourceTotalAmount or 1
 
-        local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
-        local bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
-        local tR, tG, tB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', ds.class)
-        local vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
+        -- Enemy drilldown rows are the attacking players; resolve color per-row from
+        -- each player's class so the colorMode theme (dark fg/class bg, or inverse)
+        -- applies per player instead of from the classless enemy source.
+        local isEnemyDrill = IsEnemyMode(modeEntry)
+        local baseFgR, baseFgG, baseFgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', ds.class)
+        local baseBgR, baseBgG, baseBgB, baseBgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', ds.class)
+        local baseTR, baseTG, baseTB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', ds.class)
+        local baseVR, baseVG, baseVB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', ds.class)
 
         for i = 1, TDM.MAX_BARS do
             local bar = win.bars[i]
@@ -145,6 +155,29 @@ function TDM.RefreshWindow(win)
                 local spellID = (rawSpellID and not isSecretID) and rawSpellID or nil
                 local spellName = (type(s[1]) == "string" and s[1]) or nil
                 local amt = s.totalAmount or s[2] or 0
+
+                -- Per-row colors: enemy drilldown uses the attacking player's class
+                -- (combatSpellDetails.unitClassFilename, NeverSecret); other drilldowns
+                -- keep the single hoisted source color.
+                local fgR, fgG, fgB = baseFgR, baseFgG, baseFgB
+                local bgR, bgG, bgB, bgA = baseBgR, baseBgG, baseBgB, baseBgA
+                local tR, tG, tB = baseTR, baseTG, baseTB
+                local vR, vG, vB = baseVR, baseVG, baseVB
+                local enemyPlayerClass, enemyPlayerSpec
+                if isEnemyDrill then
+                    local pd = s.combatSpellDetails
+                    if pd then
+                        enemyPlayerSpec = pd.specIconID
+                        local pClass = pd.unitClassFilename
+                        if pClass and E:NotSecretValue(pClass) and pClass ~= '' then
+                            enemyPlayerClass = pClass
+                            fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', pClass)
+                            bgR, bgG, bgB, bgA = TDM.ClassOrColor(db, 'barBGClassColor', 'barBGColor', pClass)
+                            tR, tG, tB = TDM.ClassOrColor(db, 'textClassColor', 'textColor', pClass)
+                            vR, vG, vB = TDM.ClassOrColor(db, 'valueClassColor', 'valueColor', pClass)
+                        end
+                    end
+                end
 
                 local iconID
                 if spellID then
@@ -205,15 +238,23 @@ function TDM.RefreshWindow(win)
                 bar.frame.sourceGUID   = nil
                 bar.frame.testIndex    = nil
 
-                if iconID then
-                    bar.classIcon:SetTexture(iconID)
-                    bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
-                    bar.classIcon:Show()
-                else
-                    bar.classIcon:Hide()
+                -- Enemy drilldown: show the attacking player's spec/class icon (matching
+                -- the user's main-view icon style) instead of the generic-melee spell icon.
+                local usedClassIcon = false
+                if isEnemyDrill and enemyPlayerClass and db.classIconStyle and db.classIconStyle ~= 'none' then
+                    usedClassIcon = TDM.SetBarClassIcon(bar, db.classIconStyle, enemyPlayerClass, enemyPlayerSpec)
+                end
+                if not usedClassIcon then
+                    if iconID then
+                        bar.classIcon:SetTexture(iconID)
+                        bar.classIcon:SetTexCoord(0.08, 0.92, 0.08, 0.92)
+                        bar.classIcon:Show()
+                    else
+                        bar.classIcon:Hide()
+                    end
                 end
 
-                local hasIcon = iconID and true or false
+                local hasIcon = usedClassIcon or (iconID and true or false)
                 if not bar._isDrill then
                     bar._isDrill = true
                     if not bar.dpsText then
@@ -425,6 +466,7 @@ function TDM.RefreshWindow(win)
                 bar.frame.sourceClass = classFilename
 
                 local fgR, fgG, fgB = TDM.ClassOrColor(db, 'barClassColor', 'barColor', classFilename)
+                if IsEnemyMode(meterType) then fgR, fgG, fgB = ENEMY_BAR_R, ENEMY_BAR_G, ENEMY_BAR_B end
                 bar.statusbar:SetStatusBarColor(fgR, fgG, fgB)
                 local isDeathsMode = Enum.DamageMeterType.Deaths and meterType == Enum.DamageMeterType.Deaths
                 if isDeathsMode then

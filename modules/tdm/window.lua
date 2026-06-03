@@ -137,6 +137,9 @@ function TDM.BuildModeMenu(win)
         TDM.MakeModeEntry(win, Enum.DamageMeterType.DamageTaken),
         TDM.MakeModeEntry(win, Enum.DamageMeterType.AvoidableDamageTaken),
     }
+    if Enum.DamageMeterType.EnemyDamageTaken then
+        dmg[#dmg + 1] = TDM.MakeModeEntry(win, Enum.DamageMeterType.EnemyDamageTaken)
+    end
 
     local heal = {
         TDM.MakeModeEntry(win, Enum.DamageMeterType.HealingDone),
