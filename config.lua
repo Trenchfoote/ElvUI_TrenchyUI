@@ -18,6 +18,7 @@ TUI.defaults = {
             buffMouseoverAlpha  = 0,
             debuffMouseover     = false,
             debuffMouseoverAlpha = 0,
+            linkActionBarMouseover = false,
             muteSounds = {
                 gazeOfAlnseer = true,
                 banLu         = true,
