@@ -57,7 +57,8 @@ local RACIAL_SPELLS = {
 	KulTiran      = { 287712 },
 	Vulpera       = { 312411 },
 	Mechagnome    = { 312924 },
-	Dracthyr      = { 357214, 368970 },
+	-- Dracthyr (Wing Buffet 357214, Tail Swipe 368970) are baseline CC tracked by the Blizzard CDM; track them there
+	-- Dracthyr      = { 357214, 368970 },
 	EarthenDwarf  = { 424283 },
 }
 
