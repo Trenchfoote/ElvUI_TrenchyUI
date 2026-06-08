@@ -2,11 +2,9 @@ local E = unpack(ElvUI)
 local UFC = E:GetModule('TUI_UnitFrames')
 local UF = E:GetModule('UnitFrames')
 
-local min = min
 local UnitPower = UnitPower
 local UnitPowerMax = UnitPowerMax
 local UnitPartialPower = UnitPartialPower
-local GetPowerRegenForPowerType = GetPowerRegenForPowerType
 
 local POWERTYPE_ESSENCE = Enum.PowerType.Essence or 19
 local RESYNC_INTERVAL = 0.15
@@ -14,9 +12,15 @@ local RESYNC_INTERVAL = 0.15
 local function StopEssenceSmoothing(bars)
 	bars._tuiEssenceActive = nil
 	bars._tuiEssenceFillBar = nil
-	bars._tuiEssenceValue = nil
-	bars._tuiEssenceRegen = nil
 	bars._tuiEssenceElapsed = 0
+end
+
+-- Partial essence as 0-1; UnitPartialPower is non-secret so safe to scale while tainted (the regen rate is secret)
+local function EssencePartialFill()
+	local partial = UnitPartialPower('player', POWERTYPE_ESSENCE) or 0
+	if partial < 0 then partial = 0
+	elseif partial > 1000 then partial = 1000 end
+	return partial * 0.001
 end
 
 local function RefreshEssenceChargeBar(bars)
@@ -44,20 +48,10 @@ local function RefreshEssenceChargeBar(bars)
 		return
 	end
 
-	local partial = UnitPartialPower('player', POWERTYPE_ESSENCE) or 0
-	if partial < 0 then partial = 0
-	elseif partial > 1000 then partial = 1000 end
-
-	local value = partial * 0.001
-	fillBar:SetValue(value)
-
-	local regen = GetPowerRegenForPowerType(POWERTYPE_ESSENCE) or 0
-	if regen < 0 then regen = 0 end
+	fillBar:SetValue(EssencePartialFill())
 
 	bars._tuiEssenceActive = true
 	bars._tuiEssenceFillBar = fillBar
-	bars._tuiEssenceValue = value
-	bars._tuiEssenceRegen = regen
 end
 
 local function EssenceChargeOnUpdate(bars, elapsed)
@@ -69,12 +63,8 @@ local function EssenceChargeOnUpdate(bars, elapsed)
 		return
 	end
 
-	local regen = bars._tuiEssenceRegen or 0
-	if regen > 0 then
-		local value = min(1, (bars._tuiEssenceValue or 0) + (regen * elapsed))
-		bars._tuiEssenceValue = value
-		fillBar:SetValue(value)
-	end
+	-- Poll partial power each frame; the old regen-rate interpolation is gone (regen is secret in 12.x, tainted math errors)
+	fillBar:SetValue(EssencePartialFill())
 
 	bars._tuiEssenceElapsed = (bars._tuiEssenceElapsed or 0) + elapsed
 	if bars._tuiEssenceElapsed >= RESYNC_INTERVAL then

@@ -8,3 +8,4 @@
 
 ### Bug Fixes
 - Damage Meter: Fixed bars showing Fabled class icons for some players when Spec icons were selected and a player's spec was not yet known.
+- Unit Frames: Fixed a Lua error caused by the Evoker essence partial-charge bar.
