@@ -7,5 +7,6 @@ CHANGELOG(old).md
 .luarc.json
 .luarc-types/
 .vscode/
+*.code-workspace
 .wowluarc.json
 
