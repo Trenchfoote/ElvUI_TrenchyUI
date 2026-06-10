@@ -12,3 +12,4 @@
 
 ### Improvements
 - Cooldown Manager: Dracthyr racials (Wing Buffet and Tail Swipe) are no longer shown in the custom cooldown tracker.
+- Profiles: Refreshed the bundled Platynator nameplate design, including class-colored mouseover and target highlights.
