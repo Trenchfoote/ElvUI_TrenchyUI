@@ -336,7 +336,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
     ct.showCombatPotions = ACH:Toggle("Show Combat Potions", nil, 5, nil, nil, nil,
         function() return customVDB().showCombatPotions end,
         function(_, v) customVDB().showCombatPotions = v; cdmRefresh() end, ctDis)
-    ct.showWeyrnstone = ACH:Toggle(E.NewSign .. "Show Weyrnstone",
+    ct.showWeyrnstone = ACH:Toggle("Show Weyrnstone",
         "Track the cooldown of the Augmentation Evoker Weyrnstone while it is in your bags.", 6, nil, nil, nil,
         function() return customVDB().showWeyrnstone end,
         function(_, v) customVDB().showWeyrnstone = v; cdmRefresh() end, ctDis)
@@ -348,7 +348,7 @@ function TUI:BuildCooldownManagerConfig(root, tuiName)
         function() return customVDB().trinketMode end,
         function(_, v) customVDB().trinketMode = v; cdmRefresh() end, ctDis)
     ct.trinketMode.sorting = { 'both', 'slot1', 'slot2', 'none' }
-    ct.onUseTrinketsOnly = ACH:Toggle(E.NewSign .. "On-Use Only",
+    ct.onUseTrinketsOnly = ACH:Toggle("On-Use Only",
         "Only show trinkets with an on-use ability. Hides passive and proc trinkets that have no activatable cooldown.",
         9, nil, nil, nil,
         function() return customVDB().onUseTrinketsOnly end,
