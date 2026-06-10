@@ -336,6 +336,7 @@ local function CreateFrames()
 	if not holder then
 		holder = CreateFrame('Frame', 'TUI_BResLustHolder', E.UIParent)
 		holder:SetPoint('CENTER', E.UIParent, 'CENTER', 0, 200)
+		holder:SetFrameStrata('LOW')
 	end
 	if not bres then bres = CreateTracker() end
 	if not lust then lust = CreateTracker() end

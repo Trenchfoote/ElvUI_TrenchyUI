@@ -70,7 +70,7 @@ local racialSpells = {}
 local function CreateCustomIcon(parent, index)
 	local frame = CreateFrame('Button', 'TUI_CDM_CustomIcon' .. index, parent, 'BackdropTemplate')
 	frame:SetTemplate('Default')
-	frame:SetFrameStrata('MEDIUM')
+	frame:SetFrameStrata('LOW')
 	frame:SetFrameLevel(6)
 
 	local icon = frame:CreateTexture(nil, 'ARTWORK')
@@ -438,7 +438,7 @@ local function CreateCustomContainer()
 	local frame = CreateFrame('Frame', info.mover .. 'Holder', E.UIParent)
 	frame:SetSize(iconW, iconH)
 	frame:SetPoint('CENTER', E.UIParent, 'CENTER', 0, -200)
-	frame:SetFrameStrata('MEDIUM')
+	frame:SetFrameStrata('LOW')
 	frame:SetFrameLevel(5)
 
 	local configStr = 'TrenchyUI,cooldownManager,custom'
