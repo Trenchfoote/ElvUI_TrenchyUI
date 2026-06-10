@@ -65,26 +65,30 @@ local function FadeSiblingsIn(entered)
 	end
 end
 
+local function FadeLinkedOut()
+	local n = CollectLinkedBars()
+	for i = 1, n do
+		E:UIFrameFadeOut(linkedBuffer[i], 0.2, linkedBuffer[i]:GetAlpha(), 0)
+		AB:FadeBarBlings(linkedBuffer[i], 0)
+	end
+end
+
+local fadeOutPending = false
 local function FadeGroupOut(left)
-	-- Still over the group (moved to a sibling, or onto this bar's backdrop):
-	-- ElvUI's native leave handler already faded `left` out, so fade it back in
-	-- to keep the whole group visible. Without this, leaving one bar for another
-	-- leaves the departed bar stuck hidden until it is re-hovered.
+	-- Still over a sibling: ElvUI faded `left` out, so fade it back in to keep the group up.
 	if AnyLinkedBarHovered() then
 		E:UIFrameFadeIn(left, 0.2, left:GetAlpha(), left.db.alpha or 1)
 		AB:FadeBarBlings(left, left.db.alpha)
-		return
+	else
+		FadeLinkedOut()
 	end
-	-- Mouse left the group entirely: fade the siblings out. `left` is already
-	-- faded out by ElvUI's native handler.
-	local n = CollectLinkedBars()
-	for i = 1, n do
-		local bar = linkedBuffer[i]
-		if bar ~= left then
-			E:UIFrameFadeOut(bar, 0.2, bar:GetAlpha(), 0)
-			AB:FadeBarBlings(bar, 0)
-		end
-	end
+	-- AnyLinkedBarHovered reads stale at leave time; re-check next tick (once) and force fade-out.
+	if fadeOutPending then return end
+	fadeOutPending = true
+	C_Timer.After(0.1, function()
+		fadeOutPending = false
+		if not AnyLinkedBarHovered() then FadeLinkedOut() end
+	end)
 end
 
 -- ElvUI defines these as methods (AB:Handler), so the post-hook receives AB as the

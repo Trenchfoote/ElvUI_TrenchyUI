@@ -3,6 +3,23 @@ local TUI = E:GetModule('TrenchyUI')
 local QOL = E:GetModule('TUI_QoL')
 local A = E:GetModule('Auras')
 
+-- IsMouseOver reads stale when OnLeave fires; re-check next tick so a fast leave isn't missed.
+local function CheckFadeOut(header, hiddenAlpha)
+	if not header:IsMouseOver() then
+		E:UIFrameFadeOut(header, 0.3, header:GetAlpha(), hiddenAlpha)
+	end
+end
+
+local function OnLeaveFade(header, hiddenAlpha)
+	CheckFadeOut(header, hiddenAlpha)
+	if header._tuiFadePending then return end
+	header._tuiFadePending = true
+	C_Timer.After(0.1, function()
+		header._tuiFadePending = nil
+		CheckFadeOut(header, hiddenAlpha)
+	end)
+end
+
 local function HookChildButton(button, header, hiddenAlpha)
 	if button._tuiFaderHooked then return end
 	button._tuiFaderHooked = true
@@ -12,9 +29,7 @@ local function HookChildButton(button, header, hiddenAlpha)
 	end)
 
 	button:HookScript('OnLeave', function()
-		if not header:IsMouseOver() then
-			E:UIFrameFadeOut(header, 0.3, header:GetAlpha(), hiddenAlpha)
-		end
+		OnLeaveFade(header, hiddenAlpha)
 	end)
 end
 
@@ -39,9 +54,7 @@ local function SetupFader(header, hiddenAlpha)
 	end)
 
 	header:HookScript('OnLeave', function(self)
-		if not self:IsMouseOver() then
-			E:UIFrameFadeOut(self, 0.3, self:GetAlpha(), hiddenAlpha)
-		end
+		OnLeaveFade(self, hiddenAlpha)
 	end)
 
 	-- Hook existing children
