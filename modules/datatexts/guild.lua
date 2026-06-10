@@ -14,6 +14,7 @@ local UnitInRaid = UnitInRaid
 local C_GuildInfo_GuildRoster = C_GuildInfo.GuildRoster
 local GetGuildRosterMOTD = C_GuildInfo.GetMOTD or GetGuildRosterMOTD
 local C_PartyInfo_InviteUnit = C_PartyInfo.InviteUnit
+local ChatFrame_OpenChat = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
 local GUILD = GUILD
 
 local guildTable = {}

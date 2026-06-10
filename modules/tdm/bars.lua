@@ -3,6 +3,9 @@ local TUI = E:GetModule('TrenchyUI')
 local TDM = E:GetModule('TUI_TDM')
 
 local floor = math.floor
+local format = string.format
+local max, min = math.max, math.min
+local Ambiguate = Ambiguate
 
 function TDM.CreateBar(parent)
     local bar = {}
@@ -423,9 +426,9 @@ local function BuildDrillHover(self)
     if d.target then
         GameTooltip:AddDoubleLine("Target", d.target, 0.8, 0.8, 0.8, 1, 1, 1)
     end
-    if d.deadly then
+    if E:NotSecretValue(d.deadly) and d.deadly then
         GameTooltip:AddLine("Deadly", 1, 0.3, 0.3)
-    elseif d.avoidable then
+    elseif E:NotSecretValue(d.avoidable) and d.avoidable then
         GameTooltip:AddLine("Avoidable", 1, 0.7, 0.2)
     end
     if self.drillSpellID then

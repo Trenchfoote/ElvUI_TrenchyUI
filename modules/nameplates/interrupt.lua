@@ -10,6 +10,8 @@ local EvalColorBool = C_CurveUtil.EvaluateColorValueFromBoolean
 local EvalColor = C_CurveUtil.EvaluateColorFromBoolean
 local IsSpellKnown = C_SpellBook.IsSpellKnown
 local PlayerBank = Enum.SpellBookSpellBank.Player
+local GetSpecialization = (C_SpecializationInfo and C_SpecializationInfo.GetSpecialization) or GetSpecialization
+local GetSpecializationInfo = (C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo) or GetSpecializationInfo
 
 local INTERRUPT_BY_SPEC = {
 	-- Warrior

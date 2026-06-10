@@ -20,6 +20,7 @@ local C_FriendList_GetFriendInfoByIndex = C_FriendList.GetFriendInfoByIndex
 local C_FriendList_ShowFriends = C_FriendList.ShowFriends
 local C_PartyInfo_InviteUnit = C_PartyInfo.InviteUnit
 local ChatFrame_SendBNetTell = (ChatFrameUtil and ChatFrameUtil.SendBNetTell) or ChatFrame_SendBNetTell
+local ChatFrame_OpenChat = (ChatFrameUtil and ChatFrameUtil.OpenChat) or ChatFrame_OpenChat
 local BNInviteFriend = BNInviteFriend
 local GetTitleIconTexture = C_Texture.GetTitleIconTexture
 local ICON_VERSION = Enum.TitleIconVersion and Enum.TitleIconVersion.Small

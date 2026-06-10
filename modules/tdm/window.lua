@@ -5,6 +5,8 @@ local TDM = E:GetModule('TUI_TDM')
 local LSM = E.Libs.LSM
 local Skins = E:GetModule('Skins')
 local floor = math.floor
+local format = string.format
+local max, min = math.max, math.min
 
 local function OpenMenuAnchored(menuItems, header)
 	E:ComplicatedMenu(menuItems, E.EasyMenu, nil, nil, nil, "MENU")

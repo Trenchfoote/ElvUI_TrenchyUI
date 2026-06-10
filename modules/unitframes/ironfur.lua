@@ -13,8 +13,8 @@ local C_Timer_After = C_Timer.After
 local hooksecurefunc = hooksecurefunc
 local IsSpellKnown = C_SpellBook.IsSpellKnown
 local PlayerBank = Enum.SpellBookSpellBank.Player
-local GetSpecialization = GetSpecialization
-local GetSpecializationInfo = GetSpecializationInfo
+local GetSpecialization = (C_SpecializationInfo and C_SpecializationInfo.GetSpecialization) or GetSpecialization
+local GetSpecializationInfo = (C_SpecializationInfo and C_SpecializationInfo.GetSpecializationInfo) or GetSpecializationInfo
 local GetShapeshiftForm = GetShapeshiftForm
 local tinsert = table.insert
 local tremove = table.remove
@@ -49,8 +49,7 @@ local function BaseDuration()
 	return IsSpellKnown(URSOCS_ENDURANCE, PlayerBank) and 9 or 7
 end
 
-local function StackColor(count)
-	local db = GetDB()
+local function StackColor(db, count)
 	if not db.useStackColors or count == 0 then return db.tickColor end
 	if count >= 4 then return db.stackColors[4] end
 	return db.stackColors[count] or db.stackColors[1]
@@ -168,7 +167,7 @@ function UFC.IronfurOnUpdate()
 	if leftBG then
 		if maxProgress then
 			leftBG:SetWidth(mathmax(1, maxProgress * width))
-			local c = StackColor(#activeTicks)
+			local c = StackColor(db, #activeTicks)
 			leftBG:SetVertexColor(c.r, c.g, c.b, c.a or 1)
 			leftBG:Show()
 		else
@@ -185,7 +184,7 @@ function UFC.IronfurOnUpdate()
 		elseif mode == 'both' then
 			counterText:SetFormattedText('%dx %ds', #activeTicks, maxRemaining)
 		else
-			counterText:SetText(tostring(#activeTicks))
+			counterText:SetFormattedText('%d', #activeTicks)
 		end
 	end
 

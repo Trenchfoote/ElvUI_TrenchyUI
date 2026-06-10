@@ -6,6 +6,9 @@ local LSM = E.Libs.LSM
 local floor = math.floor
 local wipe = wipe
 local GetPlayerInfoByGUID = GetPlayerInfoByGUID
+local format = string.format
+local max, min = math.max, math.min
+local Ambiguate = Ambiguate
 local SMOOTH = Enum.StatusBarInterpolation and Enum.StatusBarInterpolation.ExponentialEaseOut
 local refreshPending = false
 
