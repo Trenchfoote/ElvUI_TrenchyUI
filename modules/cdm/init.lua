@@ -378,6 +378,8 @@ function CDM:Initialize()
 		end
 
 		-- Right-click context menu for buff CDM items
+		local CATEGORY_ESSENTIAL = 0
+		local CATEGORY_UTILITY = 1
 		local CATEGORY_TRACKED_BUFF = 2
 		local CATEGORY_TRACKED_BAR = 3
 		local tuiMenuTitle = '|cffff2f3dTrenchyUI|r CDM'
@@ -388,7 +390,8 @@ function CDM:Initialize()
 			if not cdInfo then return end
 			local cat = cdInfo.category
 
-			if cat ~= CATEGORY_TRACKED_BUFF and cat ~= CATEGORY_TRACKED_BAR then return end
+			if cat ~= CATEGORY_TRACKED_BUFF and cat ~= CATEGORY_TRACKED_BAR
+			   and cat ~= CATEGORY_ESSENTIAL and cat ~= CATEGORY_UTILITY then return end
 
 			rootDescription:CreateDivider()
 			rootDescription:CreateTitle(tuiMenuTitle)
@@ -398,10 +401,15 @@ function CDM:Initialize()
 					local spellID = owner.GetBaseSpellID and owner:GetBaseSpellID()
 					if spellID then CDM:ShowBarColorPanel(spellID) end
 				end)
-			else
+			elseif cat == CATEGORY_TRACKED_BUFF then
 				rootDescription:CreateButton('Glow Options', function()
 					local spellID = owner.GetBaseSpellID and owner:GetBaseSpellID()
 					if spellID then CDM:ShowGlowPanel(spellID) end
+				end)
+			else
+				rootDescription:CreateButton('Active State Options', function()
+					local spellID = owner.GetBaseSpellID and owner:GetBaseSpellID()
+					if spellID then CDM:ShowActiveStatePanel(spellID) end
 				end)
 			end
 		end)

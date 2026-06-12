@@ -13,5 +13,6 @@ function CDM.LayoutEssential(isCapture)
 			CDM.StopGlow(icon)
 		end
 		CDM.ApplyKeybindText(icon, vdb)
+		CDM.ApplyActiveState(icon, icon.GetBaseSpellID and icon:GetBaseSpellID())
 	end)
 end

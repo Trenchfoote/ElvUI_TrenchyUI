@@ -24,6 +24,7 @@ CDM.inCombat = false
 CDM.hookedAlerts = {}
 CDM.hookedSwipes = {}
 CDM.hookedViewers = {}
+CDM.hookedActiveState = {}
 CDM.iconCache = {}
 CDM.sortFunc = function(a, b) return (a.layoutIndex or 0) < (b.layoutIndex or 0) end
 
@@ -78,4 +79,41 @@ function CDM.GetOrCreateSpellBarColorDB(spellID)
 		db.spellBarColor[spellID] = { enabled = d.enabled, fgColor = { r = d.fgColor.r, g = d.fgColor.g, b = d.fgColor.b }, bgColor = { r = d.bgColor.r, g = d.bgColor.g, b = d.bgColor.b, a = d.bgColor.a } }
 	end
 	return db.spellBarColor[spellID]
+end
+
+-- Per-spell active-state helpers. mode = 'default' | 'hide' | 'custom'. Custom fields applied in CDM.ApplyActiveState.
+CDM.SPELL_ACTIVE_STATE_DEFAULTS = {
+	mode = 'default',
+	swipe = 'aura', -- aura | color | class
+	swipeColor = { r = 1, g = 0.95, b = 0.57, a = 0.7 },
+	textColor = { r = 1, g = 1, b = 1 },
+	textClassColor = false,
+	desaturate = false,
+}
+
+function CDM.GetSpellActiveStateDB(spellID)
+	local db = CDM.GetDB()
+	return db and db.spellActiveState and db.spellActiveState[spellID]
+end
+
+function CDM.GetOrCreateSpellActiveStateDB(spellID)
+	local db = CDM.GetDB()
+	if not db then return nil end
+	if not db.spellActiveState then db.spellActiveState = {} end
+	local sas = db.spellActiveState[spellID]
+	if not sas then sas = {} db.spellActiveState[spellID] = sas end
+	-- migrate the old hideActive boolean to mode
+	if sas.hideActive ~= nil then
+		if not sas.mode then sas.mode = sas.hideActive and 'hide' or 'default' end
+		sas.hideActive = nil
+	end
+	-- backfill any missing fields from defaults
+	local d = CDM.SPELL_ACTIVE_STATE_DEFAULTS
+	if sas.mode == nil then sas.mode = d.mode end
+	if sas.swipe == nil then sas.swipe = d.swipe end
+	if sas.swipeColor == nil then sas.swipeColor = { r = d.swipeColor.r, g = d.swipeColor.g, b = d.swipeColor.b, a = d.swipeColor.a } end
+	if sas.textColor == nil then sas.textColor = { r = d.textColor.r, g = d.textColor.g, b = d.textColor.b } end
+	if sas.textClassColor == nil then sas.textClassColor = d.textClassColor end
+	if sas.desaturate == nil then sas.desaturate = d.desaturate end
+	return sas
 end

@@ -368,7 +368,7 @@ function CDM.ApplySwipeOverride(cooldown, db)
 		if not CDM.hookedSwipes[cooldown] then
 			CDM.hookedSwipes[cooldown] = true
 			hooksecurefunc(cooldown, 'SetDrawSwipe', function(self, draw)
-				if draw then
+				if draw and not (self.tuiASDir and self.tuiASDir.swipe and not self.tuiASDir.showCD and self.tuiASItem and self.tuiASItem.cooldownSwipeColor and E:NotSecretValue(self.tuiASItem.cooldownSwipeColor.r) and self.tuiASItem.cooldownSwipeColor.r ~= 0) then
 					local cdb = CDM.GetDB()
 					if cdb and cdb.enabled and cdb.hideSwipe then
 						self:SetDrawSwipe(false)
@@ -383,6 +383,147 @@ function CDM.ApplySwipeOverride(cooldown, db)
 					end
 				end
 			end)
+		end
+	end
+end
+
+-- Per-spell active-state customization. mode = default (no override) | hide (cooldown look + desaturate) | custom (recolor swipe, tint active text, optional desaturate). All modes share IsActivePhase + the hooks below.
+local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
+local C_Spell_GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
+local FindSpellOverrideByID = C_SpellBook and C_SpellBook.FindSpellOverrideByID
+local COOLDOWN_SWIPE_ALPHA = 0.7 -- Blizzard ITEM_COOLDOWN_COLOR alpha
+local AURA_SWIPE = { 1, 0.95, 0.57, 0.7 } -- Blizzard ITEM_AURA_COLOR
+
+-- Active/aura phase: Blizzard sets the aura swipe color (r=1); on cooldown it is black (r=0). Read secret-safely so it works in combat.
+local function IsActivePhase(itemFrame)
+	local sc = itemFrame and itemFrame.cooldownSwipeColor
+	return (sc and E:NotSecretValue(sc.r) and sc.r ~= 0) or false
+end
+
+local function PlayerClassColor()
+	local _, class = UnitClass('player')
+	return class and E:ClassColor(class)
+end
+
+-- Resolve a spell's settings into a directive the hooks assert during the active phase. nil = no override (default mode).
+local function ResolveActiveState(sas)
+	local mode = (sas and (sas.mode or (sas.hideActive and 'hide'))) or 'default'
+	if mode == 'hide' then
+		return { swipe = { 0, 0, 0, COOLDOWN_SWIPE_ALPHA }, showCD = true, desat = true }
+	elseif mode == 'custom' then
+		local dir = { desat = sas.desaturate or false }
+		local sm = sas.swipe or 'aura'
+		if sm == 'color' and sas.swipeColor then
+			local c = sas.swipeColor
+			dir.swipe = { c.r, c.g, c.b, c.a or COOLDOWN_SWIPE_ALPHA }
+		elseif sm == 'class' then
+			local c = PlayerClassColor()
+			if c then dir.swipe = { c.r, c.g, c.b, COOLDOWN_SWIPE_ALPHA } end
+		end
+		if sas.textClassColor then
+			local c = PlayerClassColor()
+			if c then dir.text = { c.r, c.g, c.b } end
+		elseif sas.textColor then
+			dir.text = { sas.textColor.r, sas.textColor.g, sas.textColor.b }
+		end
+		return dir
+	end
+end
+
+-- Assert the directive on the live frame during the active phase. Re-asserted because Blizzard re-applies its own visual on its ticks.
+local function AssertActiveState(cooldown, dir)
+	if cooldown._tuiASReasserting then return end
+	cooldown._tuiASReasserting = true
+	if dir.swipe then
+		-- Recolor only. The Hide-GCD-Swipe hook leaves the native buff swipe alone during the active phase, so Blizzard's own start-full-drain runs untouched and we just tint it. Hide mode drives its own CD swipe below.
+		cooldown:SetSwipeColor(dir.swipe[1], dir.swipe[2], dir.swipe[3], dir.swipe[4])
+		if dir.showCD then cooldown:SetDrawSwipe(true) end
+	end
+	if dir.showCD then
+		if cooldown.SetUseAuraDisplayTime then cooldown:SetUseAuraDisplayTime(false) end
+		local sid = cooldown.tuiASSpell
+		if sid and cooldown.SetCooldownFromDurationObject and C_Spell_GetSpellCooldownDuration then
+			local effID = (FindSpellOverrideByID and FindSpellOverrideByID(sid)) or sid
+			local info = C_Spell_GetSpellCooldown and C_Spell_GetSpellCooldown(effID)
+			if info and info.isActive then
+				local cdDur = C_Spell_GetSpellCooldownDuration(effID)
+				if cdDur then cooldown:SetCooldownFromDurationObject(cdDur) end
+			end
+		end
+	end
+	if dir.text then
+		local t = cooldown.tuiText or cooldown.Text
+		if t and t.SetTextColor then
+			if not cooldown.tuiASTextOrig then cooldown.tuiASTextOrig = { t:GetTextColor() } end
+			t:SetTextColor(dir.text[1], dir.text[2], dir.text[3])
+		end
+	end
+	cooldown._tuiASReasserting = false
+end
+
+-- Restore the captured baseline text color when the active phase ends, so an active text color stays active-only and never bleeds into the cooldown/baseline text.
+local function RestoreActiveText(cooldown)
+	local orig = cooldown.tuiASTextOrig
+	if not orig then return end
+	cooldown.tuiASTextOrig = nil
+	local t = cooldown.tuiText or cooldown.Text
+	if t and t.SetTextColor then t:SetTextColor(orig[1] or 1, orig[2] or 1, orig[3] or 1, orig[4] or 1) end
+end
+
+-- Install the per-frame hooks once; they no-op unless a directive is set, so all modes share them. Driven by Blizzard's own (untainted) ticks.
+local function EnsureActiveStateHooks(itemFrame, cooldown)
+	if not CDM.hookedActiveState[cooldown] then
+		CDM.hookedActiveState[cooldown] = true
+		hooksecurefunc(cooldown, 'SetSwipeColor', function(self, r)
+			local dir = self.tuiASDir
+			if not dir or self._tuiASReasserting or type(r) ~= 'number' or not E:NotSecretValue(r) then return end
+			if r ~= 0 then
+				AssertActiveState(self, dir)
+			else
+				RestoreActiveText(self)
+				-- swipe visibility is decided live in the SetDrawSwipe hook via tuiASDir + active phase
+			end
+		end)
+	end
+	-- Blizzard un-desaturates the icon during the aura phase; re-assert after its RefreshIconDesaturation (runs in Blizzard's untainted context, so its secret IsExpired math is safe there).
+	if itemFrame.RefreshIconDesaturation and not CDM.hookedActiveState[itemFrame] then
+		CDM.hookedActiveState[itemFrame] = true
+		hooksecurefunc(itemFrame, 'RefreshIconDesaturation', function(self)
+			local dir = self.Cooldown and self.Cooldown.tuiASDir
+			if dir and dir.desat and IsActivePhase(self) then
+				local tex = self.GetIconTexture and self:GetIconTexture()
+				if tex then tex:SetDesaturated(true) end
+			end
+		end)
+	end
+end
+
+function CDM.ApplyActiveState(itemFrame, spellID)
+	local cooldown = itemFrame and itemFrame.Cooldown
+	if not cooldown then return end
+	EnsureActiveStateHooks(itemFrame, cooldown)
+
+	-- clear stale flags from earlier builds so any dev-session-accumulated hooks no-op
+	cooldown.tuiHideActiveSpell, itemFrame.tuiHideActive = nil, nil
+
+	local dir = ResolveActiveState(spellID and CDM.GetSpellActiveStateDB(spellID))
+	cooldown.tuiASDir = dir
+	cooldown.tuiASSpell = (dir and spellID) or nil
+	cooldown.tuiASItem = itemFrame
+
+	local active = IsActivePhase(itemFrame)
+	if dir then
+		if active then AssertActiveState(cooldown, dir) end
+		if itemFrame.GetIconTexture and active then
+			itemFrame:GetIconTexture():SetDesaturated(dir.desat or false)
+		end
+	else
+		-- default: drop overrides; restore the visible bits now if active, Blizzard owns the rest on its next tick
+		RestoreActiveText(cooldown)
+		if cooldown.SetUseAuraDisplayTime then cooldown:SetUseAuraDisplayTime(true) end
+		if active then
+			cooldown:SetSwipeColor(AURA_SWIPE[1], AURA_SWIPE[2], AURA_SWIPE[3], AURA_SWIPE[4])
+			if itemFrame.GetIconTexture then itemFrame:GetIconTexture():SetDesaturated(false) end
 		end
 	end
 end

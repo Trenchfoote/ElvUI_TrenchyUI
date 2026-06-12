@@ -181,7 +181,6 @@ do
 		window:AddChild(scale)
 		widgets.scale = scale
 
-		window:SetCallback('OnClose', function() glowPanel = nil end)
 		window:Hide()
 		glowPanel = window
 	end
@@ -194,6 +193,7 @@ do
 		if not glowPanel then CreateGlowPanel() end
 		currentSpellID = spellID
 		CDM:HideBarColorPanel()
+		CDM:HideActiveStatePanel()
 		AnchorOptionPanel(glowPanel, spellID, 'tuiGlowHooked')
 		UpdatePanelWidgets()
 		glowPanel:Show()
@@ -272,7 +272,6 @@ do
 		window:AddChild(bgColor)
 		bcWidgets.bgColor = bgColor
 
-		window:SetCallback('OnClose', function() barColorPanel = nil end)
 		window:Hide()
 		barColorPanel = window
 	end
@@ -285,9 +284,161 @@ do
 		if not barColorPanel then CreateBarColorPanel() end
 		barColorSpellID = spellID
 		CDM:HideGlowPanel()
+		CDM:HideActiveStatePanel()
 		AnchorOptionPanel(barColorPanel, spellID, 'tuiBarColorHooked')
 		UpdateBarColorWidgets()
 		barColorPanel:Show()
+	end
+end
+
+-- Active State Options Panel
+do
+	local AceGUI = LibStub('AceGUI-3.0')
+	local activeStatePanel, activeStateSpellID
+	local asWidgets = {}
+
+	local function RefreshActiveState()
+		for _, vKey in ipairs({ 'essential', 'utility' }) do
+			local viewer = CDM.GetViewer(vKey)
+			if viewer and viewer.itemFramePool then
+				for frame in viewer.itemFramePool:EnumerateActive() do
+					if frame and frame:IsShown() and frame.GetBaseSpellID then
+						CDM.ApplyActiveState(frame, frame:GetBaseSpellID())
+					end
+				end
+			end
+		end
+	end
+
+	local MODE_LIST = { default = 'Default', hide = 'Hide', custom = 'Customize' }
+	local MODE_ORDER = { 'default', 'hide', 'custom' }
+	local SWIPE_LIST = { aura = 'Keep (Blizzard)', color = 'Solid Color', class = 'Class Color' }
+	local SWIPE_ORDER = { 'aura', 'color', 'class' }
+
+	local function UpdateControlStates()
+		if not activeStatePanel or not activeStateSpellID then return end
+		local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+		if not sas then return end
+		local custom = sas.mode == 'custom'
+		asWidgets.swipe:SetDisabled(not custom)
+		asWidgets.swipeColor:SetDisabled(not custom or sas.swipe ~= 'color')
+		asWidgets.textColor:SetDisabled(not custom)
+		asWidgets.textClass:SetDisabled(not custom)
+		asWidgets.desaturate:SetDisabled(not custom)
+	end
+
+	local function UpdateActiveStateWidgets()
+		if not activeStatePanel or not activeStateSpellID then return end
+		local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+		if not sas then return end
+		asWidgets.mode:SetValue(sas.mode)
+		asWidgets.swipe:SetValue(sas.swipe)
+		asWidgets.swipeColor:SetColor(sas.swipeColor.r, sas.swipeColor.g, sas.swipeColor.b, sas.swipeColor.a or 1)
+		asWidgets.textColor:SetColor(sas.textColor.r, sas.textColor.g, sas.textColor.b, 1)
+		asWidgets.textClass:SetValue(sas.textClassColor)
+		asWidgets.desaturate:SetValue(sas.desaturate)
+		UpdateControlStates()
+	end
+
+	local function CreateActiveStatePanel()
+		local window = AceGUI:Create('Window')
+		window:SetTitle('|cffff2f3dTrenchyUI|r Active State')
+		window:SetWidth(300)
+		window:SetHeight(340)
+		window:SetLayout('Flow')
+		window:EnableResize(false)
+		window.frame:SetFrameStrata('DIALOG')
+
+		local mode = AceGUI:Create('Dropdown')
+		mode:SetLabel('Mode')
+		mode:SetList(MODE_LIST, MODE_ORDER)
+		mode:SetFullWidth(true)
+		mode:SetCallback('OnValueChanged', function(_, _, val)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.mode = val UpdateControlStates() RefreshActiveState() end
+		end)
+		window:AddChild(mode)
+		asWidgets.mode = mode
+
+		local swipe = AceGUI:Create('Dropdown')
+		swipe:SetLabel('Swipe')
+		swipe:SetList(SWIPE_LIST, SWIPE_ORDER)
+		swipe:SetFullWidth(true)
+		swipe:SetCallback('OnValueChanged', function(_, _, val)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.swipe = val UpdateControlStates() RefreshActiveState() end
+		end)
+		window:AddChild(swipe)
+		asWidgets.swipe = swipe
+
+		local swipeColor = AceGUI:Create('ColorPicker')
+		swipeColor:SetLabel('Swipe Color')
+		swipeColor:SetFullWidth(true)
+		swipeColor:SetHasAlpha(true)
+		local function scChanged(_, _, r, g, b, a)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.swipeColor.r, sas.swipeColor.g, sas.swipeColor.b, sas.swipeColor.a = r, g, b, a RefreshActiveState() end
+		end
+		swipeColor:SetCallback('OnValueChanged', scChanged)
+		swipeColor:SetCallback('OnValueConfirmed', scChanged)
+		window:AddChild(swipeColor)
+		asWidgets.swipeColor = swipeColor
+
+		local textColor = AceGUI:Create('ColorPicker')
+		textColor:SetLabel('Active Text Color')
+		textColor:SetRelativeWidth(0.6)
+		textColor:SetHasAlpha(false)
+		local function tcChanged(_, _, r, g, b)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.textColor.r, sas.textColor.g, sas.textColor.b = r, g, b RefreshActiveState() end
+		end
+		textColor:SetCallback('OnValueChanged', tcChanged)
+		textColor:SetCallback('OnValueConfirmed', tcChanged)
+		window:AddChild(textColor)
+		asWidgets.textColor = textColor
+
+		local textClass = AceGUI:Create('CheckBox')
+		textClass:SetLabel('Class')
+		textClass:SetRelativeWidth(0.4)
+		textClass:SetCallback('OnValueChanged', function(_, _, val)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.textClassColor = val RefreshActiveState() end
+		end)
+		window:AddChild(textClass)
+		asWidgets.textClass = textClass
+
+		local desaturate = AceGUI:Create('CheckBox')
+		desaturate:SetLabel('Desaturate icon while active')
+		desaturate:SetFullWidth(true)
+		desaturate:SetCallback('OnValueChanged', function(_, _, val)
+			local sas = CDM.GetOrCreateSpellActiveStateDB(activeStateSpellID)
+			if sas then sas.desaturate = val RefreshActiveState() end
+		end)
+		window:AddChild(desaturate)
+		asWidgets.desaturate = desaturate
+
+		local textNote = AceGUI:Create('Label')
+		textNote:SetText('|cff808080Active Text Color applies only while the buff is active; your baseline cooldown text is restored afterward.|r')
+		textNote:SetFullWidth(true)
+		window:AddChild(textNote)
+		asWidgets.textNote = textNote
+
+		window:Hide()
+		activeStatePanel = window
+	end
+
+	function CDM:HideActiveStatePanel()
+		if activeStatePanel then activeStatePanel:Hide() end
+	end
+
+	function CDM:ShowActiveStatePanel(spellID)
+		if not activeStatePanel then CreateActiveStatePanel() end
+		activeStateSpellID = spellID
+		CDM:HideGlowPanel()
+		CDM:HideBarColorPanel()
+		AnchorOptionPanel(activeStatePanel, spellID, 'tuiActiveStateHooked')
+		UpdateActiveStateWidgets()
+		activeStatePanel:Show()
 	end
 end
 
@@ -324,6 +475,16 @@ function CDM.OpenCDMConfig()
 		E:ToggleOptions()
 	end
 
-	C_Timer.After(0, function() ACD:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager') end)
-	C_Timer.After(0.2, function() ACD:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager') end)
+	-- ElvUI_Options is load-on-demand; its config can register a moment after ToggleOptions (e.g. right after a fresh login). Poll until 'ElvUI' is registered before navigating, so SelectGroup never fires on an unregistered app.
+	local ACR = E.Libs.AceConfigRegistry
+	local tries = 0
+	local function nav()
+		tries = tries + 1
+		if ACR and ACR:GetOptionsTable('ElvUI') then
+			ACD:SelectGroup('ElvUI', 'TrenchyUI', 'cooldownManager')
+		elseif tries < 25 then
+			C_Timer.After(0.1, nav)
+		end
+	end
+	nav()
 end
