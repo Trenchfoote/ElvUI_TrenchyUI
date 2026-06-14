@@ -513,12 +513,14 @@ function CDM.ApplyActiveState(itemFrame, spellID)
 
 	local active = IsActivePhase(itemFrame)
 	if dir then
+		cooldown.tuiASApplied = true
 		if active then AssertActiveState(cooldown, dir) end
 		if itemFrame.GetIconTexture and active then
 			itemFrame:GetIconTexture():SetDesaturated(dir.desat or false)
 		end
-	else
-		-- default: drop overrides; restore the visible bits now if active, Blizzard owns the rest on its next tick
+	elseif cooldown.tuiASApplied then
+		-- restore once when an override is switched off; never touch always-default spells, or we fight Blizzard's aura/cooldown display every layout (jittery numbers)
+		cooldown.tuiASApplied = nil
 		RestoreActiveText(cooldown)
 		if cooldown.SetUseAuraDisplayTime then cooldown:SetUseAuraDisplayTime(true) end
 		if active then
