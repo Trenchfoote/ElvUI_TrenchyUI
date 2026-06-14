@@ -34,7 +34,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return TUI.db.profile.qol.shortenEnchantStrings end,
         function(_, v) TUI.db.profile.qol.shortenEnchantStrings = v; E:StaticPopup_Show('CONFIG_RL') end)
 
-    qolGen.linkActionBarMouseover = ACH:Toggle(E.NewSign .. "Link AB Mouseover",
+    qolGen.linkActionBarMouseover = ACH:Toggle("Link AB Mouseover",
         "When you hover any action bar set to Mouseover, all Mouseover action bars fade in together.", 7, nil, nil, nil,
         function() return TUI.db.profile.qol.linkActionBarMouseover end,
         function(_, v) TUI.db.profile.qol.linkActionBarMouseover = v end)

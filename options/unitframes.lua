@@ -252,7 +252,7 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         local function rdDB() return TUI.db.profile.radianceBar end
         local function rdDisabled() return not rdDB().enabled end
 
-        root.unitframes.args.radiance = ACH:Group("Power Word: Radiance Bar", nil, 6)
+        root.unitframes.args.radiance = ACH:Group(E.NewSign .. "Power Word: Radiance Bar", nil, 6)
         root.unitframes.args.radiance.inline = true
         local rdg = root.unitframes.args.radiance.args
 
