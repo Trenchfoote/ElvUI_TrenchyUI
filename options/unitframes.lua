@@ -243,4 +243,90 @@ function TUI:BuildUnitFramesConfig(root, tuiName)
         end
     end
 
+    -- Power Word: Radiance Bar (Priest only)
+    if E.myclass == 'PRIEST' then
+        local function refreshRadiance()
+            local UFC = E:GetModule('TUI_UnitFrames', true)
+            if UFC and UFC.RefreshRadianceBar then UFC:RefreshRadianceBar() end
+        end
+        local function rdDB() return TUI.db.profile.radianceBar end
+        local function rdDisabled() return not rdDB().enabled end
+
+        root.unitframes.args.radiance = ACH:Group("Power Word: Radiance Bar", nil, 6)
+        root.unitframes.args.radiance.inline = true
+        local rdg = root.unitframes.args.radiance.args
+
+        rdg.desc = ACH:Description(
+            "Discipline Priest only. A segmented bar tracking Power Word: Radiance charges. "
+            .. "Self-tracked from your casts (with a flat recharge) so it stays accurate in combat, "
+            .. "where the game hides live spell-charge data.",
+            1, "medium"
+        )
+
+        rdg.enabled = ACH:Toggle(
+            function() return rdDB().enabled and "|cff00ff00Enable|r" or "Enable" end,
+            "Enable the Power Word: Radiance charge bar (Discipline spec only).",
+            2, nil, nil, nil,
+            function() return rdDB().enabled end,
+            function(_, value)
+                rdDB().enabled = value
+                if value then
+                    local UFC = E:GetModule('TUI_UnitFrames', true)
+                    if UFC and UFC.InitRadianceBar then UFC:InitRadianceBar() end
+                end
+                E:StaticPopup_Show('CONFIG_RL')
+            end
+        )
+
+        rdg.showWhenInactive = ACH:Toggle(
+            "Show When Full",
+            "Keep the bar visible when both charges are available.",
+            3, nil, nil, nil,
+            function() return rdDB().showWhenInactive end,
+            function(_, value) rdDB().showWhenInactive = value; refreshRadiance() end,
+            rdDisabled
+        )
+
+        rdg.spacing = ACH:Range(
+            "Segment Spacing", "Gap between the charge segments.", 4,
+            { min = 0, max = 10, step = 1 }, nil,
+            function() return rdDB().spacing end,
+            function(_, value) rdDB().spacing = value; refreshRadiance() end,
+            rdDisabled
+        )
+
+        rdg.useClassColor = ACH:Toggle(
+            "Use Class Color",
+            "Color the charges with your class color instead of the custom color below.",
+            5, nil, nil, nil,
+            function() return rdDB().useClassColor end,
+            function(_, value) rdDB().useClassColor = value; refreshRadiance() end,
+            rdDisabled
+        )
+
+        rdg.color = ACH:Color(
+            "Charge Color", "Color of the charge segments.", 6, true, nil,
+            function() local c = rdDB().color return c.r, c.g, c.b, c.a end,
+            function(_, r, g, b, a) local c = rdDB().color c.r, c.g, c.b, c.a = r, g, b, a refreshRadiance() end,
+            function() return not rdDB().enabled or rdDB().useClassColor end
+        )
+
+        rdg.showCooldownText = ACH:Toggle(
+            "Show Recharge Timer",
+            "Show the seconds remaining until the next charge on the recharging segment.",
+            7, nil, nil, nil,
+            function() return rdDB().showCooldownText end,
+            function(_, value) rdDB().showCooldownText = value; refreshRadiance() end,
+            rdDisabled
+        )
+
+        rdg.cooldownFontSize = ACH:Range(
+            "Timer Font Size", "Font size for the recharge timer text.", 8,
+            { min = 6, max = 24, step = 1 }, nil,
+            function() return rdDB().cooldownFontSize end,
+            function(_, value) rdDB().cooldownFontSize = value; refreshRadiance() end,
+            function() return not rdDB().enabled or not rdDB().showCooldownText end
+        )
+    end
+
 end

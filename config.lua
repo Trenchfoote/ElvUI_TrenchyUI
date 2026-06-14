@@ -145,6 +145,15 @@ TUI.defaults = {
             },
             uniformTickSpeed = false,
         },
+        radianceBar = {
+            enabled          = false,
+            color            = { r = 1, g = 0.82, b = 0.4, a = 1 },
+            useClassColor    = false,
+            showWhenInactive = true,
+            showCooldownText = true,
+            cooldownFontSize = 12,
+            spacing          = 2,
+        },
         cooldownManager = {
             enabled = false,
             hideSwipe = false,

@@ -8,6 +8,7 @@ function UFC:Initialize()
 	if self.InitEvokerEssenceCharge then self:InitEvokerEssenceCharge() end
 	if self.InitSteadyFlight then self:InitSteadyFlight() end
 	if self.InitIronfurBar then self:InitIronfurBar() end
+	if self.InitRadianceBar then self:InitRadianceBar() end
 	self:InitAbsorbTextures()
 end
 
