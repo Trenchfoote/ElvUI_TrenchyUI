@@ -1,4 +1,4 @@
-## Interface: 120005
+## Interface: 120007
 ## Title: |cff1784d1ElvUI|r |cffff2f3dTrenchyUI|r
 ## Notes: ElvUI companion — addon skins, QoL tweaks, nameplate enhancements, damage meter
 ## Author: Trenchy

@@ -1,15 +1,6 @@
 # TrenchyUI Changelog
 
-## v1.8.1
-
-### New Features
-- Cooldown Manager: New "Active State" options for Essential and Utility cooldowns. Right-click an ability in the Cooldown Settings and choose Active State Options: Hide makes an active ability look like a normal cooldown (greyed icon, no active highlight), or Customize to recolor the swipe shown while the ability is active (custom or class color), tint the active countdown text, and optionally grey the icon.
-- Unit Frames: New "Power Word: Radiance Bar" for Discipline Priest — a segmented charge bar tracking Power Word: Radiance, with a recharge countdown, positioned by your class power bar.
-
-### Bug Fixes
-- Cooldown Manager: Fixed the Glow, Bar Color, and Active State option windows sometimes staying open after the Cooldown Settings window was closed.
-- Cooldown Manager: Fixed an occasional error when opening the cooldown options right after logging in.
+## v1.8.2
 
 ### Improvements
-- General: Multiple performance improvements.
-- General: Battle Rez / Bloodlust and Custom cooldown trackers no longer render on top of unit frames.
+- General: Updated for World of Warcraft patch 12.0.7.
