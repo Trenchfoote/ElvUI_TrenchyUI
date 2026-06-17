@@ -279,6 +279,7 @@ TUI.defaults = {
             mouseover      = false,
             mouseoverAlpha = 1.0,
             hideInCombat   = false,
+            collectExpansion = false,
         },
     },
 }

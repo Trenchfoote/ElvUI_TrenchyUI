@@ -194,12 +194,22 @@ local function LayoutBar()
 		mbbBar:SetPoint(anchorPoint, mover, anchorPoint, 0, 0)
 	end
 
-	-- Hide and release any button we previously adopted but is no longer collected
+	-- Release adopted buttons no longer collected: addon buttons hide; the Expansion button (tuiOrigParent) restores to the minimap.
 	local active = {}
 	for _, btn in ipairs(mbbButtons) do active[btn] = true end
 	for btn in pairs(mbbAdopted) do
 		if not active[btn] then
-			btn:Hide()
+			if btn.tuiOrigParent then
+				btn:SetParent(btn.tuiOrigParent)
+				btn:ClearAllPoints()
+				if btn.tuiBackdrop then btn.tuiBackdrop:Hide() end
+				if btn.tuiIcon then btn.tuiIcon:ClearAllPoints(); btn.tuiIcon:SetAllPoints(btn); btn.tuiIcon:SetTexCoord(0, 1, 0, 1) end
+				if btn.ResetLandingPageIconOffset then btn:ResetLandingPageIconOffset() end
+				if btn.RefreshButton then btn:RefreshButton(true) end
+				mbbSkinned[btn] = nil
+			else
+				btn:Hide()
+			end
 			mbbAdopted[btn] = nil
 		end
 	end
@@ -314,6 +324,28 @@ local function CollectButtons()
 		if narciBtn and narciBtn:IsObjectType('Frame')
 			and (not NarcissusDB or NarcissusDB.ShowMinimapButton ~= false) then
 			mbbButtons[#mbbButtons + 1] = narciBtn
+		end
+	end
+
+	-- Expansion (Landing Page) button: opt-in. Raw Blizzard frame -- restored to the minimap when not collected.
+	if GetMBBDB().collectExpansion then
+		local expBtn = _G['ExpansionLandingPageMinimapButton']
+		if expBtn and expBtn:IsObjectType('Frame') then
+			if not expBtn.tuiRefreshHooked and expBtn.RefreshButton then
+				expBtn.tuiRefreshHooked = true
+				-- Blizzard re-sizes/re-anchors/re-shows this button on landing-page events; re-collect to re-assert.
+				hooksecurefunc(expBtn, 'RefreshButton', function()
+					if GetMBBDB().collectExpansion and not expBtn.tuiRelayoutPending then
+						expBtn.tuiRelayoutPending = true
+						C_Timer.After(0, function() expBtn.tuiRelayoutPending = nil; QOL:UpdateMinimapButtonBar() end)
+					end
+				end)
+			end
+			if expBtn:IsShown() then
+				if not expBtn.tuiOrigParent then expBtn.tuiOrigParent = expBtn:GetParent() end
+				if not expBtn.icon and expBtn.GetNormalTexture then expBtn.icon = expBtn:GetNormalTexture() end
+				mbbButtons[#mbbButtons + 1] = expBtn
+			end
 		end
 	end
 

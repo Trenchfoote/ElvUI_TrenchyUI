@@ -281,6 +281,14 @@ function TUI:BuildQoLConfig(root, tuiName)
         function() return mbbDB().enabled end,
         function(_, v) mbbDB().enabled = v; E:StaticPopup_Show('CONFIG_RL') end)
 
+    mbb.collected = ACH:Group("Collected Buttons", nil, 3)
+    mbb.collected.inline = true
+    mbb.collected.args.collectExpansion = ACH:Toggle("Expansion Button",
+        "Pull the expansion landing-page button (the order hall / feature button) off the minimap and into the bar. When off, it returns to its default minimap position.",
+        1, nil, nil, nil,
+        function() return mbbDB().collectExpansion end,
+        function(_, v) mbbDB().collectExpansion = v; mbbUpdate() end, mbbDisabled)
+
     mbb.layout = ACH:Group("Layout", nil, 2)
     mbb.layout.inline = true
     local mbbLayout = mbb.layout.args

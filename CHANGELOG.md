@@ -1,6 +1,6 @@
 # TrenchyUI Changelog
 
-## v1.8.2
+## v1.8.3
 
-### Improvements
-- General: Updated for World of Warcraft patch 12.0.7.
+### New Features
+- QoL: New Minimap Buttons option to collect the expansion landing-page button (the order-hall / feature button) into the bar — off by default, and returned to the minimap when disabled.
