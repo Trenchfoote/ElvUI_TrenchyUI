@@ -3,8 +3,8 @@
 ## v1.8.3
 
 ### New Features
-- QoL: New Minimap Buttons option to collect the expansion landing-page button (the order-hall / feature button) into the bar — off by default, and returned to the minimap when disabled.
+- QoL: New option to collect the expansion landing-page button into the minimap button bar.
 
 ### Bug Fixes
-- Cooldown Manager: Fixed charge abilities (such as Power Word: Radiance) appearing greyed-out in the Active State "Hide" mode while a charge was still available; they now stay bright and show the recharge timer.
-- QoL: The minimap difficulty indicator now shows "M" for Mythic Flex raids and "S" for Story raids (previously showed "?").
+- Cooldown Manager: Charge abilities in Active State "Hide" mode no longer grey out while a charge is available.
+- QoL: Difficulty indicator now shows "M" for Mythic Flex and "S" for Story raids.
