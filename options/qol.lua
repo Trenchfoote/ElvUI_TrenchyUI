@@ -284,7 +284,7 @@ function TUI:BuildQoLConfig(root, tuiName)
 
     mbb.collected = ACH:Group("Collected Buttons", nil, 3)
     mbb.collected.inline = true
-    mbb.collected.args.collectExpansion = ACH:Toggle("Expansion Button",
+    mbb.collected.args.collectExpansion = ACH:Toggle(E.NewSign .. "Expansion Button",
         "Pull the expansion landing-page button (the order hall / feature button) off the minimap and into the bar. When off, it returns to its default minimap position.",
         1, nil, nil, nil,
         function() return mbbDB().collectExpansion end,
