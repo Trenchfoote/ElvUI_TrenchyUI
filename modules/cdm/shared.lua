@@ -390,6 +390,8 @@ end
 -- Per-spell active-state customization. mode = default (no override) | hide (cooldown look + desaturate) | custom (recolor swipe, tint active text, optional desaturate). All modes share IsActivePhase + the hooks below.
 local C_Spell_GetSpellCooldown = C_Spell.GetSpellCooldown
 local C_Spell_GetSpellCooldownDuration = C_Spell.GetSpellCooldownDuration
+local C_Spell_GetSpellChargeDuration = C_Spell.GetSpellChargeDuration
+local C_Spell_GetSpellCharges = C_Spell.GetSpellCharges
 local FindSpellOverrideByID = C_SpellBook and C_SpellBook.FindSpellOverrideByID
 local COOLDOWN_SWIPE_ALPHA = 0.7 -- Blizzard ITEM_COOLDOWN_COLOR alpha
 local AURA_SWIPE = { 1, 0.95, 0.57, 0.7 } -- Blizzard ITEM_AURA_COLOR
@@ -398,6 +400,14 @@ local AURA_SWIPE = { 1, 0.95, 0.57, 0.7 } -- Blizzard ITEM_AURA_COLOR
 local function IsActivePhase(itemFrame)
 	local sc = itemFrame and itemFrame.cooldownSwipeColor
 	return (sc and E:NotSecretValue(sc.r) and sc.r ~= 0) or false
+end
+
+-- Multi-charge spells stay castable while their buff is up, so Hide/Desaturate must not grey them. maxCharges is NeverSecret (combat-safe); currentCharges is secret so we never claim "unusable" on a charge spell.
+local function IsChargeable(spellID)
+	if not (spellID and C_Spell_GetSpellCharges) then return false end
+	local effID = (FindSpellOverrideByID and FindSpellOverrideByID(spellID)) or spellID
+	local info = C_Spell_GetSpellCharges(effID)
+	return (info and E:NotSecretValue(info.maxCharges) and info.maxCharges > 1) or false
 end
 
 local function PlayerClassColor()
@@ -442,12 +452,18 @@ local function AssertActiveState(cooldown, dir)
 	if dir.showCD then
 		if cooldown.SetUseAuraDisplayTime then cooldown:SetUseAuraDisplayTime(false) end
 		local sid = cooldown.tuiASSpell
-		if sid and cooldown.SetCooldownFromDurationObject and C_Spell_GetSpellCooldownDuration then
+		if sid and cooldown.SetCooldownFromDurationObject then
 			local effID = (FindSpellOverrideByID and FindSpellOverrideByID(sid)) or sid
-			local info = C_Spell_GetSpellCooldown and C_Spell_GetSpellCooldown(effID)
-			if info and info.isActive then
-				local cdDur = C_Spell_GetSpellCooldownDuration(effID)
+			if cooldown.tuiASChargeable then
+				-- Charge spells: GetSpellCooldown is inactive while a charge remains, so drive the swipe from the recharge duration object (secret-safe).
+				local cdDur = C_Spell_GetSpellChargeDuration and C_Spell_GetSpellChargeDuration(effID)
 				if cdDur then cooldown:SetCooldownFromDurationObject(cdDur) end
+			else
+				local info = C_Spell_GetSpellCooldown and C_Spell_GetSpellCooldown(effID)
+				if info and info.isActive then
+					local cdDur = C_Spell_GetSpellCooldownDuration and C_Spell_GetSpellCooldownDuration(effID)
+					if cdDur then cooldown:SetCooldownFromDurationObject(cdDur) end
+				end
 			end
 		end
 	end
@@ -490,7 +506,7 @@ local function EnsureActiveStateHooks(itemFrame, cooldown)
 		CDM.hookedActiveState[itemFrame] = true
 		hooksecurefunc(itemFrame, 'RefreshIconDesaturation', function(self)
 			local dir = self.Cooldown and self.Cooldown.tuiASDir
-			if dir and dir.desat and IsActivePhase(self) then
+			if dir and dir.desat and not self.Cooldown.tuiASChargeable and IsActivePhase(self) then
 				local tex = self.GetIconTexture and self:GetIconTexture()
 				if tex then tex:SetDesaturated(true) end
 			end
@@ -510,13 +526,14 @@ function CDM.ApplyActiveState(itemFrame, spellID)
 	cooldown.tuiASDir = dir
 	cooldown.tuiASSpell = (dir and spellID) or nil
 	cooldown.tuiASItem = itemFrame
+	cooldown.tuiASChargeable = (dir and dir.desat and IsChargeable(spellID)) or nil
 
 	local active = IsActivePhase(itemFrame)
 	if dir then
 		cooldown.tuiASApplied = true
 		if active then AssertActiveState(cooldown, dir) end
 		if itemFrame.GetIconTexture and active then
-			itemFrame:GetIconTexture():SetDesaturated(dir.desat or false)
+			itemFrame:GetIconTexture():SetDesaturated((dir.desat and not cooldown.tuiASChargeable) or false)
 		end
 	elseif cooldown.tuiASApplied then
 		-- restore once when an override is switched off; never touch always-default spells, or we fight Blizzard's aura/cooldown display every layout (jittery numbers)
