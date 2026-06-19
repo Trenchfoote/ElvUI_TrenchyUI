@@ -118,6 +118,7 @@ function TUI:BuildQoLConfig(root, tuiName)
         { key = "lfr",         label = "LFR" },
         { key = "follower",    label = "Follower" },
         { key = "delve",       label = "Delve" },
+        { key = "story",       label = "Story" },
     }
 
     for i, def in ipairs(diffColorDefs) do

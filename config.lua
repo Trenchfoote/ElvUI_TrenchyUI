@@ -41,6 +41,7 @@ TUI.defaults = {
                 lfr         = { r = 0.00, g = 0.80, b = 0.00 },
                 follower    = { r = 0.80, g = 0.80, b = 0.80 },
                 delve       = { r = 0.80, g = 0.60, b = 0.20 },
+                story       = { r = 0.90, g = 0.62, b = 0.78 },
                 other       = { r = 1.00, g = 1.00, b = 1.00 },
             },
             bresLust = {

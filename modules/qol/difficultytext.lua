@@ -11,12 +11,13 @@ local DIFF_CATEGORY = {
 	[173] = 'normal',  [198] = 'normal',  [201] = 'normal',
 	[2]   = 'heroic',  [15]  = 'heroic',  [39]  = 'heroic',
 	[174] = 'heroic',
-	[16]  = 'mythic',  [23]  = 'mythic',  [40]  = 'mythic',
+	[16]  = 'mythic',  [23]  = 'mythic',  [40]  = 'mythic',  [233] = 'mythic',
 	[8]   = 'keystoneMod',
 	[24]  = 'timewalking', [33] = 'timewalking', [151] = 'timewalking',
 	[7]   = 'lfr',     [17]  = 'lfr',
 	[205] = 'follower',
 	[208] = 'delve',
+	[220] = 'story',
 	[3]   = 'normal',  [4]   = 'normal',  [9]   = 'normal',
 	[175] = 'normal',  [176] = 'normal',  [186] = 'normal',
 	[148] = 'normal',  [185] = 'normal',  [215] = 'normal',
@@ -33,6 +34,7 @@ local DIFF_LABEL = {
 	lfr         = 'LFR',
 	follower    = 'FD',
 	delve       = 'D',
+	story       = 'S',
 	other       = '?',
 }
 
