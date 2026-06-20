@@ -331,15 +331,18 @@ local function CollectButtons()
 	if GetMBBDB().collectExpansion then
 		local expBtn = _G['ExpansionLandingPageMinimapButton']
 		if expBtn and expBtn:IsObjectType('Frame') then
-			if not expBtn.tuiRefreshHooked and expBtn.RefreshButton then
-				expBtn.tuiRefreshHooked = true
-				-- Blizzard re-sizes/re-anchors/re-shows this button on landing-page events; re-collect to re-assert.
-				hooksecurefunc(expBtn, 'RefreshButton', function()
+			if not expBtn.tuiHooked then
+				expBtn.tuiHooked = true
+				-- Blizzard/Edit Mode can re-parent or re-anchor this button off the bar on landing-page + layout events (not just RefreshButton); pull it back whenever it leaves mbbBar.
+				local function reassert()
 					if GetMBBDB().collectExpansion and not expBtn.tuiRelayoutPending then
 						expBtn.tuiRelayoutPending = true
 						C_Timer.After(0, function() expBtn.tuiRelayoutPending = nil; QOL:UpdateMinimapButtonBar() end)
 					end
-				end)
+				end
+				if expBtn.RefreshButton then hooksecurefunc(expBtn, 'RefreshButton', reassert) end
+				hooksecurefunc(expBtn, 'SetParent', function(_, parent) if parent ~= mbbBar then reassert() end end)
+				hooksecurefunc(expBtn, 'SetPoint', function(_, _, relativeTo) if relativeTo ~= mbbBar then reassert() end end)
 			end
 			if expBtn:IsShown() then
 				if not expBtn.tuiOrigParent then expBtn.tuiOrigParent = expBtn:GetParent() end
