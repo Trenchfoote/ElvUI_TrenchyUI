@@ -8,8 +8,8 @@ local C_Timer_NewTicker = C_Timer.NewTicker
 local IsInInstance, IsInRaid, IsInGroup = IsInInstance, IsInRaid, IsInGroup
 local GetNumGroupMembers = GetNumGroupMembers
 local UnitExists, UnitIsDead, UnitIsFeignDeath = UnitExists, UnitIsDead, UnitIsFeignDeath
-local PlaySound, PlaySoundFile = PlaySound, PlaySoundFile
-local ipairs, pairs, wipe, tonumber, type = ipairs, pairs, wipe, tonumber, type
+local PlaySoundFile = PlaySoundFile
+local ipairs, wipe = ipairs, wipe
 
 local POLL_INTERVAL = 0.5
 
@@ -20,16 +20,11 @@ local active = false
 
 local function GetDB() return TUI.db.profile.qol.partyDeath end
 
--- Dispatch a stored sound key: 'cdm:<soundKitID>' is a Cooldown Manager alert sound (PlaySound); anything else is an LSM sound (PlaySoundFile).
-local function PlayKey(key)
-	if not key or key == 'None' then return end
-	local kit = key:match('^cdm:(%d+)')
-	if kit then
-		PlaySound(tonumber(kit))
-	else
-		local file = LSM:Fetch('sound', key, true)
-		if file then PlaySoundFile(file, 'Master') end
-	end
+local function PlayDeathSound()
+	local name = GetDB().sound
+	if not name or name == 'None' then return end
+	local file = LSM:Fetch('sound', name, true)
+	if file then PlaySoundFile(file, 'Master') end
 end
 
 -- Watched group units, including the player. CLEU/UNIT_DIED is restricted in 12.x, so we poll death state instead.
@@ -47,8 +42,7 @@ end
 
 -- UnitIsDead/UnitIsFeignDeath return plain (non-secret) bools; feign death is excluded. Simultaneous deaths play one sound.
 local function Poll()
-	local db = GetDB()
-	if not db.enabled then return end
+	if not GetDB().enabled then return end
 	local newDeath = false
 	for _, unit in ipairs(units) do
 		if UnitExists(unit) and UnitIsDead(unit) and not UnitIsFeignDeath(unit) then
@@ -57,7 +51,7 @@ local function Poll()
 			deadState[unit] = nil
 		end
 	end
-	if newDeath then PlayKey(GetDB().sound) end
+	if newDeath then PlayDeathSound() end
 end
 
 -- Run only where the player has enabled it (outside / dungeon / raid).
@@ -84,31 +78,6 @@ local function UpdateActive()
 		wipe(units)
 		wipe(deadState)
 	end
-end
-
--- Recurse Blizzard's nested CooldownViewerSoundData (the Cooldown Manager "New Alert" list, grouped by category) collecting playable entries.
-local function CollectCDMSounds(tbl, out)
-	for _, value in pairs(tbl) do
-		if type(value) == 'table' then
-			if value.soundEnum and value.text and value.soundKitID then
-				out['cdm:' .. value.soundKitID] = '|cff82c5ff' .. value.text .. '|r'
-			else
-				CollectCDMSounds(value, out)
-			end
-		end
-	end
-end
-
--- Merged dropdown list: LSM sounds + the Cooldown Manager "New Alert" sounds (tinted, keyed 'cdm:<soundKitID>').
-function QOL:GetDeathSoundList()
-	local t = { None = 'None' }
-	for name in pairs(LSM:HashTable('sound')) do t[name] = name end
-	if CooldownViewerSoundData then CollectCDMSounds(CooldownViewerSoundData, t) end
-	return t
-end
-
-function QOL:PreviewDeathSound(key)
-	PlayKey(key)
 end
 
 -- Dedicated frame: difficultyText already owns PLAYER_ENTERING_WORLD / ZONE_CHANGED_NEW_AREA on the QoL AceEvent object, so a separate frame avoids clobbering its handlers.

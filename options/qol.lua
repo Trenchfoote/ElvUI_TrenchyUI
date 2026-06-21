@@ -79,26 +79,21 @@ function TUI:BuildQoLConfig(root, tuiName)
     local function pdDB() return TUI.db.profile.qol.partyDeath end
     local pdDisabled = function() return not pdDB().enabled end
 
-    pd.enabled = ACH:Toggle("Enable", "Play a sound when a group member dies in a dungeon or raid.", 1, nil, nil, nil,
+    pd.enabled = ACH:Toggle("Enable", "Play a sound when a group member dies.", 1, nil, nil, nil,
         function() return pdDB().enabled end,
         function(_, v) pdDB().enabled = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end)
 
-    pd.sound = ACH:Select("Sound", "LSM sounds plus Blizzard built-in sounds (shown in blue). Selecting one plays a preview.", 2,
-        function() return (QOL and QOL.GetDeathSoundList and QOL:GetDeathSoundList()) or {} end, nil, nil,
+    pd.sound = ACH:SharedMediaSound("Sound", nil, 2, nil,
         function() return pdDB().sound end,
-        function(_, v) pdDB().sound = v; if QOL and QOL.PreviewDeathSound then QOL:PreviewDeathSound(v) end end, pdDisabled)
+        function(_, v) pdDB().sound = v end, pdDisabled)
 
-    pd.preview = ACH:Execute("Preview", "Play the selected sound.", 3,
-        function() if QOL and QOL.PreviewDeathSound then QOL:PreviewDeathSound(pdDB().sound) end end,
-        nil, nil, nil, nil, nil, pdDisabled)
-
-    pd.useOutside = ACH:Toggle("Use Outside", nil, 4, nil, nil, nil,
+    pd.useOutside = ACH:Toggle("Use Outside", nil, 3, nil, nil, nil,
         function() return pdDB().useOutside end,
         function(_, v) pdDB().useOutside = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
-    pd.useInDungeon = ACH:Toggle("Use In Dungeon", nil, 5, nil, nil, nil,
+    pd.useInDungeon = ACH:Toggle("Use In Dungeon", nil, 4, nil, nil, nil,
         function() return pdDB().useInDungeon end,
         function(_, v) pdDB().useInDungeon = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
-    pd.useInRaid = ACH:Toggle("Use In Raid", nil, 6, nil, nil, nil,
+    pd.useInRaid = ACH:Toggle("Use In Raid", nil, 5, nil, nil, nil,
         function() return pdDB().useInRaid end,
         function(_, v) pdDB().useInRaid = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
 
