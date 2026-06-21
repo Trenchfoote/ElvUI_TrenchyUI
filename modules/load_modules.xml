@@ -25,6 +25,7 @@
 	<Script file="qol\actionbarlink.lua"/>
 	<Script file="qol\sounds.lua"/>
 	<Script file="qol\breslust.lua"/>
+	<Script file="qol\partydeath.lua"/>
 	<Script file="qol\enchantstrings.lua"/>
 
 	<!-- Nameplates -->

@@ -73,6 +73,35 @@ function TUI:BuildQoLConfig(root, tuiName)
     root.qol.args.dungeonsRaids = ACH:Group("Dungeons/Raids", nil, 3)
     local drArgs = root.qol.args.dungeonsRaids.args
 
+    drArgs.partyDeath = ACH:Group("Party Death Sound", nil, 3)
+    drArgs.partyDeath.inline = true
+    local pd = drArgs.partyDeath.args
+    local function pdDB() return TUI.db.profile.qol.partyDeath end
+    local pdDisabled = function() return not pdDB().enabled end
+
+    pd.enabled = ACH:Toggle("Enable", "Play a sound when a group member dies in a dungeon or raid.", 1, nil, nil, nil,
+        function() return pdDB().enabled end,
+        function(_, v) pdDB().enabled = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end)
+
+    pd.sound = ACH:Select("Sound", "LSM sounds plus Blizzard built-in sounds (shown in blue). Selecting one plays a preview.", 2,
+        function() return (QOL and QOL.GetDeathSoundList and QOL:GetDeathSoundList()) or {} end, nil, nil,
+        function() return pdDB().sound end,
+        function(_, v) pdDB().sound = v; if QOL and QOL.PreviewDeathSound then QOL:PreviewDeathSound(v) end end, pdDisabled)
+
+    pd.preview = ACH:Execute("Preview", "Play the selected sound.", 3,
+        function() if QOL and QOL.PreviewDeathSound then QOL:PreviewDeathSound(pdDB().sound) end end,
+        nil, nil, nil, nil, nil, pdDisabled)
+
+    pd.useOutside = ACH:Toggle("Use Outside", nil, 4, nil, nil, nil,
+        function() return pdDB().useOutside end,
+        function(_, v) pdDB().useOutside = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
+    pd.useInDungeon = ACH:Toggle("Use In Dungeon", nil, 5, nil, nil, nil,
+        function() return pdDB().useInDungeon end,
+        function(_, v) pdDB().useInDungeon = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
+    pd.useInRaid = ACH:Toggle("Use In Raid", nil, 6, nil, nil, nil,
+        function() return pdDB().useInRaid end,
+        function(_, v) pdDB().useInRaid = v; if QOL and QOL.RefreshPartyDeath then QOL:RefreshPartyDeath() end end, pdDisabled)
+
     -- Feature 1: Instance Difficulty
     drArgs.instanceDifficulty = ACH:Group("Instance Difficulty", nil, 1)
     drArgs.instanceDifficulty.inline = true

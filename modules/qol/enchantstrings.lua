@@ -168,6 +168,7 @@ function QOL:Initialize()
 	if db.moveableFrames and not TUI:IsCompatBlocked('moveableFrames') then self:InitMoveableFrames() end
 	if db.hideObjectiveInCombat then self:InitHideObjectiveInCombat() end
 	if self.InitMinimapButtonBar then self:InitMinimapButtonBar() end
+	if self.InitPartyDeath then self:InitPartyDeath() end
 	if db.cursorCircle then self:InitCursorCircle() end
 	if db.shortenEnchantStrings and self.InitEnchantStrings then self:InitEnchantStrings() end
 	if self.InitAuraFader then self:InitAuraFader() end

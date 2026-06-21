@@ -44,6 +44,13 @@ TUI.defaults = {
                 story       = { r = 0.90, g = 0.62, b = 0.78 },
                 other       = { r = 1.00, g = 1.00, b = 1.00 },
             },
+            partyDeath = {
+                enabled      = false,
+                sound        = 'None',
+                useOutside   = false,
+                useInDungeon = true,
+                useInRaid    = true,
+            },
             bresLust = {
                 enabled       = false,
                 showInDungeon = true,
