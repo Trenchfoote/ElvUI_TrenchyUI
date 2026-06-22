@@ -23,6 +23,18 @@ local function SkinKeystoneFrame(frame)
 			S:HandleTrimScrollBar(child.ScrollBar)
 		end
 	end
+
+	-- Route Escape through CloseButton so BigWigs' cleanup runs
+	frame:EnableKeyboard(true)
+	frame:SetPropagateKeyboardInput(true)
+	frame:HookScript('OnKeyDown', function(self, key)
+		if key == 'ESCAPE' then
+			self:SetPropagateKeyboardInput(false)
+			if self.CloseButton then self.CloseButton:Click() end
+		else
+			self:SetPropagateKeyboardInput(true)
+		end
+	end)
 end
 
 -- Find the BW keystones frame via EnumerateFrames (avoids UIParent:GetChildren taint)

@@ -4,7 +4,9 @@ local SKN = E:GetModule('TUI_Skins')
 local LSM = E.Libs.LSM or LibStub('LibSharedMedia-3.0')
 
 local CreateFrame = CreateFrame
+local EnumerateFrames = EnumerateFrames
 local ipairs = ipairs
+local tinsert = tinsert
 
 local DEFAULTS_BARS = {
 	texture      = 'BantoBar',
@@ -208,6 +210,44 @@ do -- Slug font rendering for bars
 	end
 end
 
+do -- ESC-close for the BigWigs config window
+	local GLOBAL_NAME = 'TUIBigWigsConfigFrame'
+	local registered = false
+	local cached
+
+	-- Identify the anonymous AceGUI config frame by its title
+	local function IsConfigFrame(f)
+		local obj = f.obj
+		return obj and obj.type == 'Frame' and obj.titletext and obj.titletext.GetText and obj.titletext:GetText() == 'BigWigs'
+	end
+
+	-- AceGUI pools Frame widgets, so re-resolve the live frame each open
+	local function FindConfigFrame()
+		if cached and IsConfigFrame(cached) and cached:IsShown() then return cached end
+		local f = EnumerateFrames()
+		while f do
+			if f:IsShown() and IsConfigFrame(f) then cached = f; return f end
+			f = EnumerateFrames(f)
+		end
+	end
+
+	function SKN:InitBigWigsConfigEsc()
+		-- UISpecialFrames :Hide() fires the frame's clean OnClose path
+		BigWigsLoader.RegisterMessage({}, 'BigWigs_OpenGUI', function()
+			local f = FindConfigFrame()
+			if not f then return end
+			_G[GLOBAL_NAME] = f
+			if not registered then
+				tinsert(UISpecialFrames, GLOBAL_NAME)
+				registered = true
+			end
+		end)
+		BigWigsLoader.RegisterMessage({}, 'BigWigs_CloseGUI', function()
+			_G[GLOBAL_NAME] = nil
+		end)
+	end
+end
+
 function SKN:InitSkinBigWigs()
 	if not BigWigsLoader then return end
 
@@ -217,4 +257,5 @@ function SKN:InitSkinBigWigs()
 	end
 
 	self:InitBigWigsSlug()
+	self:InitBigWigsConfigEsc()
 end
