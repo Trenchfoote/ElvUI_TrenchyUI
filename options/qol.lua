@@ -73,7 +73,7 @@ function TUI:BuildQoLConfig(root, tuiName)
     root.qol.args.dungeonsRaids = ACH:Group("Dungeons/Raids", nil, 3)
     local drArgs = root.qol.args.dungeonsRaids.args
 
-    drArgs.partyDeath = ACH:Group("Party Death Sound", nil, 3)
+    drArgs.partyDeath = ACH:Group(E.NewSign .. "Party Death Sound", nil, 3)
     drArgs.partyDeath.inline = true
     local pd = drArgs.partyDeath.args
     local function pdDB() return TUI.db.profile.qol.partyDeath end
@@ -308,7 +308,7 @@ function TUI:BuildQoLConfig(root, tuiName)
 
     mbb.collected = ACH:Group("Collected Buttons", nil, 3)
     mbb.collected.inline = true
-    mbb.collected.args.collectExpansion = ACH:Toggle(E.NewSign .. "Expansion Button",
+    mbb.collected.args.collectExpansion = ACH:Toggle("Expansion Button",
         "Pull the expansion landing-page button (the order hall / feature button) off the minimap and into the bar. When off, it returns to its default minimap position.",
         1, nil, nil, nil,
         function() return mbbDB().collectExpansion end,
